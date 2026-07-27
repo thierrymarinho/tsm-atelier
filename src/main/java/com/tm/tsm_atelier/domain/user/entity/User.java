@@ -1,6 +1,7 @@
 package com.tm.tsm_atelier.domain.user.entity;
 
 import com.tm.tsm_atelier.domain.common.entity.BaseEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -8,7 +9,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -55,6 +58,10 @@ public class User extends BaseEntity implements UserDetails {
 	@Builder.Default
 	private boolean emailVerified = false;
 
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private List<Address> addresses = new ArrayList<>();
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
@@ -82,6 +89,6 @@ public class User extends BaseEntity implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return emailVerified;
+		return true;
 	}
 }

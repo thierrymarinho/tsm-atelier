@@ -1,0 +1,139 @@
+package com.tm.tsm_atelier.domain.user.service;
+
+import com.tm.tsm_atelier.common.exception.custom.AddressLimitExceededException;
+import com.tm.tsm_atelier.common.exception.custom.AddressNotFoundException;
+import com.tm.tsm_atelier.domain.user.dto.AddressRequestDTO;
+import com.tm.tsm_atelier.domain.user.dto.AddressResponseDTO;
+import com.tm.tsm_atelier.domain.user.entity.Address;
+import com.tm.tsm_atelier.domain.user.entity.User;
+import com.tm.tsm_atelier.domain.user.repository.AddressRepository;
+import com.tm.tsm_atelier.domain.user.utils.ZipCodeUtils;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AddressService {
+
+	private final AddressRepository addressRepository;
+
+	public AddressService(AddressRepository addressRepository) {
+		this.addressRepository = addressRepository;
+	}
+
+	@Transactional(readOnly = true)
+	public List<AddressResponseDTO> findAllByUser(User user) {
+		return addressRepository.findByUserIdOrderByCreatedAtAsc(user.getId()).stream().map(this::toResponseDTO)
+				.toList();
+	}
+
+	@Transactional
+	public AddressResponseDTO create(User user, AddressRequestDTO request) {
+		long addressCount = addressRepository.countByUserId(user.getId());
+
+		if (addressCount >= 5) {
+			throw new AddressLimitExceededException("You can only have up to 5 addresses.");
+		}
+
+		boolean isDefault = request.isDefault();
+		if (addressCount == 0) {
+			isDefault = true; // First address is always default
+		} else if (isDefault) {
+			clearCurrentDefault(user.getId());
+		}
+
+		Address address = Address.builder().user(user).street(request.street()).number(request.number())
+				.complement(request.complement()).neighborhood(request.neighborhood()).city(request.city())
+				.state(request.state()).zipCode(ZipCodeUtils.formatZipCode(request.zipCode())).isDefault(isDefault)
+				.build();
+
+		Address savedAddress = addressRepository.save(address);
+		return toResponseDTO(savedAddress);
+	}
+
+	@Transactional
+	public AddressResponseDTO update(User user, Long addressId, AddressRequestDTO request) {
+		Address address = getAddressBelongingToUser(user.getId(), addressId);
+
+		if (request.isDefault() && !address.isDefault()) {
+			clearCurrentDefault(user.getId());
+			address.setDefault(true);
+		} else if (!request.isDefault() && address.isDefault()) {
+			// Cannot unset default directly if it's the only one, or should we?
+			// Let's just unset it. If they have another address they can make it default.
+			// But for better UX, we could force them to have at least one default if they
+			// have addresses.
+			// Let's allow unsetting, but if we want to enforce one default, we would pick
+			// another one.
+			// For simplicity, we just set it.
+			address.setDefault(false);
+		}
+
+		address.setStreet(request.street());
+		address.setNumber(request.number());
+		address.setComplement(request.complement());
+		address.setNeighborhood(request.neighborhood());
+		address.setCity(request.city());
+		address.setState(request.state());
+		address.setZipCode(ZipCodeUtils.formatZipCode(request.zipCode()));
+
+		return toResponseDTO(addressRepository.save(address));
+	}
+
+	@Transactional
+	public AddressResponseDTO setDefault(User user, Long addressId) {
+		Address address = getAddressBelongingToUser(user.getId(), addressId);
+
+		if (!address.isDefault()) {
+			clearCurrentDefault(user.getId());
+			address.setDefault(true);
+			addressRepository.save(address);
+		}
+
+		return toResponseDTO(address);
+	}
+
+	@Transactional
+	public void delete(User user, Long addressId) {
+		Address address = getAddressBelongingToUser(user.getId(), addressId);
+		boolean wasDefault = address.isDefault();
+
+		addressRepository.delete(address);
+
+		if (wasDefault) {
+			List<Address> remainingAddresses = addressRepository.findByUserIdOrderByCreatedAtAsc(user.getId());
+			if (!remainingAddresses.isEmpty()) {
+				Address newDefault = remainingAddresses.get(0);
+				newDefault.setDefault(true);
+				addressRepository.save(newDefault);
+			}
+		}
+	}
+
+	private Address getAddressBelongingToUser(UUID userId, Long addressId) {
+		Address address = addressRepository.findById(addressId)
+				.orElseThrow(() -> new AddressNotFoundException("Address not found."));
+
+		if (!address.getUser().getId().equals(userId)) {
+			throw new AddressNotFoundException("Address not found.");
+		}
+
+		return address;
+	}
+
+	private void clearCurrentDefault(UUID userId) {
+		Optional<Address> currentDefault = addressRepository.findByUserIdAndIsDefaultTrue(userId);
+		currentDefault.ifPresent(addr -> {
+			addr.setDefault(false);
+			addressRepository.save(addr);
+		});
+	}
+
+	private AddressResponseDTO toResponseDTO(Address address) {
+		return new AddressResponseDTO(address.getId(), address.getStreet(), address.getNumber(),
+				address.getComplement(), address.getNeighborhood(), address.getCity(), address.getState(),
+				address.getZipCode(), address.isDefault());
+	}
+}

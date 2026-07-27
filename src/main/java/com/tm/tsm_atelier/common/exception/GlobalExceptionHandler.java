@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -83,6 +84,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return problem;
 	}
 
+	@ExceptionHandler(EmailAlreadyVerifiedException.class)
+	public ProblemDetail handleEmailAlreadyVerified(EmailAlreadyVerifiedException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		problem.setTitle("Email already verified");
+		return problem;
+	}
+
+	@ExceptionHandler(DisabledException.class)
+	public ProblemDetail handleDisabledException(DisabledException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN,
+				"Please verify your email before logging in.");
+		problem.setTitle("Email not verified");
+		return problem;
+	}
+
 	@ExceptionHandler(AuthorizationDeniedException.class)
 	public ProblemDetail handleAccessDenied(AuthorizationDeniedException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
@@ -95,6 +111,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		logger.error("File upload error: ", ex);
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
 		problem.setTitle("Upload Error");
+		return problem;
+	}
+
+	@ExceptionHandler(AddressLimitExceededException.class)
+	public ProblemDetail handleAddressLimitExceeded(AddressLimitExceededException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+		problem.setTitle("Address limit exceeded");
+		return problem;
+	}
+
+	@ExceptionHandler(AddressNotFoundException.class)
+	public ProblemDetail handleAddressNotFound(AddressNotFoundException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+		problem.setTitle("Address not found");
 		return problem;
 	}
 

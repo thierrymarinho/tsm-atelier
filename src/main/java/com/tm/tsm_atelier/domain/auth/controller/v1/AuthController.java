@@ -6,6 +6,7 @@ import com.tm.tsm_atelier.domain.auth.dto.AuthResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
+import com.tm.tsm_atelier.domain.auth.dto.ResendVerificationRequestDTO;
 import com.tm.tsm_atelier.domain.auth.service.AuthService;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.security.JwtService;
@@ -55,6 +56,12 @@ public class AuthController {
 	public ResponseEntity<Void> verifyEmail(@RequestParam String token, HttpServletResponse response) {
 		AuthResponseDTO tokens = authService.verifyEmail(token);
 		addCookiesToResponse(response, tokens);
+		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping("/resend-verification")
+	public ResponseEntity<Void> resendVerificationEmail(@Valid @RequestBody ResendVerificationRequestDTO request) {
+		authService.resendVerificationEmail(request.email());
 		return ResponseEntity.ok().build();
 	}
 

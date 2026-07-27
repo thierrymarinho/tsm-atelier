@@ -1,6 +1,7 @@
 package com.tm.tsm_atelier.domain.auth.service;
 
 import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyExistsException;
+import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.EmailNotVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.InvalidTokenException;
 import com.tm.tsm_atelier.common.exception.custom.UserNotFoundException;
@@ -110,6 +111,21 @@ public class AuthService {
 		redisTemplate.delete("emailVerification:" + token);
 
 		return generateAndSaveTokens(user);
+	}
+
+	public void resendVerificationEmail(String email) {
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found."));
+
+		if (user.isEmailVerified()) {
+			throw new EmailAlreadyVerifiedException("This email is already verified.");
+		}
+
+		String verificationToken = UUID.randomUUID().toString();
+		redisTemplate.opsForValue().set("emailVerification:" + verificationToken, email,
+				Duration.ofMillis(emailVerificationExpiration));
+
+		String verificationLink = appBaseUrl + "/verify-email?token=" + verificationToken;
+		emailService.sendVerificationEmail(email, user.getFirstName(), verificationLink);
 	}
 
 	public AuthResponseDTO refresh(String refreshToken) {

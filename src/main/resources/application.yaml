@@ -35,7 +35,7 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:super-secret-key-for-jwt-generation-tsm-atelier}
-  access-token-expiration: 900000 # 15 minutos em ms
+  access-token-expiration: 30000 # 15 minutos em ms
   refresh-token-expiration: 604800000 # 7 dias em ms
 
 cloudinary:
@@ -48,6 +48,11 @@ resend:
   from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
 
 app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
   base-url: ${APP_BASE_URL:http://localhost:3000}
   email-verification-expiration: 86400000 # 24h em ms
 
+stripe:
+  api-key: ${STRIPE_API_KEY:sk_test_fake_key}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}

@@ -2,6 +2,7 @@ package com.tm.tsm_atelier.domain.product.service;
 
 import static com.tm.tsm_atelier.common.utils.SlugUtils.generateSlug;
 
+import com.tm.tsm_atelier.common.dto.CustomPageImpl;
 import com.tm.tsm_atelier.common.exception.custom.EntityAlreadyExistsException;
 import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
 import com.tm.tsm_atelier.domain.collection.repository.CollectionRepository;
@@ -82,7 +83,7 @@ public class ProductService {
 		// #1 — Gerar slug definitivo com ID após o save
 		savedProduct.setSlug(generateSlug(savedProduct.getName()) + "-" + savedProduct.getId());
 
-		return productMapper.toResponse(savedProduct);
+		return productMapper.toAdminResponse(savedProduct);
 	}
 
 	@Transactional
@@ -121,7 +122,7 @@ public class ProductService {
 		mergeColors(product, request.colors());
 
 		Product updatedProduct = productRepository.save(product);
-		return productMapper.toResponse(updatedProduct);
+		return productMapper.toAdminResponse(updatedProduct);
 	}
 
 	private void mergeColors(Product product, List<ProductColorRequestDTO> requestColors) {
@@ -243,9 +244,29 @@ public class ProductService {
 			productRepository.fetchColorsForProducts(page.getContent());
 		}
 
-		org.springframework.data.domain.Page<ProductSummaryDTO> mappedPage = page.map(productMapper::toSummary);
-		return new com.tm.tsm_atelier.common.dto.CustomPageImpl<>(mappedPage.getContent(), mappedPage.getPageable(),
-				mappedPage.getTotalElements());
+		Page<ProductSummaryDTO> mappedPage = page.map(productMapper::toSummary);
+		return new CustomPageImpl<>(mappedPage.getContent(), mappedPage.getPageable(), mappedPage.getTotalElements());
+	}
+
+	@Transactional(readOnly = true)
+	public Page<ProductSummaryDTO> searchAdmin(String searchTerm, Category category, TargetAudience targetAudience,
+			Long collectionId, BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, Pageable pageable) {
+
+		Specification<Product> spec = Specification.where(ProductSpecification.search(searchTerm))
+				.and(ProductSpecification.hasCategory(category))
+				.and(ProductSpecification.hasTargetAudience(targetAudience))
+				.and(ProductSpecification.hasCollectionId(collectionId))
+				.and(ProductSpecification.priceBetween(minPrice, maxPrice))
+				.and(ProductSpecification.isFeatured(isFeatured));
+
+		Page<Product> page = productRepository.findAll(spec, pageable);
+
+		if (page.hasContent()) {
+			productRepository.fetchColorsForProducts(page.getContent());
+		}
+
+		Page<ProductSummaryDTO> mappedPage = page.map(productMapper::toSummary);
+		return new CustomPageImpl<>(mappedPage.getContent(), mappedPage.getPageable(), mappedPage.getTotalElements());
 	}
 
 	private ProductColor buildColor(ProductColorRequestDTO dto, Product product) {
@@ -265,7 +286,14 @@ public class ProductService {
 	public ProductResponseDTO findById(Long id) {
 		Product product = productRepository.findByIdAndDeletedAtIsNull(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Product", id));
-		return productMapper.toResponse(product);
+		return productMapper.toCatalogResponse(product);
+	}
+
+	@Transactional(readOnly = true)
+	public ProductResponseDTO findAdminById(Long id) {
+		Product product = productRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Product", id));
+		return productMapper.toAdminResponse(product);
 	}
 
 	@Transactional(readOnly = true)
@@ -273,24 +301,8 @@ public class ProductService {
 	public ProductResponseDTO findBySlug(String slug) {
 		Product product = productRepository.findBySlugAndDeletedAtIsNull(slug)
 				.orElseThrow(() -> new ResourceNotFoundException("Product", slug));
-		return productMapper.toResponse(product);
+		return productMapper.toCatalogResponse(product);
 	}
-
-	// ============================================================
-	// ❌ VERSÃO ANTIGA — PROBLEMA N+1 (remover depois de testar)
-	// ============================================================
-	@Transactional(readOnly = true)
-	public List<ProductResponseDTO> findAllWithNPlusOne() {
-		log.info("========== [N+1] Iniciando findAll SEM @EntityGraph ==========");
-		long start = System.currentTimeMillis();
-
-		List<ProductResponseDTO> result = productRepository.findAll().stream().map(productMapper::toResponse).toList();
-
-		long duration = System.currentTimeMillis() - start;
-		log.info("========== [N+1] findAll finalizado em {} ms — {} produtos ==========", duration, result.size());
-		return result;
-	}
-
 	// --- Métodos auxiliares de validação ---
 
 	private void validateCategoryForAudience(Category category, TargetAudience audience) {

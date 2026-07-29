@@ -52,12 +52,12 @@ class ProductServiceTest {
 		Collection collection = aCollection().build();
 		ProductColor savedColor = new ProductColor();
 		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Calça Jeans Skinny", "calca-jeans-skinny-1", null,
-				null, null, null, null, null, null, true, false, null);
+				null, null, null, null, null, null, true, false, null, null);
 
 		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
 		when(collectionRepository.findById(requestDTO.collectionId())).thenReturn(Optional.of(collection));
 		when(productRepository.save(any(Product.class))).thenReturn(product);
-		when(productMapper.toResponse(any(Product.class))).thenReturn(responseDTO);
+		when(productMapper.toAdminResponse(any(Product.class))).thenReturn(responseDTO);
 
 		// Act
 		ProductResponseDTO result = productService.create(requestDTO);
@@ -69,7 +69,7 @@ class ProductServiceTest {
 		verify(productMapper).toEntity(requestDTO);
 		verify(collectionRepository).findById(requestDTO.collectionId());
 		verify(productRepository, times(1)).save(any(Product.class));
-		verify(productMapper).toResponse(product);
+		verify(productMapper).toAdminResponse(product);
 	}
 
 	@Test
@@ -98,11 +98,11 @@ class ProductServiceTest {
 		Product product = aProduct().build();
 		ProductColor savedColor = new ProductColor();
 		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Camiseta Básica", "camiseta-basica-1", null, null,
-				null, null, null, null, null, true, false, null);
+				null, null, null, null, null, true, false, null, null);
 
 		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
 		when(productRepository.save(any(Product.class))).thenReturn(product);
-		when(productMapper.toResponse(any(Product.class))).thenReturn(responseDTO);
+		when(productMapper.toAdminResponse(any(Product.class))).thenReturn(responseDTO);
 
 		// Act
 		ProductResponseDTO result = productService.create(requestDTO);
@@ -114,36 +114,15 @@ class ProductServiceTest {
 	}
 
 	@Test
-	@DisplayName("Deve buscar todos os produtos")
-	void shouldFindAllProducts() {
-		// Arrange
-		Product product1 = aProduct().withId(1L).build();
-		Product product2 = aProduct().withId(2L).build();
-		when(productRepository.findAll()).thenReturn(java.util.List.of(product1, product2));
-		when(productMapper.toResponse(any(Product.class))).thenReturn(
-				new ProductResponseDTO(1L, "Prod 1", "prod-1", null, null, null, null, null, null, null, true, false,
-						null),
-				new ProductResponseDTO(2L, "Prod 2", "prod-2", null, null, null, null, null, null, null, true, false,
-						null));
-
-		// Act
-		java.util.List<ProductResponseDTO> result = productService.findAllWithNPlusOne();
-
-		// Assert
-		assertThat(result).hasSize(2);
-		verify(productRepository, times(1)).findAll();
-	}
-
-	@Test
 	@DisplayName("Deve buscar um produto por ID com sucesso")
 	void shouldFindProductByIdSuccessfully() {
 		// Arrange
 		Product product = aProduct().withId(1L).build();
 		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Produto Encontrado", "produto-encontrado-1", null,
-				null, null, null, null, null, null, true, false, null);
+				null, null, null, null, null, null, true, false, null, null);
 
 		when(productRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(product));
-		when(productMapper.toResponse(product)).thenReturn(responseDTO);
+		when(productMapper.toCatalogResponse(product)).thenReturn(responseDTO);
 
 		// Act
 		ProductResponseDTO result = productService.findById(1L);
@@ -165,6 +144,6 @@ class ProductServiceTest {
 				.isInstanceOf(RuntimeException.class)
 				.hasMessage("Product not found with identifier: 99");
 				
-		verify(productMapper, never()).toResponse(any());
+		verify(productMapper, never()).toCatalogResponse(any());
 	}
 }

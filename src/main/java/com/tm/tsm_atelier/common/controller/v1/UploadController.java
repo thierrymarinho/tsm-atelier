@@ -1,7 +1,7 @@
 package com.tm.tsm_atelier.common.controller.v1;
 
 import com.tm.tsm_atelier.common.dto.UploadResponseDTO;
-import com.tm.tsm_atelier.common.service.ImageStorageService;
+import com.tm.tsm_atelier.domain.common.port.StoragePort;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class UploadController {
 
-	private final ImageStorageService imageStorageService;
+	private final StoragePort storagePort;
 
 	@PostMapping
 	public ResponseEntity<UploadResponseDTO> uploadImages(@RequestParam("files") List<MultipartFile> files,
@@ -27,7 +27,7 @@ public class UploadController {
 		List<String> urls = new ArrayList<>();
 		for (MultipartFile file : files) {
 			if (!file.isEmpty()) {
-				String url = imageStorageService.uploadImage(file, folder);
+				String url = storagePort.uploadImage(file, folder);
 				urls.add(url);
 			}
 		}

@@ -88,6 +88,6 @@ public class ProductResponseDTOBuilder {
 
 	public ProductResponseDTO build() {
 		return new ProductResponseDTO(id, name, slug, description, fabricCompositions, careInstructions, price,
-				collection, category, targetAudience, active, featured, colors);
+				collection, category, targetAudience, active, featured, colors, null);
 	}
 }

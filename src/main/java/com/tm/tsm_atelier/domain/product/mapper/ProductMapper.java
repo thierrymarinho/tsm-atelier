@@ -16,7 +16,32 @@ public interface ProductMapper {
 	@Mapping(target = "colors", ignore = true)
 	Product toEntity(ProductRequestDTO request);
 
-	ProductResponseDTO toResponse(Product entity);
+	ProductResponseDTO toAdminResponse(Product entity);
+
+	default ProductResponseDTO toCatalogResponse(Product entity) {
+		ProductResponseDTO fullResponse = toAdminResponse(entity);
+		if (fullResponse == null)
+			return null;
+
+		java.util.List<com.tm.tsm_atelier.domain.product.dto.ProductColorResponseDTO> activeColors = new java.util.ArrayList<>();
+		if (fullResponse.colors() != null) {
+			for (var color : fullResponse.colors()) {
+				if (color.deletedAt() == null) {
+					java.util.List<com.tm.tsm_atelier.domain.product.dto.ProductSKUResponseDTO> activeSkus = null;
+					if (color.skus() != null) {
+						activeSkus = color.skus().stream().filter(sku -> sku.deletedAt() == null).toList();
+					}
+					activeColors.add(new com.tm.tsm_atelier.domain.product.dto.ProductColorResponseDTO(color.id(),
+							color.colorName(), color.colorHex(), color.coverImageUrl(), color.hoverImageUrl(),
+							color.galleryImages(), activeSkus, color.deletedAt()));
+				}
+			}
+		}
+		return new ProductResponseDTO(fullResponse.id(), fullResponse.name(), fullResponse.slug(),
+				fullResponse.description(), fullResponse.fabricCompositions(), fullResponse.careInstructions(),
+				fullResponse.price(), fullResponse.collection(), fullResponse.category(), fullResponse.targetAudience(),
+				fullResponse.active(), fullResponse.featured(), activeColors, fullResponse.deletedAt());
+	}
 
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "slug", ignore = true)
@@ -47,6 +72,7 @@ public interface ProductMapper {
 		}
 
 		return new com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO(entity.getId(), entity.getName(),
-				entity.getSlug(), entity.getPrice(), entity.isFeatured(), coverImage, hoverImage, colorsHex);
+				entity.getSlug(), entity.getPrice(), entity.isFeatured(), coverImage, hoverImage, colorsHex,
+				entity.getDeletedAt(), entity.isActive());
 	}
 }

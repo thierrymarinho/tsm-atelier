@@ -7,12 +7,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "product_colors")
 @SQLDelete(sql = "UPDATE product_colors SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor

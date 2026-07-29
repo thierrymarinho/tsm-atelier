@@ -57,13 +57,6 @@ public class ProductCatalogController {
 		}
 	}
 
-	// ❌ Versão antiga — N+1 queries (remover depois de testar)
-	// Teste no Postman: GET /api/v1/catalog/products/n-plus-one
-	@GetMapping("/n-plus-one")
-	public ResponseEntity<List<ProductResponseDTO>> findAllWithNPlusOne() {
-		return ResponseEntity.ok(productService.findAllWithNPlusOne());
-	}
-
 	@GetMapping("/{id}")
 	public ResponseEntity<ProductResponseDTO> findById(@PathVariable Long id) {
 		return ResponseEntity.ok(productService.findById(id));

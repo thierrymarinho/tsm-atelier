@@ -2,9 +2,16 @@ package com.tm.tsm_atelier.domain.product.controller.v1;
 
 import com.tm.tsm_atelier.domain.product.dto.ProductRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO;
+import com.tm.tsm_atelier.domain.product.enums.Category;
+import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import com.tm.tsm_atelier.domain.product.service.ProductService;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,22 +29,19 @@ public class ProductAdminController {
 	}
 
 	@GetMapping
-	public ResponseEntity<org.springframework.data.domain.Page<com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO>> search(
-			@RequestParam(required = false) String searchTerm,
-			@RequestParam(required = false) com.tm.tsm_atelier.domain.product.enums.Category category,
-			@RequestParam(required = false) com.tm.tsm_atelier.domain.product.enums.TargetAudience targetAudience,
-			@RequestParam(required = false) Long collectionId,
-			@RequestParam(required = false) java.math.BigDecimal minPrice,
-			@RequestParam(required = false) java.math.BigDecimal maxPrice,
-			@RequestParam(required = false) Boolean isFeatured,
-			@org.springframework.data.web.PageableDefault(size = 20) org.springframework.data.domain.Pageable pageable) {
-		return ResponseEntity.ok(productService.searchCatalog(searchTerm, category, targetAudience, collectionId,
+	public ResponseEntity<Page<ProductSummaryDTO>> search(@RequestParam(required = false) String searchTerm,
+			@RequestParam(required = false) Category category,
+			@RequestParam(required = false) TargetAudience targetAudience,
+			@RequestParam(required = false) Long collectionId, @RequestParam(required = false) BigDecimal minPrice,
+			@RequestParam(required = false) BigDecimal maxPrice, @RequestParam(required = false) Boolean isFeatured,
+			@PageableDefault(size = 20) Pageable pageable) {
+		return ResponseEntity.ok(productService.searchAdmin(searchTerm, category, targetAudience, collectionId,
 				minPrice, maxPrice, isFeatured, pageable));
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ProductResponseDTO> findById(@PathVariable Long id) {
-		return ResponseEntity.ok(productService.findById(id));
+		return ResponseEntity.ok(productService.findAdminById(id));
 	}
 
 	@PutMapping("/{id}")

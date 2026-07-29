@@ -3,6 +3,7 @@ package com.tm.tsm_atelier.domain.product.controller.v1;
 import static com.tm.tsm_atelier.common.builders.ProductRequestDTOBuilder.aProductRequest;
 import static com.tm.tsm_atelier.common.builders.ProductResponseDTOBuilder.aProductResponse;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -60,9 +61,10 @@ class ProductAdminControllerTest {
 			when(productService.create(any(ProductRequestDTO.class))).thenReturn(responseDTO);
 
 			// Act & Assert
-			mockMvc.perform(post(BASE_URL).with(user("admin").roles("ADMIN")).contentType(MediaType.APPLICATION_JSON)
-					.content(objectMapper.writeValueAsString(requestDTO))).andExpect(status().isCreated())
-					.andExpect(jsonPath("$.id").value(1L)).andExpect(jsonPath("$.name").value(requestDTO.name()));
+			mockMvc.perform(post(BASE_URL).with(user("admin").roles("ADMIN")).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(requestDTO)))
+					.andExpect(status().isCreated()).andExpect(jsonPath("$.id").value(1L))
+					.andExpect(jsonPath("$.name").value(requestDTO.name()));
 
 			verify(productService, times(1)).create(any(ProductRequestDTO.class));
 		}
@@ -75,8 +77,8 @@ class ProductAdminControllerTest {
 					.withColors(java.util.Collections.emptyList()).build();
 
 			// Act
-			mockMvc.perform(post(BASE_URL).with(user("admin").roles("ADMIN")).contentType(MediaType.APPLICATION_JSON)
-					.content(objectMapper.writeValueAsString(requestDTO)))
+			mockMvc.perform(post(BASE_URL).with(user("admin").roles("ADMIN")).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(requestDTO)))
 
 					// Assert
 					.andExpect(status().isUnprocessableContent()).andExpect(jsonPath("$.status").value(422))
@@ -94,7 +96,7 @@ class ProductAdminControllerTest {
 			ProductRequestDTO requestDTO = aProductRequest().build();
 
 			// Act & Assert
-			mockMvc.perform(post(BASE_URL).with(user("customer").roles("CUSTOMER"))
+			mockMvc.perform(post(BASE_URL).with(user("customer").roles("CUSTOMER")).with(csrf())
 					.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(requestDTO)))
 					.andExpect(status().isForbidden());
 
@@ -111,8 +113,8 @@ class ProductAdminControllerTest {
 					new com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException("Collection", 1L));
 
 			// Act
-			mockMvc.perform(post(BASE_URL).with(user("admin").roles("ADMIN")).contentType(MediaType.APPLICATION_JSON)
-					.content(objectMapper.writeValueAsString(requestDTO)))
+			mockMvc.perform(post(BASE_URL).with(user("admin").roles("ADMIN")).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(requestDTO)))
 
 					// Assert
 					.andExpect(status().isNotFound());

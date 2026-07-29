@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -20,12 +21,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP, email = concat(id, '@deleted.local'), first_name = 'Usuário', last_name = 'Deletado', password = '' WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -62,6 +67,9 @@ public class User extends BaseEntity implements UserDetails {
 	@Builder.Default
 	private List<Address> addresses = new ArrayList<>();
 
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
@@ -89,6 +97,6 @@ public class User extends BaseEntity implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return true;
+		return deletedAt == null;
 	}
 }

@@ -5,6 +5,7 @@ import static com.tm.tsm_atelier.common.builders.LoginRequestBuilder.aLoginReque
 import static com.tm.tsm_atelier.common.builders.RegisterRequestBuilder.aRegisterRequest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
@@ -59,12 +60,12 @@ class AuthControllerTest {
 	private static final String BASE_URL = "/api/v1/auth";
 
 	private ResultActions performRegister(RegisterRequestDTO request) throws Exception {
-		return mockMvc.perform(post(BASE_URL + "/register").contentType(MediaType.APPLICATION_JSON)
+		return mockMvc.perform(post(BASE_URL + "/register").with(csrf()).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)));
 	}
 
 	private ResultActions performLogin(LoginRequestDTO request) throws Exception {
-		return mockMvc.perform(post(BASE_URL + "/login").contentType(MediaType.APPLICATION_JSON)
+		return mockMvc.perform(post(BASE_URL + "/login").with(csrf()).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)));
 	}
 
@@ -236,10 +237,10 @@ class AuthControllerTest {
 			when(authService.refresh(validToken)).thenReturn(newTokens);
 
 			// Act & Assert
-			mockMvc.perform(
-					post(BASE_URL + "/refresh").cookie(new jakarta.servlet.http.Cookie("refresh_token", validToken)))
-					.andExpect(status().isOk()).andExpect(cookie().exists("access_token"))
-					.andExpect(cookie().value("access_token", "new-access")).andExpect(cookie().exists("refresh_token"))
+			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())
+					.cookie(new jakarta.servlet.http.Cookie("refresh_token", validToken))).andExpect(status().isOk())
+					.andExpect(cookie().exists("access_token")).andExpect(cookie().value("access_token", "new-access"))
+					.andExpect(cookie().exists("refresh_token"))
 					.andExpect(cookie().value("refresh_token", "new-refresh"))
 					.andExpect(jsonPath("$.email").value(newTokens.email()))
 					.andExpect(jsonPath("$.name").value(newTokens.name()));
@@ -251,7 +252,7 @@ class AuthControllerTest {
 		@DisplayName("Deve retornar 401 quando não há cookie de refresh token")
 		void shouldReturn401WhenNoRefreshTokenCookie() throws Exception {
 			// Act & Assert
-			mockMvc.perform(post(BASE_URL + "/refresh")).andExpect(status().isUnauthorized());
+			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())).andExpect(status().isUnauthorized());
 
 			verify(authService, never()).refresh(anyString());
 		}
@@ -266,8 +267,8 @@ class AuthControllerTest {
 					.thenThrow(new com.tm.tsm_atelier.common.exception.custom.InvalidTokenException("Invalid token"));
 
 			// Act & Assert
-			mockMvc.perform(
-					post(BASE_URL + "/refresh").cookie(new jakarta.servlet.http.Cookie("refresh_token", invalidToken)))
+			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())
+					.cookie(new jakarta.servlet.http.Cookie("refresh_token", invalidToken)))
 					.andExpect(status().isUnauthorized());
 
 			verify(authService).refresh(invalidToken);
@@ -345,9 +346,9 @@ class AuthControllerTest {
 			String token = "any-token";
 
 			// Act & Assert
-			mockMvc.perform(post(BASE_URL + "/logout").cookie(new jakarta.servlet.http.Cookie("refresh_token", token)))
-					.andExpect(status().isOk()).andExpect(cookie().value("access_token", ""))
-					.andExpect(cookie().value("refresh_token", ""));
+			mockMvc.perform(post(BASE_URL + "/logout").with(csrf())
+					.cookie(new jakarta.servlet.http.Cookie("refresh_token", token))).andExpect(status().isOk())
+					.andExpect(cookie().value("access_token", "")).andExpect(cookie().value("refresh_token", ""));
 
 			verify(authService).logout(token);
 		}
@@ -356,7 +357,7 @@ class AuthControllerTest {
 		@DisplayName("Deve setar maxAge=0 nos cookies para forçar remoção no navegador")
 		void shouldSetMaxAgeZeroOnCookies() throws Exception {
 			// Act & Assert
-			mockMvc.perform(post(BASE_URL + "/logout")).andExpect(status().isOk())
+			mockMvc.perform(post(BASE_URL + "/logout").with(csrf())).andExpect(status().isOk())
 					.andExpect(cookie().maxAge("access_token", 0)).andExpect(cookie().maxAge("refresh_token", 0));
 
 			verify(authService).logout(null);

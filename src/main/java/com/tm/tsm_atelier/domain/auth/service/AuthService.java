@@ -5,11 +5,11 @@ import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.EmailNotVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.InvalidTokenException;
 import com.tm.tsm_atelier.common.exception.custom.UserNotFoundException;
-import com.tm.tsm_atelier.common.service.EmailService;
 import com.tm.tsm_atelier.domain.auth.dto.AuthResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
+import com.tm.tsm_atelier.domain.common.port.EmailPort;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Role;
 import com.tm.tsm_atelier.domain.user.entity.User;
@@ -33,7 +33,7 @@ public class AuthService {
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
 	private final StringRedisTemplate redisTemplate;
-	private final EmailService emailService;
+	private final EmailPort emailPort;
 
 	@Value("${jwt.refresh-token-expiration}")
 	private long refreshTokenExpiration;
@@ -45,13 +45,13 @@ public class AuthService {
 	private String appBaseUrl;
 
 	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService,
-			AuthenticationManager authenticationManager, StringRedisTemplate redisTemplate, EmailService emailService) {
+			AuthenticationManager authenticationManager, StringRedisTemplate redisTemplate, EmailPort emailPort) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
 		this.authenticationManager = authenticationManager;
 		this.redisTemplate = redisTemplate;
-		this.emailService = emailService;
+		this.emailPort = emailPort;
 	}
 
 	@Transactional
@@ -74,7 +74,7 @@ public class AuthService {
 		String verificationLink = appBaseUrl + "/verify-email?token=" + verificationToken;
 
 		// Disparo assíncrono — não bloqueia o retorno do register
-		emailService.sendVerificationEmail(request.email(), request.firstName(), verificationLink);
+		emailPort.sendVerificationEmail(request.email(), request.firstName(), verificationLink);
 
 		return new RegisterResponseDTO("Registration successful. Please check your email to verify your account.");
 	}
@@ -125,7 +125,7 @@ public class AuthService {
 				Duration.ofMillis(emailVerificationExpiration));
 
 		String verificationLink = appBaseUrl + "/verify-email?token=" + verificationToken;
-		emailService.sendVerificationEmail(email, user.getFirstName(), verificationLink);
+		emailPort.sendVerificationEmail(email, user.getFirstName(), verificationLink);
 	}
 
 	public AuthResponseDTO refresh(String refreshToken) {

@@ -61,13 +61,6 @@ public class AddressService {
 			clearCurrentDefault(user.getId());
 			address.setDefault(true);
 		} else if (!request.isDefault() && address.isDefault()) {
-			// Cannot unset default directly if it's the only one, or should we?
-			// Let's just unset it. If they have another address they can make it default.
-			// But for better UX, we could force them to have at least one default if they
-			// have addresses.
-			// Let's allow unsetting, but if we want to enforce one default, we would pick
-			// another one.
-			// For simplicity, we just set it.
 			address.setDefault(false);
 		}
 

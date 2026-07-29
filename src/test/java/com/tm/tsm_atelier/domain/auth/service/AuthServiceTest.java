@@ -13,11 +13,11 @@ import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyExistsException;
 import com.tm.tsm_atelier.common.exception.custom.EmailNotVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.InvalidTokenException;
 import com.tm.tsm_atelier.common.exception.custom.UserNotFoundException;
-import com.tm.tsm_atelier.common.service.EmailService;
 import com.tm.tsm_atelier.domain.auth.dto.AuthResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
+import com.tm.tsm_atelier.domain.common.port.EmailPort;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Role;
 import com.tm.tsm_atelier.domain.user.entity.User;
@@ -67,7 +67,7 @@ class AuthServiceTest {
 	private ValueOperations<String, String> valueOperations;
 
 	@Mock
-	private EmailService emailService;
+	private EmailPort emailService;
 
 	@Captor
 	private ArgumentCaptor<User> userCaptor;

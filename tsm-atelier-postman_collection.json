@@ -1,0 +1,968 @@
+{
+    "info": {
+        "name": "TSM Atelier API",
+        "description": "Endpoints para a API do TSM Atelier",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "1. Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"firstName\": \"Admin\",\n  \"lastName\": \"User\",\n  \"email\": \"admin@tsmatelier.com\",\n  \"password\": \"senha123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/auth/register",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2. Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"admin@tsmatelier.com\",\n  \"password\": \"senha123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/auth/login",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3. Refresh Token",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/auth/refresh",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "refresh"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4. Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/auth/logout",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5. Resend Verification Email",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"admin@tsmatelier.com\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/auth/resend-verification",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "resend-verification"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin Products",
+            "item": [
+                {
+                    "name": "Create Product",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Calça Jeans Wide Leg\",\n  \"description\": \"Calça jeans modelo wide leg com cintura alta e lavagem clara.\",\n  \"fabricComposition\": \"100% Algodão\",\n  \"careInstructions\": [\n    \"Lavar à máquina em ciclo suave\",\n    \"Não usar alvejante\",\n    \"Secar à sombra\"\n  ],\n  \"price\": 249.90,\n  \"collectionId\": 1,\n  \"category\": \"PANTS\",\n  \"targetAudience\": \"WOMEN\",\n  \"active\": true,\n  \"colors\": [\n    {\n      \"colorName\": \"Azul Claro\",\n      \"colorHex\": \"#ADD8E6\",\n      \"coverImageUrl\": \"https://res.cloudinary.com/demo/image/upload/calca-azul-frente.jpg\",\n      \"hoverImageUrl\": \"https://res.cloudinary.com/demo/image/upload/calca-azul-verso.jpg\",\n      \"galleryImages\": [\n        \"https://res.cloudinary.com/demo/image/upload/calca-azul-detalhe.jpg\"\n      ],\n      \"skus\": [\n        {\n          \"size\": \"36\",\n          \"skuCode\": \"CAL-WL-AZ-36\",\n          \"stockQuantity\": 15\n        },\n        {\n          \"size\": \"38\",\n          \"skuCode\": \"CAL-WL-AZ-38\",\n          \"stockQuantity\": 20\n        },\n        {\n          \"size\": \"40\",\n          \"skuCode\": \"CAL-WL-AZ-40\",\n          \"stockQuantity\": 10\n        }\n      ]\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/products",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Products",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/products",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "products"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Product By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/products/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "products",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Product",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Calça Jeans Wide Leg Editada\",\n  \"description\": \"Calça jeans modelo wide leg editada.\",\n  \"fabricComposition\": \"100% Algodão\",\n  \"careInstructions\": [\n    \"Lavar à máquina\"\n  ],\n  \"price\": 199.90,\n  \"collectionId\": 1,\n  \"category\": \"PANTS\",\n  \"targetAudience\": \"WOMEN\",\n  \"active\": true,\n  \"colors\": [\n    {\n      \"id\": 1,\n      \"colorName\": \"Azul Claro\",\n      \"colorHex\": \"#ADD8E6\",\n      \"coverImageUrl\": \"https://res.cloudinary.com/demo/image/upload/calca-azul-frente.jpg\",\n      \"hoverImageUrl\": \"https://res.cloudinary.com/demo/image/upload/calca-azul-verso.jpg\",\n      \"galleryImages\": [],\n      \"skus\": [\n        {\n          \"id\": 1,\n          \"size\": \"36\",\n          \"skuCode\": \"CAL-WL-AZ-36\",\n          \"stockQuantity\": 10\n        }\n      ]\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/products/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "products",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Product (Soft Delete)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/products/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "products",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin Collections",
+            "item": [
+                {
+                    "name": "Create Collection",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Nova Coleção Exemplo\",\n  \"active\": true,\n  \"imageUrl\": \"https://res.cloudinary.com/demo/image/upload/v1/colecao.jpg\",\n  \"displayPosition\": \"CAROUSEL\",\n  \"displayOrder\": 1,\n  \"targetAudience\": \"WOMEN\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/collections",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "collections"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Collection",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Nova Coleção Editada\",\n  \"active\": true,\n  \"imageUrl\": \"https://res.cloudinary.com/demo/image/upload/v1/colecao_editada.jpg\",\n  \"displayPosition\": \"FEATURED\",\n  \"displayOrder\": 2,\n  \"targetAudience\": \"WOMEN\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/collections/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "collections",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Collection",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/collections/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "collections",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Collections",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/collections",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "collections"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Collection By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/admin/collections/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "collections",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Catalog (Public)",
+            "item": [
+                {
+                    "name": "Get All Collections",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/catalog/collections?position=CAROUSEL&targetAudience=WOMEN",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "catalog",
+                                "collections"
+                            ],
+                            "query": [
+                                {
+                                    "key": "position",
+                                    "value": "CAROUSEL",
+                                    "description": "Optional: CAROUSEL, FEATURED, GRID, NONE"
+                                },
+                                {
+                                    "key": "targetAudience",
+                                    "value": "WOMEN",
+                                    "description": "Optional: WOMEN, MEN, KIDS, UNISEX"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Collection By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/catalog/collections/1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "catalog",
+                                "collections",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Catalog",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/catalog/products?searchTerm=calça&section=WOMAN&page=0&size=12",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "catalog",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "searchTerm",
+                                    "value": "calça",
+                                    "description": "Optional: Termo de busca"
+                                },
+                                {
+                                    "key": "section",
+                                    "value": "WOMAN",
+                                    "description": "Optional: Target Audience (WOMEN, MEN, etc)"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "",
+                                    "description": "Optional: Categoria",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "minPrice",
+                                    "value": "",
+                                    "description": "Optional: Preço mínimo",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "12"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Product By Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/catalog/products/slug/calca-jeans-wide-leg-1",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "catalog",
+                                "products",
+                                "slug",
+                                "calca-jeans-wide-leg-1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Categories",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/catalog/products/categories?targetAudience=WOMEN",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "catalog",
+                                "products",
+                                "categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "targetAudience",
+                                    "value": "WOMEN",
+                                    "description": "Can be MEN, WOMEN, UNISEX or omitted to fetch all"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Admin Uploads",
+            "item": [
+                {
+                    "name": "Upload Images",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "files",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "folder",
+                                    "value": "general",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/admin/uploads",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "uploads"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "User Addresses",
+            "item": [
+                {
+                    "name": "1. Create Address",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"street\": \"Rua Exemplo\",\n  \"number\": \"123\",\n  \"complement\": \"Apto 45\",\n  \"neighborhood\": \"Centro\",\n  \"city\": \"S\\u00e3o Paulo\",\n  \"state\": \"SP\",\n  \"zipCode\": \"01000-000\",\n  \"isDefault\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/addresses",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "addresses"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2. Get All Addresses",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/addresses",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "addresses"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3. Update Address",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"street\": \"Rua Atualizada\",\n  \"number\": \"321\",\n  \"complement\": \"Casa\",\n  \"neighborhood\": \"Bairro Novo\",\n  \"city\": \"Rio de Janeiro\",\n  \"state\": \"RJ\",\n  \"zipCode\": \"20000000\",\n  \"isDefault\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/addresses/{{address_id}}",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "addresses",
+                                "{{address_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4. Set Default Address",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/addresses/{{address_id}}/default",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "addresses",
+                                "{{address_id}}",
+                                "default"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5. Delete Address",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/addresses/{{address_id}}",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "addresses",
+                                "{{address_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Orders",
+            "item": [
+                {
+                    "name": "1. Checkout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"addressId\": 1,\n  \"items\": [\n    {\n      \"skuId\": 1,\n      \"quantity\": 2\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/v1/orders/checkout",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "v1",
+                                "orders",
+                                "checkout"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2. My Orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/orders/my-orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "orders",
+                                "my-orders"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3. Order Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/orders/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "orders",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin Orders",
+            "item": [
+                {
+                    "name": "1. List All Orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/admin/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "orders"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2. Update Order Status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/admin/orders/1/status?newStatus=SHIPPED",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "orders",
+                                "1",
+                                "status"
+                            ],
+                            "query": [
+                                {
+                                    "key": "newStatus",
+                                    "value": "SHIPPED"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Webhooks",
+            "item": [
+                {
+                    "name": "Stripe Webhook (Local Test via CLI)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Stripe-Signature",
+                                "value": "YOUR_STRIPE_SIGNATURE_HERE"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{ \"id\": \"evt_123\", \"type\": \"payment_intent.succeeded\", \"data\": { \"object\": { \"id\": \"pi_123\" } } }"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/webhooks/stripe",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "webhooks",
+                                "stripe"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

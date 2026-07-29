@@ -128,6 +128,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return problem;
 	}
 
+	@ExceptionHandler(OutOfStockException.class)
+	public ProblemDetail handleOutOfStock(OutOfStockException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+		problem.setTitle("Out of stock");
+		return problem;
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ProblemDetail handleGenericException(Exception ex) {
 		// Log the actual error for the developer, generic message for the frontend

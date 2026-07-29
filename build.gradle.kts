@@ -53,6 +53,9 @@ dependencies {
 	// Resend (email)
 	implementation("com.resend:resend-java:3.1.0")
 
+	// Stripe (payments)
+	implementation("com.stripe:stripe-java:25.5.0")
+
 	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")

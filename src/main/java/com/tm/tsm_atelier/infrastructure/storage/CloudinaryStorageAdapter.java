@@ -1,8 +1,9 @@
-package com.tm.tsm_atelier.common.service;
+package com.tm.tsm_atelier.infrastructure.storage;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.tm.tsm_atelier.common.exception.custom.FileUploadException;
+import com.tm.tsm_atelier.domain.common.port.StoragePort;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -12,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
-public class CloudinaryService implements ImageStorageService {
+public class CloudinaryStorageAdapter implements StoragePort {
 
 	private final Cloudinary cloudinary;
 

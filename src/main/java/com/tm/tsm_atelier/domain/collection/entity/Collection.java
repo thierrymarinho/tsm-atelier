@@ -54,4 +54,17 @@ public class Collection extends BaseEntity {
 	@OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
 	private List<Product> products = new ArrayList<>();
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o)) return false;
+		Collection that = (Collection) o;
+		return id != null && id.equals(that.getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
 }

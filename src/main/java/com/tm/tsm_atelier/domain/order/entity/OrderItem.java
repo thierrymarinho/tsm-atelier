@@ -51,4 +51,17 @@ public class OrderItem extends BaseEntity {
 	private BigDecimal priceAtPurchase;
 
 	private Integer quantity;
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o)) return false;
+		OrderItem orderItem = (OrderItem) o;
+		return id != null && id.equals(orderItem.getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
 }

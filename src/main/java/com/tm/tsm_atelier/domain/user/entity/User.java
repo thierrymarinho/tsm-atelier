@@ -99,4 +99,17 @@ public class User extends BaseEntity implements UserDetails {
 	public boolean isEnabled() {
 		return deletedAt == null;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o)) return false;
+		User user = (User) o;
+		return id != null && id.equals(user.getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
 }

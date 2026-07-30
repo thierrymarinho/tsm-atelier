@@ -114,6 +114,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return problem;
 	}
 
+	@ExceptionHandler(InvalidFileTypeException.class)
+	public ProblemDetail handleInvalidFileTypeException(InvalidFileTypeException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getMessage());
+		problem.setTitle("Invalid File Type");
+		return problem;
+	}
+
+	@Override
+	protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+			org.springframework.web.multipart.MaxUploadSizeExceededException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE, "O arquivo excede o limite de tamanho permitido de 5MB.");
+		problem.setTitle("Payload Too Large");
+		return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(problem);
+	}
+
 	@ExceptionHandler(AddressLimitExceededException.class)
 	public ProblemDetail handleAddressLimitExceeded(AddressLimitExceededException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());

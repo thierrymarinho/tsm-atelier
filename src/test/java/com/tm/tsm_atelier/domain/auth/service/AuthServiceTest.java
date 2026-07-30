@@ -35,6 +35,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -65,6 +66,9 @@ class AuthServiceTest {
 
 	@Mock
 	private ValueOperations<String, String> valueOperations;
+
+	@Mock
+	private SetOperations<String, String> setOperations;
 
 	@Mock
 	private EmailPort emailService;
@@ -159,6 +163,7 @@ class AuthServiceTest {
 
 			ReflectionTestUtils.setField(authService, "refreshTokenExpiration", 604800000L);
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+			when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
 			// Act
 			AuthResponseDTO result = authService.verifyEmail(token);
@@ -211,6 +216,7 @@ class AuthServiceTest {
 			when(userRepository.findByEmail(login.email())).thenReturn(Optional.of(user));
 			when(jwtService.generateToken(user)).thenReturn("fake-jwt-token");
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+			when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
 			// 2. Act
 			AuthResponseDTO result = authService.login(login);
@@ -222,8 +228,10 @@ class AuthServiceTest {
 			assertThat(result.email()).isEqualTo(user.getEmail());
 
 			verify(authenticationManager).authenticate(any());
-			verify(valueOperations).set(eq("refreshToken:" + result.refreshToken()), eq(user.getEmail()),
-					any(Duration.class));
+			verify(redisTemplate).opsForValue();
+			verify(valueOperations).set(startsWith("rt:valid:"), eq(user.getEmail()), any(Duration.class));
+			verify(redisTemplate).opsForSet();
+			verify(setOperations).add(eq("rt:user:" + user.getEmail()), anyString());
 		}
 
 		@Test
@@ -268,11 +276,11 @@ class AuthServiceTest {
 			// Arrange
 			ReflectionTestUtils.setField(authService, "refreshTokenExpiration", 604800000L);
 			String oldRefreshToken = UUID.randomUUID().toString();
-			String redisKey = "refreshToken:" + oldRefreshToken;
 			User user = aUser().withEmail("user@email.com").build();
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-			when(valueOperations.get(redisKey)).thenReturn(user.getEmail());
+			when(redisTemplate.opsForSet()).thenReturn(setOperations);
+			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(user.getEmail());
 			when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 			when(jwtService.generateToken(user)).thenReturn("new-jwt-token");
 
@@ -285,11 +293,12 @@ class AuthServiceTest {
 			assertThat(result.refreshToken()).isNotBlank().isNotEqualTo(oldRefreshToken);
 			assertThat(result.email()).isEqualTo(user.getEmail());
 
-			verify(valueOperations).get(redisKey);
+			verify(valueOperations).get(startsWith("rt:valid:"));
 			verify(jwtService).generateToken(user);
-			verify(redisTemplate).delete(redisKey);
-			verify(valueOperations).set(eq("refreshToken:" + result.refreshToken()), eq(user.getEmail()),
-					any(Duration.class));
+			verify(redisTemplate).delete(startsWith("rt:valid:"));
+			verify(setOperations).remove(eq("rt:user:" + user.getEmail()), anyString());
+			verify(valueOperations).set(startsWith("rt:used:"), eq(user.getEmail()), any(Duration.class));
+			verify(valueOperations, times(2)).set(anyString(), eq(user.getEmail()), any(Duration.class));
 		}
 
 		@Test
@@ -297,10 +306,10 @@ class AuthServiceTest {
 		void shouldThrowWhenRefreshTokenIsInvalidOrExpired() {
 			// Arrange
 			String invalidToken = "invalid-token";
-			String redisKey = "refreshToken:" + invalidToken;
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-			when(valueOperations.get(redisKey)).thenReturn(null);
+			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.get(startsWith("rt:used:"))).thenReturn(null);
 
 			// Act & Assert
 			assertThatThrownBy(() -> authService.refresh(invalidToken))
@@ -309,6 +318,32 @@ class AuthServiceTest {
 
 			verify(jwtService, never()).generateToken(any());
 			verify(redisTemplate, never()).delete(anyString());
+		}
+
+		@Test
+		@DisplayName("Deve revogar todos os tokens do usuário quando detectar reuso do refresh token")
+		void shouldRevokeAllTokensWhenTokenReuseDetected() {
+			// Arrange
+			String reusedToken = "reused-token";
+			String victimEmail = "victim@email.com";
+			java.util.Set<String> activeHashes = java.util.Set.of("hash1", "hash2");
+
+			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.get(startsWith("rt:used:"))).thenReturn(victimEmail);
+			
+			when(redisTemplate.opsForSet()).thenReturn(setOperations);
+			when(setOperations.members("rt:user:" + victimEmail)).thenReturn(activeHashes);
+
+			// Act & Assert
+			assertThatThrownBy(() -> authService.refresh(reusedToken))
+					.isInstanceOf(com.tm.tsm_atelier.common.exception.custom.InvalidTokenException.class)
+					.hasMessage("Security Alert: Token reuse detected. All sessions have been revoked.");
+
+			verify(redisTemplate).delete("rt:valid:hash1");
+			verify(redisTemplate).delete("rt:valid:hash2");
+			verify(redisTemplate).delete("rt:user:" + victimEmail);
+			verify(jwtService, never()).generateToken(any());
 		}
 	}
 
@@ -357,14 +392,19 @@ class AuthServiceTest {
 		@DisplayName("Deve apagar o refresh token do Redis")
 		void shouldDeleteRefreshTokenFromRedis() {
 			// Arrange
-			String tokenToRevoke = "my-invalid-token";
-			String redisKey = "refreshToken:" + tokenToRevoke;
+			String tokenToRevoke = "my-valid-token";
+			String email = "user@example.com";
+
+			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(email);
+			when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
 			// Act
 			authService.logout(tokenToRevoke);
 
 			// Assert
-			verify(redisTemplate).delete(redisKey);
+			verify(redisTemplate).delete(startsWith("rt:valid:"));
+			verify(setOperations).remove(eq("rt:user:" + email), anyString());
 		}
 
 		@Test

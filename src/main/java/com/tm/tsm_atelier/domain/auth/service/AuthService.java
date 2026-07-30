@@ -16,7 +16,11 @@ import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import com.tm.tsm_atelier.security.RateLimitService;
 import com.tm.tsm_atelier.security.JwtService;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -143,15 +147,26 @@ public class AuthService {
 	}
 
 	public AuthResponseDTO refresh(String refreshToken) {
-		String email = redisTemplate.opsForValue().get("refreshToken:" + refreshToken);
+		String hashedToken = hashToken(refreshToken);
+		String email = redisTemplate.opsForValue().get("rt:valid:" + hashedToken);
 
 		if (email == null) {
+			String reusedEmail = redisTemplate.opsForValue().get("rt:used:" + hashedToken);
+			if (reusedEmail != null) {
+				revokeAllUserTokens(reusedEmail);
+				throw new InvalidTokenException("Security Alert: Token reuse detected. All sessions have been revoked.");
+			}
 			throw new InvalidTokenException("Invalid or expired refresh token.");
 		}
 
 		User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found."));
 
-		redisTemplate.delete("refreshToken:" + refreshToken);
+		// Invalidate old token (Rotation)
+		redisTemplate.delete("rt:valid:" + hashedToken);
+		redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
+		
+		// Mark as used to detect future replay attacks
+		redisTemplate.opsForValue().set("rt:used:" + hashedToken, email, Duration.ofMillis(refreshTokenExpiration));
 
 		return generateAndSaveTokens(user);
 	}
@@ -167,19 +182,27 @@ public class AuthService {
 
 	public void logout(String refreshToken) {
 		if (refreshToken != null) {
-			redisTemplate.delete("refreshToken:" + refreshToken);
+			String hashedToken = hashToken(refreshToken);
+			String email = redisTemplate.opsForValue().get("rt:valid:" + hashedToken);
+			if (email != null) {
+				redisTemplate.delete("rt:valid:" + hashedToken);
+				redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
+			}
 		}
 	}
 
 	private AuthResponseDTO generateAndSaveTokens(User user) {
 		String accessToken = jwtService.generateToken(user);
-		String refreshToken = UUID.randomUUID().toString();
+		String rawRefreshToken = UUID.randomUUID().toString();
+		String hashedToken = hashToken(rawRefreshToken);
 
-		redisTemplate.opsForValue().set("refreshToken:" + refreshToken, user.getEmail(),
+		redisTemplate.opsForValue().set("rt:valid:" + hashedToken, user.getEmail(),
 				Duration.ofMillis(refreshTokenExpiration));
+		
+		redisTemplate.opsForSet().add("rt:user:" + user.getEmail(), hashedToken);
 
 		String fullName = formatFullName(user.getFirstName(), user.getLastName());
-		return new AuthResponseDTO(accessToken, refreshToken, user.getEmail(), fullName);
+		return new AuthResponseDTO(accessToken, rawRefreshToken, user.getEmail(), fullName);
 	}
 
 	private String formatFullName(String firstName, String lastName) {
@@ -193,5 +216,33 @@ public class AuthService {
 			return firstName.trim();
 		}
 		return (firstName.trim() + " " + lastName.trim()).trim();
+	}
+
+	private String hashToken(String token) {
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+			StringBuilder hexString = new StringBuilder();
+			for (byte b : hash) {
+				String hex = Integer.toHexString(0xff & b);
+				if (hex.length() == 1) {
+					hexString.append('0');
+				}
+				hexString.append(hex);
+			}
+			return hexString.toString();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("Error hashing token", e);
+		}
+	}
+
+	private void revokeAllUserTokens(String email) {
+		Set<String> activeHashes = redisTemplate.opsForSet().members("rt:user:" + email);
+		if (activeHashes != null && !activeHashes.isEmpty()) {
+			for (String hash : activeHashes) {
+				redisTemplate.delete("rt:valid:" + hash);
+			}
+		}
+		redisTemplate.delete("rt:user:" + email);
 	}
 }

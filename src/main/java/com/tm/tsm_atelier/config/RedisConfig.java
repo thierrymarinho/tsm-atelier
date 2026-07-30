@@ -22,7 +22,13 @@ public class RedisConfig {
 
 	@Bean
 	public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-		PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class).build();
+		PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+				.allowIfBaseType("com.tm.tsm_atelier.")
+				.allowIfBaseType("java.util.")
+				.allowIfBaseType("java.lang.")
+				.allowIfBaseType("java.time.")
+				.allowIfBaseType("java.math.")
+				.build();
 
 		JsonMapper objectMapper = JsonMapper.builder().findAndAddModules()
 				.activateDefaultTyping(ptv, DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY).build();

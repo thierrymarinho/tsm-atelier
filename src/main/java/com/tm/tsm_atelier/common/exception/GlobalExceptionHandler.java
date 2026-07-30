@@ -123,9 +123,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@Override
 	protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
-			org.springframework.web.multipart.MaxUploadSizeExceededException ex,
-			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE, "O arquivo excede o limite de tamanho permitido de 5MB.");
+			org.springframework.web.multipart.MaxUploadSizeExceededException ex, HttpHeaders headers,
+			HttpStatusCode status, WebRequest request) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,
+				"O arquivo excede o limite de tamanho permitido de 5MB.");
 		problem.setTitle("Payload Too Large");
 		return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(problem);
 	}

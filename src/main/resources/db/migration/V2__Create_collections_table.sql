@@ -9,7 +9,8 @@ CREATE TABLE collections (
     display_order INT DEFAULT 0,
     target_audience VARCHAR(50) NOT NULL DEFAULT 'UNISEX',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 ALTER TABLE collections ADD CONSTRAINT uk_collection_name_audience UNIQUE (name, target_audience);

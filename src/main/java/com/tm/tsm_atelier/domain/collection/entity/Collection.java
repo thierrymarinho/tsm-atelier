@@ -5,9 +5,12 @@ import com.tm.tsm_atelier.domain.common.entity.BaseEntity;
 import com.tm.tsm_atelier.domain.product.entity.Product;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "collections", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "target_audience"})})
@@ -16,6 +19,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE collections SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class Collection extends BaseEntity {
 
 	@Id
@@ -51,14 +56,19 @@ public class Collection extends BaseEntity {
 	@Builder.Default
 	private TargetAudience targetAudience = TargetAudience.WOMEN;
 
-	@OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
+
+	@OneToMany(mappedBy = "collection")
 	@Builder.Default
 	private List<Product> products = new ArrayList<>();
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o)) return false;
+		if (this == o)
+			return true;
+		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o))
+			return false;
 		Collection that = (Collection) o;
 		return id != null && id.equals(that.getId());
 	}

@@ -54,8 +54,10 @@ public class ProductColor extends BaseEntity {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o)) return false;
+		if (this == o)
+			return true;
+		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o))
+			return false;
 		ProductColor that = (ProductColor) o;
 		return id != null && id.equals(that.getId());
 	}

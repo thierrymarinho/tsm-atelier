@@ -14,8 +14,8 @@ import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Role;
 import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
-import com.tm.tsm_atelier.security.RateLimitService;
 import com.tm.tsm_atelier.security.JwtService;
+import com.tm.tsm_atelier.security.RateLimitService;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -154,7 +154,8 @@ public class AuthService {
 			String reusedEmail = redisTemplate.opsForValue().get("rt:used:" + hashedToken);
 			if (reusedEmail != null) {
 				revokeAllUserTokens(reusedEmail);
-				throw new InvalidTokenException("Security Alert: Token reuse detected. All sessions have been revoked.");
+				throw new InvalidTokenException(
+						"Security Alert: Token reuse detected. All sessions have been revoked.");
 			}
 			throw new InvalidTokenException("Invalid or expired refresh token.");
 		}
@@ -164,7 +165,7 @@ public class AuthService {
 		// Invalidate old token (Rotation)
 		redisTemplate.delete("rt:valid:" + hashedToken);
 		redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
-		
+
 		// Mark as used to detect future replay attacks
 		redisTemplate.opsForValue().set("rt:used:" + hashedToken, email, Duration.ofMillis(refreshTokenExpiration));
 
@@ -198,7 +199,7 @@ public class AuthService {
 
 		redisTemplate.opsForValue().set("rt:valid:" + hashedToken, user.getEmail(),
 				Duration.ofMillis(refreshTokenExpiration));
-		
+
 		redisTemplate.opsForSet().add("rt:user:" + user.getEmail(), hashedToken);
 
 		String fullName = formatFullName(user.getFirstName(), user.getLastName());

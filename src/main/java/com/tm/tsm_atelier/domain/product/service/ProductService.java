@@ -117,7 +117,9 @@ public class ProductService {
 			product.setCollection(null);
 		}
 
-		product.setSlug(generateSlug(request.name()) + "-" + product.getId());
+		if (product.getSlug() == null) {
+			product.setSlug(generateSlug(request.name()) + "-" + product.getId());
+		}
 
 		mergeColors(product, request.colors());
 
@@ -127,14 +129,19 @@ public class ProductService {
 
 	private void mergeColors(Product product, List<ProductColorRequestDTO> requestColors) {
 		java.util.Set<ProductColor> existingColors = product.getColors();
-		List<ProductColor> updatedColors = new java.util.ArrayList<>();
+		java.util.Map<Long, ProductColor> existingById = existingColors.stream().filter(c -> c.getId() != null).collect(
+				java.util.stream.Collectors.toMap(ProductColor::getId, java.util.function.Function.identity()));
+
+		java.util.Set<ProductColor> keptColors = new java.util.LinkedHashSet<>();
 
 		if (requestColors != null) {
 			for (var colorReq : requestColors) {
 				ProductColor colorEntity;
 				if (colorReq.id() != null) {
-					colorEntity = existingColors.stream().filter(c -> colorReq.id().equals(c.getId())).findFirst()
-							.orElseThrow(() -> new ResourceNotFoundException("ProductColor", colorReq.id()));
+					colorEntity = existingById.get(colorReq.id());
+					if (colorEntity == null) {
+						throw new ResourceNotFoundException("ProductColor", colorReq.id());
+					}
 					colorEntity.setColorName(colorReq.colorName());
 					colorEntity.setColorHex(colorReq.colorHex());
 					colorEntity.setCoverImageUrl(colorReq.coverImageUrl());
@@ -155,50 +162,51 @@ public class ProductService {
 				}
 
 				mergeSkus(colorEntity, colorReq.skus());
-				updatedColors.add(colorEntity);
+				keptColors.add(colorEntity);
 			}
 		}
 
-		existingColors.removeIf(existing -> updatedColors.stream().noneMatch(u -> u == existing));
-		updatedColors.stream().filter(u -> u.getId() == null).forEach(existingColors::add);
+		existingColors.removeIf(existing -> !keptColors.contains(existing));
+		keptColors.stream().filter(u -> u.getId() == null).forEach(existingColors::add);
 	}
 
 	private void mergeSkus(ProductColor colorEntity, List<ProductSKURequestDTO> requestSkus) {
 		java.util.Set<ProductSKU> existingSkus = colorEntity.getSkus();
-		List<ProductSKU> updatedSkus = new java.util.ArrayList<>();
+		java.util.Map<Long, ProductSKU> existingById = existingSkus.stream().filter(s -> s.getId() != null)
+				.collect(java.util.stream.Collectors.toMap(ProductSKU::getId, java.util.function.Function.identity()));
+
+		java.util.Set<ProductSKU> keptSkus = new java.util.LinkedHashSet<>();
 
 		if (requestSkus != null) {
-			// #4 — Validação correta de unicidade: exclui o próprio SKU da checagem
 			for (var skuReq : requestSkus) {
+				ProductSKU skuEntity;
 				if (skuReq.id() != null) {
-					// SKU existente com código alterado — verificar se o novo código já existe em
-					// outro registro
-					ProductSKU existingSku = existingSkus.stream().filter(s -> skuReq.id().equals(s.getId()))
-							.findFirst().orElseThrow(() -> new ResourceNotFoundException("ProductSKU", skuReq.id()));
+					skuEntity = existingById.get(skuReq.id());
+					if (skuEntity == null) {
+						throw new ResourceNotFoundException("ProductSKU", skuReq.id());
+					}
 
-					if (!existingSku.getSkuCode().equals(skuReq.skuCode())
+					if (!skuEntity.getSkuCode().equals(skuReq.skuCode())
 							&& skuRepository.existsBySkuCodeAndIdNot(skuReq.skuCode(), skuReq.id())) {
 						throw new EntityAlreadyExistsException("SKU", skuReq.skuCode());
 					}
 
-					existingSku.setSize(skuReq.size());
-					existingSku.setSkuCode(skuReq.skuCode());
-					existingSku.setStockQuantity(skuReq.stockQuantity());
-					updatedSkus.add(existingSku);
+					skuEntity.setSize(skuReq.size());
+					skuEntity.setSkuCode(skuReq.skuCode());
+					skuEntity.setStockQuantity(skuReq.stockQuantity());
 				} else {
-					// SKU novo — verificar se o código já existe no banco
 					if (skuRepository.findBySkuCode(skuReq.skuCode()).isPresent()) {
 						throw new EntityAlreadyExistsException("SKU", skuReq.skuCode());
 					}
-					ProductSKU skuEntity = ProductSKU.builder().productColor(colorEntity).size(skuReq.size())
+					skuEntity = ProductSKU.builder().productColor(colorEntity).size(skuReq.size())
 							.skuCode(skuReq.skuCode()).stockQuantity(skuReq.stockQuantity()).build();
-					updatedSkus.add(skuEntity);
 				}
+				keptSkus.add(skuEntity);
 			}
 		}
 
-		existingSkus.removeIf(existing -> updatedSkus.stream().noneMatch(u -> u == existing));
-		updatedSkus.stream().filter(u -> u.getId() == null).forEach(existingSkus::add);
+		existingSkus.removeIf(existing -> !keptSkus.contains(existing));
+		keptSkus.stream().filter(u -> u.getId() == null).forEach(existingSkus::add);
 	}
 
 	@Transactional

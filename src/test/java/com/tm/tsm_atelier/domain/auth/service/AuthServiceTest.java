@@ -331,7 +331,7 @@ class AuthServiceTest {
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(null);
 			when(valueOperations.get(startsWith("rt:used:"))).thenReturn(victimEmail);
-			
+
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
 			when(setOperations.members("rt:user:" + victimEmail)).thenReturn(activeHashes);
 

@@ -9,13 +9,13 @@ import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.ResendVerificationRequestDTO;
 import com.tm.tsm_atelier.domain.auth.service.AuthService;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
-import com.tm.tsm_atelier.security.RateLimitService;
 import com.tm.tsm_atelier.security.JwtService;
-import java.time.Duration;
+import com.tm.tsm_atelier.security.RateLimitService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,7 +51,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request, HttpServletRequest httpRequest) {
+	public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request,
+			HttpServletRequest httpRequest) {
 		rateLimitService.checkRateLimit("register", getClientIp(httpRequest), 5, Duration.ofMinutes(15));
 		RegisterResponseDTO response = authService.register(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -65,7 +66,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/resend-verification")
-	public ResponseEntity<Void> resendVerificationEmail(@Valid @RequestBody ResendVerificationRequestDTO request, HttpServletRequest httpRequest) {
+	public ResponseEntity<Void> resendVerificationEmail(@Valid @RequestBody ResendVerificationRequestDTO request,
+			HttpServletRequest httpRequest) {
 		rateLimitService.checkRateLimit("resend-verification", getClientIp(httpRequest), 3, Duration.ofMinutes(15));
 		authService.resendVerificationEmail(request.email());
 		return ResponseEntity.ok().build();

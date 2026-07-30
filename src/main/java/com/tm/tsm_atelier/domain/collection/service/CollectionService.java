@@ -12,6 +12,8 @@ import com.tm.tsm_atelier.domain.collection.enums.DisplayPosition;
 import com.tm.tsm_atelier.domain.collection.mapper.CollectionMapper;
 import com.tm.tsm_atelier.domain.collection.repository.CollectionRepository;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
+import com.tm.tsm_atelier.domain.product.service.ProductService;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -25,6 +27,7 @@ public class CollectionService {
 
 	private final CollectionRepository collectionRepository;
 	private final CollectionMapper collectionMapper;
+	private final ProductService productService;
 
 	@Transactional
 	public CollectionResponseDTO create(CollectionRequestDTO request) {
@@ -70,7 +73,9 @@ public class CollectionService {
 		invalidateExistingDisplayPositions(id, request);
 
 		collectionMapper.updateEntityFromRequest(request, collection);
-		collection.setSlug(generateSlug(request.name()) + "-" + collection.getId());
+		if (collection.getSlug() == null) {
+			collection.setSlug(generateSlug(request.name()) + "-" + collection.getId());
+		}
 
 		return collectionMapper.toResponse(collection);
 	}
@@ -79,6 +84,14 @@ public class CollectionService {
 	public void delete(Long id) {
 		Collection collection = collectionRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Collection", id));
+
+		// Propagate soft delete to products
+		collection.getProducts().forEach(product -> {
+			productService.delete(product.getId());
+		});
+
+		collection.setDeletedAt(LocalDateTime.now());
+		collection.setActive(false);
 		collectionRepository.delete(collection);
 	}
 
@@ -91,7 +104,8 @@ public class CollectionService {
 						collectionRepository.saveAndFlush(existing);
 					});
 		} else if (request.displayPosition() == DisplayPosition.HOME_SECONDARY) {
-			collectionRepository.findByDisplayPositionAndTargetAudience(DisplayPosition.HOME_SECONDARY, request.targetAudience())
+			collectionRepository
+					.findByDisplayPositionAndTargetAudience(DisplayPosition.HOME_SECONDARY, request.targetAudience())
 					.filter(existing -> idToIgnore == null || !existing.getId().equals(idToIgnore))
 					.ifPresent(existing -> {
 						existing.setDisplayPosition(DisplayPosition.NONE);

@@ -102,8 +102,10 @@ public class User extends BaseEntity implements UserDetails {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o)) return false;
+		if (this == o)
+			return true;
+		if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o))
+			return false;
 		User user = (User) o;
 		return id != null && id.equals(user.getId());
 	}

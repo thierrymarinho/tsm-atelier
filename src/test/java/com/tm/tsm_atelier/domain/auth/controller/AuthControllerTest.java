@@ -57,6 +57,9 @@ class AuthControllerTest {
 	@MockitoBean
 	private UserRepository userRepository;
 
+	@MockitoBean
+	private com.tm.tsm_atelier.security.RateLimitService rateLimitService;
+
 	private static final String BASE_URL = "/api/v1/auth";
 
 	private ResultActions performRegister(RegisterRequestDTO request) throws Exception {

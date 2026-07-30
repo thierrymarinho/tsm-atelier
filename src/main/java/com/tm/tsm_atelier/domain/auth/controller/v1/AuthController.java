@@ -9,7 +9,9 @@ import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.ResendVerificationRequestDTO;
 import com.tm.tsm_atelier.domain.auth.service.AuthService;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
+import com.tm.tsm_atelier.security.RateLimitService;
 import com.tm.tsm_atelier.security.JwtService;
+import java.time.Duration;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,6 +36,7 @@ public class AuthController {
 
 	private final AuthService authService;
 	private final JwtService jwtService;
+	private final RateLimitService rateLimitService;
 
 	@Value("${jwt.access-token-expiration}")
 	private long accessTokenExpiration;
@@ -41,13 +44,15 @@ public class AuthController {
 	@Value("${jwt.refresh-token-expiration}")
 	private long refreshTokenExpiration;
 
-	public AuthController(AuthService authService, JwtService jwtService) {
+	public AuthController(AuthService authService, JwtService jwtService, RateLimitService rateLimitService) {
 		this.authService = authService;
 		this.jwtService = jwtService;
+		this.rateLimitService = rateLimitService;
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
+	public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request, HttpServletRequest httpRequest) {
+		rateLimitService.checkRateLimit("register", getClientIp(httpRequest), 5, Duration.ofMinutes(15));
 		RegisterResponseDTO response = authService.register(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
@@ -60,14 +65,16 @@ public class AuthController {
 	}
 
 	@PostMapping("/resend-verification")
-	public ResponseEntity<Void> resendVerificationEmail(@Valid @RequestBody ResendVerificationRequestDTO request) {
+	public ResponseEntity<Void> resendVerificationEmail(@Valid @RequestBody ResendVerificationRequestDTO request, HttpServletRequest httpRequest) {
+		rateLimitService.checkRateLimit("resend-verification", getClientIp(httpRequest), 3, Duration.ofMinutes(15));
 		authService.resendVerificationEmail(request.email());
 		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request,
-			HttpServletResponse response) {
+			HttpServletRequest httpRequest, HttpServletResponse response) {
+		rateLimitService.checkRateLimit("login", getClientIp(httpRequest), 10, Duration.ofMinutes(15));
 		AuthResponseDTO tokens = authService.login(request);
 		addCookiesToResponse(response, tokens);
 		return ResponseEntity.ok(tokens);
@@ -177,5 +184,16 @@ public class AuthController {
 			}
 		}
 		return null;
+	}
+
+	private String getClientIp(HttpServletRequest request) {
+		String ipAddress = request.getHeader("X-Forwarded-For");
+		if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+			ipAddress = request.getRemoteAddr();
+		}
+		if (ipAddress != null && ipAddress.contains(",")) {
+			ipAddress = ipAddress.split(",")[0].trim();
+		}
+		return ipAddress;
 	}
 }

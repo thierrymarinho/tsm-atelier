@@ -135,6 +135,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return problem;
 	}
 
+	@ExceptionHandler(TooManyRequestsException.class)
+	public ProblemDetail handleTooManyRequests(TooManyRequestsException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+		problem.setTitle("Too many requests");
+		return problem;
+	}
+
+	@ExceptionHandler(AccountLockedException.class)
+	public ProblemDetail handleAccountLocked(AccountLockedException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+		problem.setTitle("Account Locked");
+		return problem;
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ProblemDetail handleGenericException(Exception ex) {
 		// Log the actual error for the developer, generic message for the frontend

@@ -14,12 +14,14 @@ import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Role;
 import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
+import com.tm.tsm_atelier.security.RateLimitService;
 import com.tm.tsm_atelier.security.JwtService;
 import java.time.Duration;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ public class AuthService {
 	private final AuthenticationManager authenticationManager;
 	private final StringRedisTemplate redisTemplate;
 	private final EmailPort emailPort;
+	private final RateLimitService rateLimitService;
 
 	@Value("${jwt.refresh-token-expiration}")
 	private long refreshTokenExpiration;
@@ -45,13 +48,15 @@ public class AuthService {
 	private String appBaseUrl;
 
 	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService,
-			AuthenticationManager authenticationManager, StringRedisTemplate redisTemplate, EmailPort emailPort) {
+			AuthenticationManager authenticationManager, StringRedisTemplate redisTemplate, EmailPort emailPort,
+			RateLimitService rateLimitService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
 		this.authenticationManager = authenticationManager;
 		this.redisTemplate = redisTemplate;
 		this.emailPort = emailPort;
+		this.rateLimitService = rateLimitService;
 	}
 
 	@Transactional
@@ -81,8 +86,17 @@ public class AuthService {
 
 	@Transactional(readOnly = true)
 	public AuthResponseDTO login(LoginRequestDTO request) {
-		authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+		rateLimitService.checkAccountLockout(request.email());
+
+		try {
+			authenticationManager
+					.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+		} catch (BadCredentialsException e) {
+			rateLimitService.recordFailedAttempt(request.email(), 5, Duration.ofMinutes(15));
+			throw e;
+		}
+
+		rateLimitService.resetFailedAttempts(request.email());
 
 		User user = userRepository.findByEmail(request.email())
 				.orElseThrow(() -> new UserNotFoundException("User not found."));

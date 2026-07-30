@@ -69,6 +69,9 @@ class AuthServiceTest {
 	@Mock
 	private EmailPort emailService;
 
+	@Mock
+	private com.tm.tsm_atelier.security.RateLimitService rateLimitService;
+
 	@Captor
 	private ArgumentCaptor<User> userCaptor;
 

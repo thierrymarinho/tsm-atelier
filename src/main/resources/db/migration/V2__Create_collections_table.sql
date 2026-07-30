@@ -15,9 +15,13 @@ CREATE TABLE collections (
 ALTER TABLE collections ADD CONSTRAINT uk_collection_name_audience UNIQUE (name, target_audience);
 ALTER TABLE collections ADD CONSTRAINT uk_collection_slug UNIQUE (slug);
 
-CREATE UNIQUE INDEX uk_one_home_featured
+CREATE UNIQUE INDEX uk_one_home_main
 ON collections (display_position)
-WHERE display_position = 'HOME_FEATURED';
+WHERE display_position = 'HOME_MAIN';
+
+CREATE UNIQUE INDEX uk_home_secondary_per_audience 
+ON collections (target_audience) 
+WHERE display_position = 'HOME_SECONDARY';
 
 CREATE UNIQUE INDEX uk_one_header_per_audience 
 ON collections (target_audience) 

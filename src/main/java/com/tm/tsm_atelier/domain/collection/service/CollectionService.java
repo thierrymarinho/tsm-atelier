@@ -29,7 +29,7 @@ public class CollectionService {
 	@Transactional
 	public CollectionResponseDTO create(CollectionRequestDTO request) {
 		validateUniqueConstraints(null, request);
-		invalidateExistingHomeFeatured(null, request);
+		invalidateExistingDisplayPositions(null, request);
 
 		Collection collection = collectionMapper.toEntity(request);
 		collection = collectionRepository.save(collection);
@@ -67,7 +67,7 @@ public class CollectionService {
 				.orElseThrow(() -> new ResourceNotFoundException("Collection", id));
 
 		validateUniqueConstraints(id, request);
-		invalidateExistingHomeFeatured(id, request);
+		invalidateExistingDisplayPositions(id, request);
 
 		collectionMapper.updateEntityFromRequest(request, collection);
 		collection.setSlug(generateSlug(request.name()) + "-" + collection.getId());
@@ -82,9 +82,16 @@ public class CollectionService {
 		collectionRepository.delete(collection);
 	}
 
-	private void invalidateExistingHomeFeatured(Long idToIgnore, CollectionRequestDTO request) {
-		if (request.displayPosition() == DisplayPosition.HOME_FEATURED) {
-			collectionRepository.findByDisplayPosition(DisplayPosition.HOME_FEATURED)
+	private void invalidateExistingDisplayPositions(Long idToIgnore, CollectionRequestDTO request) {
+		if (request.displayPosition() == DisplayPosition.HOME_MAIN) {
+			collectionRepository.findByDisplayPosition(DisplayPosition.HOME_MAIN)
+					.filter(existing -> idToIgnore == null || !existing.getId().equals(idToIgnore))
+					.ifPresent(existing -> {
+						existing.setDisplayPosition(DisplayPosition.NONE);
+						collectionRepository.saveAndFlush(existing);
+					});
+		} else if (request.displayPosition() == DisplayPosition.HOME_SECONDARY) {
+			collectionRepository.findByDisplayPositionAndTargetAudience(DisplayPosition.HOME_SECONDARY, request.targetAudience())
 					.filter(existing -> idToIgnore == null || !existing.getId().equals(idToIgnore))
 					.ifPresent(existing -> {
 						existing.setDisplayPosition(DisplayPosition.NONE);

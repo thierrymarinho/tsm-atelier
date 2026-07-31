@@ -147,7 +147,7 @@ class AuthControllerTest {
 			// Act & Assert
 			performRegister(request).andExpect(status().isUnprocessableContent())
 					.andExpect(jsonPath("$.status").value(422))
-					.andExpect(jsonPath("$.fields.password").value("Password must be between 6 and 30 characters"));
+					.andExpect(jsonPath("$.fields.password").value("Password must be between 8 and 72 characters"));
 
 			verify(authService, never()).register(any(RegisterRequestDTO.class));
 		}

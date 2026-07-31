@@ -89,7 +89,7 @@ public class OrderService {
 
 		ShippingAddress shippingAddress = ShippingAddress.builder().street(address.getStreet())
 				.number(address.getNumber()).complement(address.getComplement()).neighborhood(address.getNeighborhood())
-				.city(address.getCity()).state(address.getState()).zipCode(address.getZipCode()).build();
+				.city(address.getCity()).state(address.getState().name()).postalCode(address.getPostalCode()).build();
 
 		Order order = Order.builder().user(user).status(OrderStatus.PENDING_PAYMENT).shippingAddress(shippingAddress)
 				.shippingFee(FIXED_SHIPPING_FEE).expiresAt(LocalDateTime.now().plusMinutes(PAYMENT_WINDOW_MINUTES))

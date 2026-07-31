@@ -1,8 +1,11 @@
 package com.tm.tsm_atelier.domain.user.entity;
 
 import com.tm.tsm_atelier.domain.common.entity.BaseEntity;
+import com.tm.tsm_atelier.domain.user.enums.State;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,10 +39,10 @@ public class Address extends BaseEntity {
 	@Column(nullable = false)
 	private String street;
 
-	@Column(nullable = false, length = 50)
+	@Column(nullable = false, length = 10)
 	private String number;
 
-	@Column
+	@Column(length = 255)
 	private String complement;
 
 	@Column(nullable = false, length = 100)
@@ -48,11 +51,12 @@ public class Address extends BaseEntity {
 	@Column(nullable = false, length = 100)
 	private String city;
 
-	@Column(nullable = false, length = 50)
-	private String state;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 2)
+	private State state;
 
-	@Column(nullable = false, length = 20)
-	private String zipCode;
+	@Column(name = "postal_code", nullable = false, length = 8)
+	private String postalCode;
 
 	@Column(nullable = false)
 	@Builder.Default

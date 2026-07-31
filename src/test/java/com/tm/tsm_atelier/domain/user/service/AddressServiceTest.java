@@ -12,6 +12,7 @@ import com.tm.tsm_atelier.domain.user.dto.AddressRequestDTO;
 import com.tm.tsm_atelier.domain.user.dto.AddressResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Address;
 import com.tm.tsm_atelier.domain.user.entity.User;
+import com.tm.tsm_atelier.domain.user.enums.State;
 import com.tm.tsm_atelier.domain.user.repository.AddressRepository;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import java.util.List;
@@ -43,7 +44,7 @@ class AddressServiceTest {
 	}
 
 	private AddressRequestDTO createRequest(boolean isDefault) {
-		return new AddressRequestDTO("Street", "123", "Comp", "Neighborhood", "City", "State", "12345-678", isDefault);
+		return new AddressRequestDTO("Street", "123", "Comp", "Neighborhood", "City", State.SP, "12345-678", isDefault);
 	}
 
 	@Nested
@@ -67,12 +68,12 @@ class AddressServiceTest {
 			AddressResponseDTO result = addressService.create(user, request);
 
 			assertThat(result.isDefault()).isTrue();
-			assertThat(result.zipCode()).isEqualTo("12345678"); // formatZipCode must apply
+			assertThat(result.postalCode()).isEqualTo("12345678"); // formatZipCode must apply
 
 			ArgumentCaptor<Address> captor = ArgumentCaptor.forClass(Address.class);
 			verify(addressRepository).save(captor.capture());
 			assertThat(captor.getValue().isDefault()).isTrue();
-			assertThat(captor.getValue().getZipCode()).isEqualTo("12345678");
+			assertThat(captor.getValue().getPostalCode()).isEqualTo("12345678");
 		}
 
 		@Test
@@ -139,7 +140,8 @@ class AddressServiceTest {
 		void shouldPromoteNewDefaultWhenDefaultIsDeleted() {
 			User user = createUser();
 			Long addrId = 1L;
-			Address addr = Address.builder().id(addrId).user(user).isDefault(true).build();
+			Address addr = Address.builder().id(1L).user(user).street("Street").number("123").city("City")
+					.state(State.SP).postalCode("12345-678").isDefault(true).build();
 			Address newDefault = Address.builder().id(2L).user(user).isDefault(false).build();
 
 			when(addressRepository.findById(addrId)).thenReturn(Optional.of(addr));

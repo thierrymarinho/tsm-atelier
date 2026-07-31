@@ -7,16 +7,18 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record ProductRequestDTO(@NotBlank(message = "Product name is required") String name,
+public record ProductRequestDTO(
+		@NotBlank(message = "Product name is required") @Size(max = 255, message = "Product name cannot exceed 255 characters") String name,
 
 		String description,
 
 		@Valid List<FabricCompositionRequestDTO> fabricCompositions,
 
-		List<String> careInstructions,
+		List<@Size(max = 255, message = "Care instruction cannot exceed 255 characters") String> careInstructions,
 
 		@NotNull(message = "Price is required") @Positive(message = "Price must be greater than zero") BigDecimal price,
 

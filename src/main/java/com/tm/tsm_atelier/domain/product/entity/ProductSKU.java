@@ -1,6 +1,7 @@
 package com.tm.tsm_atelier.domain.product.entity;
 
 import com.tm.tsm_atelier.domain.common.entity.BaseEntity;
+import com.tm.tsm_atelier.domain.product.enums.ProductSize;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -24,11 +25,11 @@ public class ProductSKU extends BaseEntity {
 	@JoinColumn(name = "product_color_id", nullable = false)
 	private ProductColor productColor;
 
-	@Column(nullable = false, length = 20)
-	@Enumerated(jakarta.persistence.EnumType.STRING)
-	private com.tm.tsm_atelier.domain.product.enums.ProductSize size;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 2)
+	private ProductSize size;
 
-	@Column(name = "sku_code", nullable = false, unique = true)
+	@Column(name = "sku_code", nullable = false, unique = true, length = 100)
 	private String skuCode;
 
 	@Column(name = "stock_quantity", nullable = false)

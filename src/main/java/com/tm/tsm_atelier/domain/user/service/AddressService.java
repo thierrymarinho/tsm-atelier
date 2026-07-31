@@ -9,7 +9,7 @@ import com.tm.tsm_atelier.domain.user.entity.Address;
 import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.AddressRepository;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
-import com.tm.tsm_atelier.domain.user.utils.ZipCodeUtils;
+import com.tm.tsm_atelier.domain.user.utils.PostalCodeUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,8 +53,8 @@ public class AddressService {
 
 		Address address = Address.builder().user(user).street(request.street()).number(request.number())
 				.complement(request.complement()).neighborhood(request.neighborhood()).city(request.city())
-				.state(request.state()).zipCode(ZipCodeUtils.formatZipCode(request.zipCode())).isDefault(isDefault)
-				.build();
+				.state(request.state()).postalCode(PostalCodeUtils.formatZipCode(request.postalCode()))
+				.isDefault(isDefault).build();
 
 		Address savedAddress = addressRepository.save(address);
 		return toResponseDTO(savedAddress);
@@ -77,7 +77,7 @@ public class AddressService {
 		address.setNeighborhood(request.neighborhood());
 		address.setCity(request.city());
 		address.setState(request.state());
-		address.setZipCode(ZipCodeUtils.formatZipCode(request.zipCode()));
+		address.setPostalCode(PostalCodeUtils.formatZipCode(request.postalCode()));
 
 		return toResponseDTO(addressRepository.save(address));
 	}
@@ -134,6 +134,6 @@ public class AddressService {
 	private AddressResponseDTO toResponseDTO(Address address) {
 		return new AddressResponseDTO(address.getId(), address.getStreet(), address.getNumber(),
 				address.getComplement(), address.getNeighborhood(), address.getCity(), address.getState(),
-				address.getZipCode(), address.isDefault());
+				address.getPostalCode(), address.isDefault());
 	}
 }

@@ -47,7 +47,7 @@ CREATE TABLE product_gallery_images (
 CREATE TABLE product_skus (
     id BIGSERIAL PRIMARY KEY,
     product_color_id BIGINT NOT NULL REFERENCES product_colors(id) ON DELETE CASCADE,
-    size VARCHAR(20) NOT NULL,
+    size VARCHAR(2) NOT NULL,
     sku_code VARCHAR(100) NOT NULL,
     stock_quantity INT NOT NULL DEFAULT 0,
     deleted_at TIMESTAMP,

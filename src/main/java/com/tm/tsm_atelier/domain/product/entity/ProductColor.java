@@ -26,21 +26,21 @@ public class ProductColor extends BaseEntity {
 	@JoinColumn(name = "product_id", nullable = false)
 	private Product product;
 
-	@Column(name = "color_name", nullable = false)
+	@Column(name = "color_name", nullable = false, length = 100)
 	private String colorName;
 
-	@Column(name = "color_hex", nullable = false)
+	@Column(name = "color_hex", nullable = false, length = 10)
 	private String colorHex;
 
-	@Column(name = "cover_image_url")
+	@Column(name = "cover_image_url", length = 500)
 	private String coverImageUrl;
 
-	@Column(name = "hover_image_url")
+	@Column(name = "hover_image_url", length = 500)
 	private String hoverImageUrl;
 
 	@ElementCollection
 	@CollectionTable(name = "product_gallery_images", joinColumns = @JoinColumn(name = "product_color_id"))
-	@Column(name = "image_url")
+	@Column(name = "image_url", length = 500)
 	@Builder.Default
 	private Set<String> galleryImages = new LinkedHashSet<>();
 

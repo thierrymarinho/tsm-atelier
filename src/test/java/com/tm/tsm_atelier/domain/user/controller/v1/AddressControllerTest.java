@@ -17,6 +17,7 @@ import com.tm.tsm_atelier.common.exception.custom.AddressLimitExceededException;
 import com.tm.tsm_atelier.domain.user.dto.AddressRequestDTO;
 import com.tm.tsm_atelier.domain.user.dto.AddressResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.User;
+import com.tm.tsm_atelier.domain.user.enums.State;
 import com.tm.tsm_atelier.domain.user.service.AddressService;
 import java.util.List;
 import java.util.UUID;
@@ -78,20 +79,22 @@ class AddressControllerTest {
 	@Test
 	@DisplayName("POST /api/v1/addresses - deve retornar 201 quando criado com sucesso")
 	void shouldCreateAddress() throws Exception {
-		AddressRequestDTO req = new AddressRequestDTO("Street", "1", "C", "N", "City", "ST", "123", true);
-		AddressResponseDTO res = new AddressResponseDTO(1L, "Street", "1", "C", "N", "City", "ST", "123", true);
+		AddressRequestDTO req = new AddressRequestDTO("Street", "1", "C", "N", "City", State.SP, "12345678", true);
+		AddressResponseDTO res = new AddressResponseDTO(1L, "Street", "1", "C", "N", "City", State.SP, "12345678",
+				true);
 
 		when(addressService.create(any(), any())).thenReturn(res);
 
-		mockMvc.perform(post("/api/v1/addresses").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(req))).andExpect(status().isCreated())
-				.andExpect(jsonPath("$.street").value("Street"));
+		mockMvc.perform(post("/api/v1/addresses").header("Authorization", "Bearer token")
+				.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(req)))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.id").value(1))
+				.andExpect(jsonPath("$.postalCode").value("12345678"));
 	}
 
 	@Test
 	@DisplayName("POST /api/v1/addresses - deve retornar 422 quando limite é excedido")
 	void shouldReturn422WhenLimitExceeded() throws Exception {
-		AddressRequestDTO req = new AddressRequestDTO("Street", "1", "C", "N", "City", "ST", "123", true);
+		AddressRequestDTO req = new AddressRequestDTO("Street", "1", "C", "N", "City", State.SP, "12345678", true);
 
 		when(addressService.create(any(), any())).thenThrow(new AddressLimitExceededException("Limit exceeded"));
 
@@ -113,7 +116,7 @@ class AddressControllerTest {
 	@DisplayName("PATCH /api/v1/addresses/{id}/default - deve retornar 200")
 	void shouldSetDefault() throws Exception {
 		Long id = 1L;
-		AddressResponseDTO res = new AddressResponseDTO(id, "S", "1", null, "N", "C", "S", "1", true);
+		AddressResponseDTO res = new AddressResponseDTO(id, "S", "1", null, "N", "C", State.SP, "1", true);
 		when(addressService.setDefault(any(), eq(id))).thenReturn(res);
 
 		mockMvc.perform(patch("/api/v1/addresses/" + id + "/default")).andExpect(status().isOk())

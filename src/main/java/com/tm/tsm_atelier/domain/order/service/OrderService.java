@@ -3,6 +3,7 @@ package com.tm.tsm_atelier.domain.order.service;
 import com.tm.tsm_atelier.common.exception.custom.AddressNotFoundException;
 import com.tm.tsm_atelier.common.exception.custom.OutOfStockException;
 import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
+import com.tm.tsm_atelier.domain.cart.service.CartService;
 import com.tm.tsm_atelier.domain.order.dto.CheckoutItemDTO;
 import com.tm.tsm_atelier.domain.order.dto.CheckoutRequestDTO;
 import com.tm.tsm_atelier.domain.order.dto.OrderItemResponseDTO;
@@ -50,6 +51,7 @@ public class OrderService {
 	private final ProductSKURepository skuRepository;
 	private final AddressRepository addressRepository;
 	private final ApplicationEventPublisher eventPublisher;
+	private final CartService cartService;
 
 	private static final BigDecimal FIXED_SHIPPING_FEE = new BigDecimal("0.00");
 	private static final int PAYMENT_WINDOW_MINUTES = 30;
@@ -63,11 +65,12 @@ public class OrderService {
 			OrderStatus.PAYMENT_FAILED);
 
 	public OrderService(OrderRepository orderRepository, ProductSKURepository skuRepository,
-			AddressRepository addressRepository, ApplicationEventPublisher eventPublisher) {
+			AddressRepository addressRepository, ApplicationEventPublisher eventPublisher, CartService cartService) {
 		this.orderRepository = orderRepository;
 		this.skuRepository = skuRepository;
 		this.addressRepository = addressRepository;
 		this.eventPublisher = eventPublisher;
+		this.cartService = cartService;
 	}
 
 	/**
@@ -122,7 +125,12 @@ public class OrderService {
 
 		order.setTotalAmount(totalAmount.add(FIXED_SHIPPING_FEE));
 
-		return orderRepository.save(order);
+		Order savedOrder = orderRepository.save(order);
+
+		// Limpa o carrinho após a criação do pedido
+		cartService.clearCart(user.getId());
+
+		return savedOrder;
 	}
 
 	/**

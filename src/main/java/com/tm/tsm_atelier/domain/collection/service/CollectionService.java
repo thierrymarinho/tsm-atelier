@@ -35,9 +35,8 @@ public class CollectionService {
 		invalidateExistingDisplayPositions(null, request);
 
 		Collection collection = collectionMapper.toEntity(request);
-		collection = collectionRepository.save(collection);
-
-		collection.setSlug(generateSlug(request.name()) + "-" + collection.getId());
+		collection.setSlug(generateUniqueSlug(request.name()));
+		
 		collection = collectionRepository.save(collection);
 
 		return collectionMapper.toResponse(collection);
@@ -74,7 +73,7 @@ public class CollectionService {
 
 		collectionMapper.updateEntityFromRequest(request, collection);
 		if (collection.getSlug() == null) {
-			collection.setSlug(generateSlug(request.name()) + "-" + collection.getId());
+			collection.setSlug(generateUniqueSlug(request.name()));
 		}
 
 		return collectionMapper.toResponse(collection);
@@ -128,5 +127,16 @@ public class CollectionService {
 						throw new EntityAlreadyExistsException("Collection", "HEADER para " + request.targetAudience());
 					});
 		}
+	}
+
+	private String generateUniqueSlug(String name) {
+		String baseSlug = generateSlug(name);
+		String uniqueSlug = baseSlug;
+		int counter = 1;
+		while (collectionRepository.existsBySlug(uniqueSlug)) {
+			uniqueSlug = baseSlug + "-" + counter;
+			counter++;
+		}
+		return uniqueSlug;
 	}
 }

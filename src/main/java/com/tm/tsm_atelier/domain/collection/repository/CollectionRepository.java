@@ -10,6 +10,8 @@ public interface CollectionRepository extends JpaRepository<Collection, Long>, J
 
 	boolean existsByNameAndTargetAudience(String name, TargetAudience targetAudience);
 
+	boolean existsBySlug(String slug);
+
 	java.util.Optional<Collection> findByNameAndTargetAudience(String name, TargetAudience targetAudience);
 
 	java.util.Optional<Collection> findByDisplayPositionAndTargetAudience(DisplayPosition displayPosition,

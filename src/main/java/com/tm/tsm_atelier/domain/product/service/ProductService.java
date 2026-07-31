@@ -78,10 +78,10 @@ public class ProductService {
 			product.getColors().add(color);
 		});
 
-		Product savedProduct = productRepository.save(product);
+		// #1 — Gerar slug definitivo único antes do save
+		product.setSlug(generateUniqueSlug(product.getName()));
 
-		// #1 — Gerar slug definitivo com ID após o save
-		savedProduct.setSlug(generateSlug(savedProduct.getName()) + "-" + savedProduct.getId());
+		Product savedProduct = productRepository.save(product);
 
 		return productMapper.toAdminResponse(savedProduct);
 	}
@@ -118,7 +118,7 @@ public class ProductService {
 		}
 
 		if (product.getSlug() == null) {
-			product.setSlug(generateSlug(request.name()) + "-" + product.getId());
+			product.setSlug(generateUniqueSlug(request.name()));
 		}
 
 		mergeColors(product, request.colors());
@@ -340,5 +340,16 @@ public class ProductService {
 			throw new IllegalArgumentException(
 					"Total fabric composition percentage must be exactly 100%, but was " + totalPercentage + "%");
 		}
+	}
+
+	private String generateUniqueSlug(String name) {
+		String baseSlug = generateSlug(name);
+		String uniqueSlug = baseSlug;
+		int counter = 1;
+		while (productRepository.existsBySlug(uniqueSlug)) {
+			uniqueSlug = baseSlug + "-" + counter;
+			counter++;
+		}
+		return uniqueSlug;
 	}
 }

@@ -54,7 +54,7 @@ class CollectionServiceTest {
 		assertThat(result.targetAudience()).isEqualTo(requestDTO.targetAudience());
 		assertThat(result.id()).isEqualTo(1L);
 
-		verify(collectionRepository, times(2)).save(any(Collection.class));
+		verify(collectionRepository, times(1)).save(any(Collection.class));
 		verify(collectionMapper, times(1)).toEntity(any(CollectionRequestDTO.class));
 		verify(collectionRepository, times(1)).findByNameAndTargetAudience(requestDTO.name(),
 				requestDTO.targetAudience());

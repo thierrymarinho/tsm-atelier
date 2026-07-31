@@ -77,12 +77,7 @@ public class Product extends BaseEntity {
 	@Builder.Default
 	private Set<ProductColor> colors = new java.util.LinkedHashSet<>();
 
-	@PrePersist
-	public void generateSlugBeforePersist() {
-		if (this.slug == null && this.name != null) {
-			this.slug = SlugUtils.generateSlug(this.name);
-		}
-	}
+
 
 	@Override
 	public boolean equals(Object o) {

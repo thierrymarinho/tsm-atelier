@@ -24,6 +24,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 	@EntityGraph(attributePaths = {"collection"})
 	Page<Product> findAll(@NonNull Specification<Product> spec, @NonNull Pageable pageable);
 
+	boolean existsBySlug(String slug);
+
 	Boolean existsByNameAndDeletedAtIsNull(String name);
 
 	@Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.colors WHERE p IN :products")

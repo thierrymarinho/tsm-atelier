@@ -39,8 +39,14 @@ public class Collection extends BaseEntity {
 	@Column(nullable = false)
 	private boolean active;
 
-	@Column(name = "image_url")
-	private String imageUrl;
+	@Column(name = "hero_image_url")
+	private String heroImageUrl;
+
+	@Column(name = "portrait_image_url")
+	private String portraitImageUrl;
+
+	@Column(name = "square_image_url")
+	private String squareImageUrl;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "display_position")

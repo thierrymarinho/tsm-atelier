@@ -6,6 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 
 public record CollectionRequestDTO(@NotBlank(message = "Collection name is required") String name,
 
-		boolean active, String description, String imageUrl, DisplayPosition displayPosition, Integer displayOrder,
-		TargetAudience targetAudience) {
+		boolean active, String description, String heroImageUrl, String portraitImageUrl, String squareImageUrl,
+		DisplayPosition displayPosition, Integer displayOrder, TargetAudience targetAudience) {
 }

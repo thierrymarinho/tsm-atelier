@@ -19,12 +19,14 @@ CREATE TABLE product_fabric_compositions (
     product_id BIGINT NOT NULL,
     material VARCHAR(255) NOT NULL,
     percentage INT NOT NULL,
+    CONSTRAINT pk_product_fabric_compositions PRIMARY KEY (product_id, material),
     CONSTRAINT fk_fabric_composition_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
 CREATE TABLE product_care_instructions (
     product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    instruction VARCHAR(255) NOT NULL
+    instruction VARCHAR(255) NOT NULL,
+    CONSTRAINT pk_product_care_instructions PRIMARY KEY (product_id, instruction)
 );
 
 CREATE TABLE product_colors (
@@ -41,7 +43,8 @@ CREATE TABLE product_colors (
 
 CREATE TABLE product_gallery_images (
     product_color_id BIGINT NOT NULL REFERENCES product_colors(id) ON DELETE CASCADE,
-    image_url VARCHAR(500) NOT NULL
+    image_url VARCHAR(500) NOT NULL,
+    CONSTRAINT pk_product_gallery_images PRIMARY KEY (product_color_id, image_url)
 );
 
 CREATE TABLE product_skus (
@@ -56,3 +59,7 @@ CREATE TABLE product_skus (
 );
 
 CREATE UNIQUE INDEX idx_sku_code_active ON product_skus (sku_code) WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_products_collection_id ON products (collection_id);
+CREATE INDEX idx_product_colors_product_id ON product_colors (product_id);
+CREATE INDEX idx_product_skus_color_id ON product_skus (product_color_id);

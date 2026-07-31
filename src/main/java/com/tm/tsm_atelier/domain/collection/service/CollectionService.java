@@ -36,7 +36,7 @@ public class CollectionService {
 
 		Collection collection = collectionMapper.toEntity(request);
 		collection.setSlug(generateUniqueSlug(request.name()));
-		
+
 		collection = collectionRepository.save(collection);
 
 		return collectionMapper.toResponse(collection);

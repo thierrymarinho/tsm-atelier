@@ -16,3 +16,5 @@ CREATE TABLE addresses (
 
 CREATE UNIQUE INDEX uk_addresses_user_default
     ON addresses (user_id) WHERE is_default = true;
+
+CREATE INDEX idx_addresses_user_id ON addresses (user_id);

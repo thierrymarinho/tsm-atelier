@@ -1,6 +1,5 @@
 package com.tm.tsm_atelier.domain.product.entity;
 
-import com.tm.tsm_atelier.common.utils.SlugUtils;
 import com.tm.tsm_atelier.domain.collection.entity.Collection;
 import com.tm.tsm_atelier.domain.common.entity.BaseEntity;
 import com.tm.tsm_atelier.domain.product.enums.Category;
@@ -76,8 +75,6 @@ public class Product extends BaseEntity {
 	@OrderBy("id ASC")
 	@Builder.Default
 	private Set<ProductColor> colors = new java.util.LinkedHashSet<>();
-
-
 
 	@Override
 	public boolean equals(Object o) {

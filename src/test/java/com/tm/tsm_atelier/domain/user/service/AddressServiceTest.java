@@ -13,6 +13,7 @@ import com.tm.tsm_atelier.domain.user.dto.AddressResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Address;
 import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.AddressRepository;
+import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,6 +35,9 @@ class AddressServiceTest {
 	@Mock
 	private AddressRepository addressRepository;
 
+	@Mock
+	private UserRepository userRepository;
+
 	private User createUser() {
 		return aUser().withId(UUID.randomUUID()).build();
 	}
@@ -52,6 +56,7 @@ class AddressServiceTest {
 			User user = createUser();
 			AddressRequestDTO request = createRequest(false);
 
+			when(userRepository.findByIdWithPessimisticLock(user.getId())).thenReturn(Optional.of(user));
 			when(addressRepository.countByUserId(user.getId())).thenReturn(0L);
 			when(addressRepository.save(any(Address.class))).thenAnswer(i -> {
 				Address a = i.getArgument(0);
@@ -76,6 +81,7 @@ class AddressServiceTest {
 			User user = createUser();
 			AddressRequestDTO request = createRequest(false);
 
+			when(userRepository.findByIdWithPessimisticLock(user.getId())).thenReturn(Optional.of(user));
 			when(addressRepository.countByUserId(user.getId())).thenReturn(5L);
 
 			assertThatThrownBy(() -> addressService.create(user, request))
@@ -93,18 +99,19 @@ class AddressServiceTest {
 
 			Address oldDefault = Address.builder().id(1L).isDefault(true).build();
 
+			when(userRepository.findByIdWithPessimisticLock(user.getId())).thenReturn(Optional.of(user));
 			when(addressRepository.countByUserId(user.getId())).thenReturn(1L);
 			when(addressRepository.findByUserIdAndIsDefaultTrue(user.getId())).thenReturn(Optional.of(oldDefault));
 			when(addressRepository.save(any(Address.class))).thenAnswer(i -> i.getArgument(0));
 
 			addressService.create(user, request);
 
-			verify(addressRepository).save(oldDefault);
+			verify(addressRepository).saveAndFlush(oldDefault);
 			assertThat(oldDefault.isDefault()).isFalse();
 
 			ArgumentCaptor<Address> captor = ArgumentCaptor.forClass(Address.class);
-			verify(addressRepository, times(2)).save(captor.capture());
-			assertThat(captor.getAllValues().get(1).isDefault()).isTrue();
+			verify(addressRepository, times(1)).save(captor.capture());
+			assertThat(captor.getValue().isDefault()).isTrue();
 		}
 	}
 

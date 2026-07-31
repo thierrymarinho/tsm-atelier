@@ -13,3 +13,6 @@ CREATE TABLE addresses (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_addresses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE UNIQUE INDEX uk_addresses_user_default
+    ON addresses (user_id) WHERE is_default = true;

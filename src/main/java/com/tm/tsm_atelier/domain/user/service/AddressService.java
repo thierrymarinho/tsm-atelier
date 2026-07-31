@@ -2,11 +2,13 @@ package com.tm.tsm_atelier.domain.user.service;
 
 import com.tm.tsm_atelier.common.exception.custom.AddressLimitExceededException;
 import com.tm.tsm_atelier.common.exception.custom.AddressNotFoundException;
+import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
 import com.tm.tsm_atelier.domain.user.dto.AddressRequestDTO;
 import com.tm.tsm_atelier.domain.user.dto.AddressResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Address;
 import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.AddressRepository;
+import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import com.tm.tsm_atelier.domain.user.utils.ZipCodeUtils;
 import java.util.List;
 import java.util.Optional;
@@ -18,9 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class AddressService {
 
 	private final AddressRepository addressRepository;
+	private final UserRepository userRepository;
 
-	public AddressService(AddressRepository addressRepository) {
+	public AddressService(AddressRepository addressRepository, UserRepository userRepository) {
 		this.addressRepository = addressRepository;
+		this.userRepository = userRepository;
 	}
 
 	@Transactional(readOnly = true)
@@ -31,6 +35,9 @@ public class AddressService {
 
 	@Transactional
 	public AddressResponseDTO create(User user, AddressRequestDTO request) {
+		userRepository.findByIdWithPessimisticLock(user.getId())
+				.orElseThrow(() -> new ResourceNotFoundException("User", user.getId()));
+
 		long addressCount = addressRepository.countByUserId(user.getId());
 
 		if (addressCount >= 5) {
@@ -120,7 +127,7 @@ public class AddressService {
 		Optional<Address> currentDefault = addressRepository.findByUserIdAndIsDefaultTrue(userId);
 		currentDefault.ifPresent(addr -> {
 			addr.setDefault(false);
-			addressRepository.save(addr);
+			addressRepository.saveAndFlush(addr);
 		});
 	}
 

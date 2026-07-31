@@ -9,7 +9,9 @@ public class CollectionRequestDTOBuilder {
 	private String name = "Coleção Inverno 2026";
 	private boolean active = true;
 	private String description = "Descrição da coleção";
-	private String imageUrl = "http://res.cloudinary.com/demo/image/upload/sample.jpg";
+	private String heroImageUrl = "http://res.cloudinary.com/demo/image/upload/sample.jpg";
+	private String portraitImageUrl = "http://res.cloudinary.com/demo/image/upload/sample.jpg";
+	private String squareImageUrl = "http://res.cloudinary.com/demo/image/upload/sample.jpg";
 	private DisplayPosition displayPosition = DisplayPosition.NONE;
 	private Integer displayOrder = 0;
 	private TargetAudience targetAudience = TargetAudience.WOMEN;
@@ -33,8 +35,18 @@ public class CollectionRequestDTOBuilder {
 		return this;
 	}
 
-	public CollectionRequestDTOBuilder withImageUrl(String imageUrl) {
-		this.imageUrl = imageUrl;
+	public CollectionRequestDTOBuilder withHeroImageUrl(String heroImageUrl) {
+		this.heroImageUrl = heroImageUrl;
+		return this;
+	}
+
+	public CollectionRequestDTOBuilder withPortraitImageUrl(String portraitImageUrl) {
+		this.portraitImageUrl = portraitImageUrl;
+		return this;
+	}
+
+	public CollectionRequestDTOBuilder withSquareImageUrl(String squareImageUrl) {
+		this.squareImageUrl = squareImageUrl;
 		return this;
 	}
 
@@ -54,7 +66,7 @@ public class CollectionRequestDTOBuilder {
 	}
 
 	public CollectionRequestDTO build() {
-		return new CollectionRequestDTO(name, active, description, imageUrl, displayPosition, displayOrder,
-				targetAudience);
+		return new CollectionRequestDTO(name, active, description, heroImageUrl, portraitImageUrl, squareImageUrl,
+				displayPosition, displayOrder, targetAudience);
 	}
 }

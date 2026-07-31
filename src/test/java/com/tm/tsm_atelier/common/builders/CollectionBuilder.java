@@ -9,7 +9,9 @@ public class CollectionBuilder {
 	private Long id = 1L;
 	private String name = "Coleção Verão 2026";
 	private boolean active = true;
-	private String imageUrl = "http://res.cloudinary.com/demo/image/upload/sample.jpg";
+	private String heroImageUrl = "http://res.cloudinary.com/demo/image/upload/sample.jpg";
+	private String portraitImageUrl = "http://res.cloudinary.com/demo/image/upload/sample.jpg";
+	private String squareImageUrl = "http://res.cloudinary.com/demo/image/upload/sample.jpg";
 	private DisplayPosition displayPosition = DisplayPosition.NONE;
 	private Integer displayOrder = 0;
 	private TargetAudience targetAudience = TargetAudience.WOMEN;
@@ -33,8 +35,18 @@ public class CollectionBuilder {
 		return this;
 	}
 
-	public CollectionBuilder withImageUrl(String imageUrl) {
-		this.imageUrl = imageUrl;
+	public CollectionBuilder withHeroImageUrl(String heroImageUrl) {
+		this.heroImageUrl = heroImageUrl;
+		return this;
+	}
+
+	public CollectionBuilder withPortraitImageUrl(String portraitImageUrl) {
+		this.portraitImageUrl = portraitImageUrl;
+		return this;
+	}
+
+	public CollectionBuilder withSquareImageUrl(String squareImageUrl) {
+		this.squareImageUrl = squareImageUrl;
 		return this;
 	}
 
@@ -54,7 +66,8 @@ public class CollectionBuilder {
 	}
 
 	public Collection build() {
-		return Collection.builder().id(id).name(name).active(active).imageUrl(imageUrl).displayPosition(displayPosition)
+		return Collection.builder().id(id).name(name).active(active).heroImageUrl(heroImageUrl)
+				.portraitImageUrl(portraitImageUrl).squareImageUrl(squareImageUrl).displayPosition(displayPosition)
 				.displayOrder(displayOrder).targetAudience(targetAudience).build();
 	}
 }

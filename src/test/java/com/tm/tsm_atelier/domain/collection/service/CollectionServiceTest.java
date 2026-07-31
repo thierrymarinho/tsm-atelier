@@ -37,8 +37,9 @@ class CollectionServiceTest {
 		Collection collection = aCollection().build();
 
 		CollectionResponseDTO responseDTO = new CollectionResponseDTO(1L, requestDTO.name(), "dummy-slug-1",
-				requestDTO.description(), requestDTO.active(), requestDTO.imageUrl(), requestDTO.displayPosition(),
-				requestDTO.displayOrder(), requestDTO.targetAudience());
+				requestDTO.description(), requestDTO.active(), requestDTO.heroImageUrl(), requestDTO.portraitImageUrl(),
+				requestDTO.squareImageUrl(), requestDTO.displayPosition(), requestDTO.displayOrder(),
+				requestDTO.targetAudience());
 
 		when(collectionRepository.findByNameAndTargetAudience(requestDTO.name(), requestDTO.targetAudience()))
 				.thenReturn(java.util.Optional.empty());

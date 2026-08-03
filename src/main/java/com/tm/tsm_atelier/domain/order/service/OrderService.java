@@ -106,7 +106,8 @@ public class OrderService {
 
 			if (sku.getStockQuantity() < quantity) {
 				throw new OutOfStockException(
-						"Out of stock for SKU: " + sku.getSkuCode() + ". Available: " + sku.getStockQuantity());
+						"Out of stock for SKU: " + sku.getSkuCode() + ". Available: " + sku.getStockQuantity(),
+						sku.getStockQuantity());
 			}
 
 			sku.setStockQuantity(sku.getStockQuantity() - quantity);
@@ -153,6 +154,7 @@ public class OrderService {
 				.orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
 		order.setPaymentIntentId(paymentIntentResult.paymentIntentId());
+		order.setPaymentClientSecret(paymentIntentResult.clientSecret());
 
 		return toResponseDTO(order, paymentIntentResult.clientSecret());
 	}
@@ -261,6 +263,10 @@ public class OrderService {
 	}
 
 	private OrderResponseDTO toResponseDTO(Order order, String clientSecret) {
+		String resolvedClientSecret = clientSecret != null
+				? clientSecret
+				: (order.getStatus() == OrderStatus.PENDING_PAYMENT ? order.getPaymentClientSecret() : null);
+
 		List<OrderItemResponseDTO> itemDTOs = order.getItems().stream()
 				.map(item -> new OrderItemResponseDTO(item.getId(),
 						item.getSku() != null ? item.getSku().getId() : null, item.getProductName(), item.getSkuCode(),
@@ -269,6 +275,6 @@ public class OrderService {
 				.toList();
 
 		return new OrderResponseDTO(order.getId(), order.getStatus(), order.getTotalAmount(), order.getShippingFee(),
-				clientSecret, order.getShippingAddress(), order.getExpiresAt(), order.getCreatedAt(), itemDTOs);
+				resolvedClientSecret, order.getShippingAddress(), order.getExpiresAt(), order.getCreatedAt(), itemDTOs);
 	}
 }

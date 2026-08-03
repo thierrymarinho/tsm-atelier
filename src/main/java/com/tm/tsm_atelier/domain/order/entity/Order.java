@@ -57,6 +57,8 @@ public class Order extends BaseEntity {
 
 	private String paymentIntentId;
 
+	private String paymentClientSecret;
+
 	@Embedded
 	private ShippingAddress shippingAddress;
 

@@ -5,6 +5,7 @@ CREATE TABLE orders (
     total_amount DECIMAL(10,2) NOT NULL,
     shipping_fee DECIMAL(10,2) NOT NULL,
     payment_intent_id VARCHAR(255),
+    payment_client_secret VARCHAR(255),
     street VARCHAR(255) NOT NULL,
     number VARCHAR(10) NOT NULL,
     complement VARCHAR(255),

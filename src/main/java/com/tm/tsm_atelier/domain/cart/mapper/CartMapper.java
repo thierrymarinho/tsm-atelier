@@ -39,8 +39,11 @@ public class CartMapper {
 		BigDecimal unitPrice = product.getPrice();
 		BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
 
+		boolean available = product.isActive() && product.getDeletedAt() == null && sku.getDeletedAt() == null
+				&& sku.getStockQuantity() > 0;
+
 		return new CartItemResponseDTO(item.getId(), sku.getId(), sku.getSkuCode(), sku.getSize().name(),
 				product.getId(), product.getName(), product.getSlug(), color.getColorName(), color.getCoverImageUrl(),
-				item.getQuantity(), unitPrice, subtotal);
+				item.getQuantity(), unitPrice, subtotal, sku.getStockQuantity(), available);
 	}
 }

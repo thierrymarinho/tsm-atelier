@@ -24,13 +24,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CartService {
 
+	private static final int MAX_QUANTITY_PER_ITEM = 10;
+
 	private final CartRepository cartRepository;
 	private final CartItemRepository cartItemRepository;
 	private final ProductSKURepository skuRepository;
 	private final UserRepository userRepository;
 	private final CartMapper cartMapper;
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public CartResponseDTO getCart(UUID userId) {
 		Cart cart = getOrCreateCartEntity(userId);
 		return cartMapper.toResponse(cart);
@@ -51,8 +53,13 @@ public class CartService {
 			newQuantity += existingItemOpt.get().getQuantity();
 		}
 
+		if (newQuantity > MAX_QUANTITY_PER_ITEM) {
+			throw new OutOfStockException("Maximum " + MAX_QUANTITY_PER_ITEM + " units per item",
+					MAX_QUANTITY_PER_ITEM);
+		}
+
 		if (sku.getStockQuantity() < newQuantity) {
-			throw new OutOfStockException("Not enough stock for SKU: " + sku.getSkuCode());
+			throw new OutOfStockException("Not enough stock for SKU: " + sku.getSkuCode(), sku.getStockQuantity());
 		}
 
 		if (existingItemOpt.isPresent()) {
@@ -77,7 +84,8 @@ public class CartService {
 				.orElseThrow(() -> new ResourceNotFoundException("CartItem", itemId));
 
 		if (item.getSku().getStockQuantity() < quantity) {
-			throw new OutOfStockException("Not enough stock for SKU: " + item.getSku().getSkuCode());
+			throw new OutOfStockException("Not enough stock for SKU: " + item.getSku().getSkuCode(),
+					item.getSku().getStockQuantity());
 		}
 
 		item.setQuantity(quantity);
@@ -114,27 +122,26 @@ public class CartService {
 				int quantityToAdd = reqItem.quantity();
 
 				if (existingItemOpt.isPresent()) {
-					// Do not accumulate if we consider frontend sent exact quantity,
-					// or accumulate? The plan says "mesclar". Let's accumulate.
-					int newQuantity = existingItemOpt.get().getQuantity() + quantityToAdd;
+					int newQuantity = Math.min(existingItemOpt.get().getQuantity() + quantityToAdd,
+							MAX_QUANTITY_PER_ITEM);
 					if (sku.getStockQuantity() >= newQuantity) {
 						existingItemOpt.get().setQuantity(newQuantity);
 					} else {
-						// Max out to stock if syncing
-						existingItemOpt.get().setQuantity(sku.getStockQuantity());
+						existingItemOpt.get().setQuantity(Math.min(sku.getStockQuantity(), MAX_QUANTITY_PER_ITEM));
 					}
 				} else {
-					if (sku.getStockQuantity() >= quantityToAdd) {
+					int effectiveQuantity = Math.min(quantityToAdd, MAX_QUANTITY_PER_ITEM);
+					if (sku.getStockQuantity() >= effectiveQuantity) {
 						CartItem newItem = new CartItem();
 						newItem.setCart(cart);
 						newItem.setSku(sku);
-						newItem.setQuantity(quantityToAdd);
+						newItem.setQuantity(effectiveQuantity);
 						cart.addItem(newItem);
 					} else if (sku.getStockQuantity() > 0) {
 						CartItem newItem = new CartItem();
 						newItem.setCart(cart);
 						newItem.setSku(sku);
-						newItem.setQuantity(sku.getStockQuantity());
+						newItem.setQuantity(Math.min(sku.getStockQuantity(), MAX_QUANTITY_PER_ITEM));
 						cart.addItem(newItem);
 					}
 				}
@@ -150,7 +157,6 @@ public class CartService {
 	@Transactional
 	public void clearCart(UUID userId) {
 		Cart cart = getOrCreateCartEntity(userId);
-		cartItemRepository.deleteAllByCartId(cart.getId());
 		cart.clearItems();
 		cartRepository.save(cart);
 	}

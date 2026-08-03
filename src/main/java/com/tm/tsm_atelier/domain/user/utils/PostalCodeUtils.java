@@ -5,10 +5,10 @@ public final class PostalCodeUtils {
 	private PostalCodeUtils() {
 	}
 
-	public static String formatZipCode(String zipCode) {
-		if (zipCode == null) {
+	public static String formatPostalCode(String postalCode) {
+		if (postalCode == null) {
 			return null;
 		}
-		return zipCode.replaceAll("\\D", "");
+		return postalCode.replaceAll("\\D", "");
 	}
 }

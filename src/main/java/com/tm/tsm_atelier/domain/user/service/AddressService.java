@@ -53,7 +53,7 @@ public class AddressService {
 
 		Address address = Address.builder().user(user).street(request.street()).number(request.number())
 				.complement(request.complement()).neighborhood(request.neighborhood()).city(request.city())
-				.state(request.state()).postalCode(PostalCodeUtils.formatZipCode(request.postalCode()))
+				.state(request.state()).postalCode(PostalCodeUtils.formatPostalCode(request.postalCode()))
 				.isDefault(isDefault).build();
 
 		Address savedAddress = addressRepository.save(address);
@@ -77,7 +77,7 @@ public class AddressService {
 		address.setNeighborhood(request.neighborhood());
 		address.setCity(request.city());
 		address.setState(request.state());
-		address.setPostalCode(PostalCodeUtils.formatZipCode(request.postalCode()));
+		address.setPostalCode(PostalCodeUtils.formatPostalCode(request.postalCode()));
 
 		return toResponseDTO(addressRepository.save(address));
 	}

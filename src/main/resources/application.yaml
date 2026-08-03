@@ -36,7 +36,7 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:super-secret-key-for-jwt-generation-tsm-atelier}
-  access-token-expiration: 30000 # 15 minutos em ms
+  access-token-expiration: 60000 # 15 minutos em ms
   refresh-token-expiration: 604800000 # 7 dias em ms
 
 cloudinary:

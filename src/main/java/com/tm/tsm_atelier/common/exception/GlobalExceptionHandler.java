@@ -149,6 +149,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ProblemDetail handleOutOfStock(OutOfStockException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
 		problem.setTitle("Out of stock");
+		problem.setProperty("availableQuantity", ex.getAvailableQuantity());
 		return problem;
 	}
 

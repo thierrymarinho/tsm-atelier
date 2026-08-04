@@ -190,6 +190,13 @@ public class AuthController {
 		return null;
 	}
 
+	/**
+	 * Ler X-Forwarded-For diretamente permitiria que qualquer cliente forjasse o
+	 * header e gerasse uma chave nova de rate limit a cada requisição, anulando o
+	 * limitador. Com server.forward-headers-strategy=FRAMEWORK o próprio Spring
+	 * resolve o header apenas quando ele vem do proxy da plataforma, então
+	 * getRemoteAddr() já devolve o IP real e confiável.
+	 */
 	private String getClientIp(HttpServletRequest request) {
 		return request.getRemoteAddr();
 	}

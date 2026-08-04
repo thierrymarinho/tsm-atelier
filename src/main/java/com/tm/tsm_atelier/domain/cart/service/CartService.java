@@ -152,9 +152,6 @@ public class CartService {
 					}
 				}
 			} catch (ResourceNotFoundException | OutOfStockException e) {
-				// Só o que é esperado ao mesclar um carrinho antigo — SKU removido ou
-				// produto fora de venda. Capturar Exception aqui engolia também falhas
-				// de conexão e bugs reais, e o carrinho perdia itens sem deixar rastro.
 				log.info("Skipping SKU {} during cart sync for user {}: {}", reqItem.skuId(), userId, e.getMessage());
 			}
 		}
@@ -170,24 +167,12 @@ public class CartService {
 		cartRepository.save(cart);
 	}
 
-	/**
-	 * O @SQLRestriction em ProductSKU já barra SKUs soft-deleted, mas um produto
-	 * pode estar apenas desativado (active = false) sem ter sido excluído. Nesse
-	 * caso ele some do catálogo e precisa sumir também do carrinho.
-	 */
 	private void requirePurchasable(ProductSKU sku) {
 		if (!sku.getProductColor().getProduct().isActive()) {
 			throw new OutOfStockException("This product is no longer available.", 0);
 		}
 	}
 
-	/**
-	 * carts.user_id é UNIQUE, então duas requisições simultâneas do mesmo usuário
-	 * (o SPA disparando GET /cart e POST /cart/items ao carregar) podiam não achar
-	 * o carrinho e tentar criar as duas, quebrando uma delas com 409. O lock
-	 * pessimista no usuário serializa apenas o caminho de criação; quando o
-	 * carrinho já existe, nada é bloqueado.
-	 */
 	private Cart getOrCreateCartEntity(UUID userId) {
 		return cartRepository.findByUserIdWithItems(userId).orElseGet(() -> {
 			User user = userRepository.findByIdWithPessimisticLock(userId)

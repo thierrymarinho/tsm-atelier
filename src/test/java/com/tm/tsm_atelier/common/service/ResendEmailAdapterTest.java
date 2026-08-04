@@ -37,7 +37,7 @@ class ResendEmailAdapterTest {
 	}
 
 	@Test
-	@DisplayName("Deve enviar email de verificação com os campos corretos")
+	@DisplayName("Should send the verification email with the correct fields")
 	void shouldSendVerificationEmailWithCorrectFields() throws ResendException {
 		// Arrange
 		String to = "user@example.com";
@@ -50,7 +50,7 @@ class ResendEmailAdapterTest {
 		// Act
 		adapter.sendVerificationEmail(to, firstName, link);
 
-		// Assert — captura o objeto enviado e verifica os campos
+		// Assert
 		ArgumentCaptor<CreateEmailOptions> captor = ArgumentCaptor.forClass(CreateEmailOptions.class);
 		verify(emails).send(captor.capture());
 
@@ -63,13 +63,13 @@ class ResendEmailAdapterTest {
 	}
 
 	@Test
-	@DisplayName("Deve logar o erro sem propagar exceção quando o envio falha")
+	@DisplayName("Should log the error without propagating when sending fails")
 	void shouldNotPropagateExceptionWhenEmailFails() throws ResendException {
 		// Arrange
 		when(resend.emails()).thenReturn(emails);
 		when(emails.send(any(CreateEmailOptions.class))).thenThrow(new ResendException("API error"));
 
-		// Act & Assert — não deve lançar exceção, apenas logar
+		// Act & Assert
 		adapter.sendVerificationEmail("user@example.com", "Maria", "http://localhost:3000/verify?token=abc");
 
 		verify(emails).send(any(CreateEmailOptions.class));

@@ -5,6 +5,7 @@ import static com.tm.tsm_atelier.domain.collection.repository.CollectionSpecific
 
 import com.tm.tsm_atelier.common.exception.custom.EntityAlreadyExistsException;
 import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
+import com.tm.tsm_atelier.config.CacheNames;
 import com.tm.tsm_atelier.domain.collection.dto.CollectionRequestDTO;
 import com.tm.tsm_atelier.domain.collection.dto.CollectionResponseDTO;
 import com.tm.tsm_atelier.domain.collection.entity.Collection;
@@ -16,6 +17,8 @@ import com.tm.tsm_atelier.domain.product.service.ProductService;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,8 @@ public class CollectionService {
 	private final ProductService productService;
 
 	@Transactional
+	@CacheEvict(value = {CacheNames.CATALOG_COLLECTIONS, CacheNames.CATALOG_SLUG,
+			CacheNames.CATALOG_PRODUCTS}, allEntries = true)
 	public CollectionResponseDTO create(CollectionRequestDTO request) {
 		validateUniqueConstraints(null, request);
 		invalidateExistingDisplayPositions(null, request);
@@ -48,6 +53,7 @@ public class CollectionService {
 	}
 
 	@Transactional(readOnly = true)
+	@Cacheable(value = CacheNames.CATALOG_COLLECTIONS, key = "{#position, #targetAudience}")
 	public List<CollectionResponseDTO> findByFilters(DisplayPosition position, TargetAudience targetAudience) {
 		Specification<Collection> spec = Specification.where(isActive()).and(hasPosition(position))
 				.and(hasTargetAudience(targetAudience));
@@ -64,6 +70,8 @@ public class CollectionService {
 	}
 
 	@Transactional
+	@CacheEvict(value = {CacheNames.CATALOG_COLLECTIONS, CacheNames.CATALOG_SLUG,
+			CacheNames.CATALOG_PRODUCTS}, allEntries = true)
 	public CollectionResponseDTO update(Long id, CollectionRequestDTO request) {
 		Collection collection = collectionRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Collection", id));
@@ -80,11 +88,12 @@ public class CollectionService {
 	}
 
 	@Transactional
+	@CacheEvict(value = {CacheNames.CATALOG_COLLECTIONS, CacheNames.CATALOG_SLUG,
+			CacheNames.CATALOG_PRODUCTS}, allEntries = true)
 	public void delete(Long id) {
 		Collection collection = collectionRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Collection", id));
 
-		// Propagate soft delete to products
 		collection.getProducts().forEach(product -> {
 			productService.delete(product.getId());
 		});
@@ -117,14 +126,14 @@ public class CollectionService {
 		collectionRepository.findByNameAndTargetAudience(request.name(), request.targetAudience())
 				.filter(existing -> id == null || !existing.getId().equals(id)).ifPresent(existing -> {
 					throw new EntityAlreadyExistsException("Collection",
-							request.name() + " para " + request.targetAudience());
+							request.name() + " for " + request.targetAudience());
 				});
 
 		if (request.displayPosition() == DisplayPosition.HEADER) {
 			collectionRepository
 					.findByDisplayPositionAndTargetAudience(DisplayPosition.HEADER, request.targetAudience())
 					.filter(existing -> id == null || !existing.getId().equals(id)).ifPresent(existing -> {
-						throw new EntityAlreadyExistsException("Collection", "HEADER para " + request.targetAudience());
+						throw new EntityAlreadyExistsException("Collection", "HEADER for " + request.targetAudience());
 					});
 		}
 	}

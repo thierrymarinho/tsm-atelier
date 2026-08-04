@@ -77,7 +77,7 @@ class AddressControllerTest {
 	}
 
 	@Test
-	@DisplayName("POST /api/v1/addresses - deve retornar 201 quando criado com sucesso")
+	@DisplayName("POST /api/v1/addresses - should return 201 when created successfully")
 	void shouldCreateAddress() throws Exception {
 		AddressRequestDTO req = new AddressRequestDTO("Street", "1", "C", "N", "City", State.SP, "12345678", true);
 		AddressResponseDTO res = new AddressResponseDTO(1L, "Street", "1", "C", "N", "City", State.SP, "12345678",
@@ -92,7 +92,7 @@ class AddressControllerTest {
 	}
 
 	@Test
-	@DisplayName("POST /api/v1/addresses - deve retornar 422 quando limite é excedido")
+	@DisplayName("POST /api/v1/addresses - should return 422 when the limit is exceeded")
 	void shouldReturn422WhenLimitExceeded() throws Exception {
 		AddressRequestDTO req = new AddressRequestDTO("Street", "1", "C", "N", "City", State.SP, "12345678", true);
 
@@ -104,7 +104,7 @@ class AddressControllerTest {
 	}
 
 	@Test
-	@DisplayName("GET /api/v1/addresses - deve retornar 200 com lista de endereços")
+	@DisplayName("GET /api/v1/addresses - should return 200 with the address list")
 	void shouldReturnAddressList() throws Exception {
 		when(addressService.findAllByUser(any())).thenReturn(List.of());
 
@@ -113,7 +113,7 @@ class AddressControllerTest {
 	}
 
 	@Test
-	@DisplayName("PATCH /api/v1/addresses/{id}/default - deve retornar 200")
+	@DisplayName("PATCH /api/v1/addresses/{id}/default - should return 200")
 	void shouldSetDefault() throws Exception {
 		Long id = 1L;
 		AddressResponseDTO res = new AddressResponseDTO(id, "S", "1", null, "N", "C", State.SP, "1", true);
@@ -124,7 +124,7 @@ class AddressControllerTest {
 	}
 
 	@Test
-	@DisplayName("DELETE /api/v1/addresses/{id} - deve retornar 204")
+	@DisplayName("DELETE /api/v1/addresses/{id} - should return 204")
 	void shouldDeleteAddress() throws Exception {
 		Long id = 1L;
 		doNothing().when(addressService).delete(any(), eq(id));

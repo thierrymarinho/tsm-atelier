@@ -40,7 +40,7 @@ class JwtServiceTest {
 	class GenerateToken {
 
 		@Test
-		@DisplayName("Deve gerar um token JWT válido")
+		@DisplayName("Should generate a valid JWT")
 		void shouldGenerateValidJwtToken() {
 			// Act
 			String token = jwtService.generateToken(userDetails);
@@ -52,7 +52,7 @@ class JwtServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve incluir o email do usuário como subject do token")
+		@DisplayName("Should use the user email as the token subject")
 		void shouldIncludeUserEmailAsSubject() {
 			// Act
 			String token = jwtService.generateToken(userDetails);
@@ -68,7 +68,7 @@ class JwtServiceTest {
 	class ExtractUsername {
 
 		@Test
-		@DisplayName("Deve extrair o email corretamente do token")
+		@DisplayName("Should extract the email from the token correctly")
 		void shouldExtractEmailFromToken() {
 			// Arrange
 			String token = jwtService.generateToken(userDetails);
@@ -81,7 +81,7 @@ class JwtServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando a assinatura for inválida")
+		@DisplayName("Should throw when the signature is invalid")
 		void shouldThrowExceptionWhenSignatureIsInvalid() {
 			// Arrange
 			String token = jwtService.generateToken(userDetails) + "invalid";
@@ -96,7 +96,7 @@ class JwtServiceTest {
 	class IsTokenValid {
 
 		@Test
-		@DisplayName("Deve retornar true quando o token é válido e pertence ao usuário")
+		@DisplayName("Should return true when the token is valid and belongs to the user")
 		void shouldReturnTrueWhenTokenIsValidAndBelongsToUser() {
 			// Arrange
 			String token = jwtService.generateToken(userDetails);
@@ -109,7 +109,7 @@ class JwtServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar false quando o token pertence a outro usuário")
+		@DisplayName("Should return false when the token belongs to another user")
 		void shouldReturnFalseWhenTokenBelongsToAnotherUser() {
 			// Arrange
 			String token = jwtService.generateToken(userDetails);
@@ -121,17 +121,14 @@ class JwtServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando o token está expirado")
+		@DisplayName("Should throw when the token is expired")
 		void shouldThrowWhenTokenIsExpired() {
 			// Arrange
-			// Simula a expiração usando Reflection para setar um tempo de expiração no
-			// passado
 			ReflectionTestUtils.setField(jwtService, "jwtExpiration", -1000L);
 			String expiredToken = jwtService.generateToken(userDetails);
 
 			// Act & Assert
-			// O parser do io.jsonwebtoken já lança ExpiredJwtException automaticamente
-			// quando tenta extrair informações de um token com data no passado
+
 			assertThatThrownBy(() -> jwtService.isTokenValid(expiredToken, userDetails.getUsername()))
 					.isInstanceOf(ExpiredJwtException.class);
 		}

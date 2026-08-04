@@ -44,7 +44,7 @@ class ProductServiceTest {
 	private ProductService productService;
 
 	@Test
-	@DisplayName("Deve criar um produto com cores e SKUs com sucesso")
+	@DisplayName("Should create a product with colors and SKUs successfully")
 	void shouldCreateProductWithColorsAndSKUs() {
 		// Arrange
 		ProductRequestDTO requestDTO = aProductRequest().build();
@@ -73,7 +73,7 @@ class ProductServiceTest {
 	}
 
 	@Test
-	@DisplayName("Deve lançar erro ao tentar criar produto em coleção inexistente")
+	@DisplayName("Should throw when creating a product in a collection that does not exist")
 	void shouldThrowErrorWhenCollectionNotFound() {
 		// Arrange
 		ProductRequestDTO requestDTO = aProductRequest().withCollectionId(999L).build();
@@ -91,7 +91,7 @@ class ProductServiceTest {
 	}
 
 	@Test
-	@DisplayName("Deve criar um produto sem coleção vinculada com sucesso")
+	@DisplayName("Should create a product with no linked collection successfully")
 	void shouldCreateProductWithoutCollectionSuccessfully() {
 		// Arrange
 		ProductRequestDTO requestDTO = aProductRequest().withCollectionId(null).build();
@@ -114,7 +114,7 @@ class ProductServiceTest {
 	}
 
 	@Test
-	@DisplayName("Deve buscar um produto por ID com sucesso")
+	@DisplayName("Should fetch a product by id successfully")
 	void shouldFindProductByIdSuccessfully() {
 		// Arrange
 		Product product = aProduct().withId(1L).build();
@@ -134,7 +134,7 @@ class ProductServiceTest {
 	}
 
 	@Test
-	@DisplayName("Deve lançar erro ao buscar produto com ID inexistente")
+	@DisplayName("Should throw when fetching a product with an id that does not exist")
 	void shouldThrowErrorWhenProductNotFound() {
 		// Arrange
 		when(productRepository.findByIdAndDeletedAtIsNull(99L)).thenReturn(Optional.empty());

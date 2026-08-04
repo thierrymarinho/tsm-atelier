@@ -3,6 +3,7 @@ package com.tm.tsm_atelier.domain.order.service;
 import com.tm.tsm_atelier.common.exception.custom.AddressNotFoundException;
 import com.tm.tsm_atelier.common.exception.custom.OutOfStockException;
 import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
+import com.tm.tsm_atelier.config.CacheNames;
 import com.tm.tsm_atelier.domain.cart.service.CartService;
 import com.tm.tsm_atelier.domain.order.dto.CheckoutItemDTO;
 import com.tm.tsm_atelier.domain.order.dto.CheckoutRequestDTO;
@@ -30,6 +31,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,12 +39,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Owns the transactional units of the order lifecycle. Every public method here
- * is a single, short database transaction — calls to external systems (payment
- * gateway, e-mail) are deliberately kept out, and orchestrated by
- * {@link CheckoutService} and the expiration scheduler instead.
- */
 @Service
 public class OrderService {
 
@@ -57,11 +53,6 @@ public class OrderService {
 	private static final BigDecimal FIXED_SHIPPING_FEE = new BigDecimal("0.00");
 	private static final int PAYMENT_WINDOW_MINUTES = 30;
 
-	/**
-	 * Statuses where the order still holds reserved stock and a payment is still
-	 * expected: the only ones from which it may be cancelled with a stock refund,
-	 * and the only ones a successful payment may transition to PAID.
-	 */
 	private static final Set<OrderStatus> AWAITING_PAYMENT_STATUSES = Set.of(OrderStatus.PENDING_PAYMENT,
 			OrderStatus.PAYMENT_FAILED);
 
@@ -85,12 +76,8 @@ public class OrderService {
 		this.cartService = cartService;
 	}
 
-	/**
-	 * Reserves stock and persists the order as PENDING_PAYMENT. Commits before any
-	 * payment gateway call so the pessimistic SKU locks are not held across the
-	 * network.
-	 */
 	@Transactional
+	@CacheEvict(value = CacheNames.CATALOG_SLUG, allEntries = true)
 	public Order createPendingOrder(User user, CheckoutRequestDTO request) {
 		Address address = addressRepository.findById(request.addressId())
 				.orElseThrow(() -> new AddressNotFoundException("Address not found."));
@@ -116,8 +103,6 @@ public class OrderService {
 			ProductSKU sku = skuRepository.findByIdWithPessimisticLock(skuId)
 					.orElseThrow(() -> new ResourceNotFoundException("SKU", skuId));
 
-			// Um produto retirado de venda não pode ser comprado nem com um carrinho
-			// antigo ou um SKU informado na mão: o catálogo esconde, o checkout recusa.
 			if (!sku.getProductColor().getProduct().isActive()) {
 				throw new OutOfStockException("This product is no longer available.", 0);
 			}
@@ -146,17 +131,11 @@ public class OrderService {
 
 		Order savedOrder = orderRepository.save(order);
 
-		// Limpa o carrinho após a criação do pedido
 		cartService.clearCart(user.getId());
 
 		return savedOrder;
 	}
 
-	/**
-	 * Merges duplicate SKUs and returns them ordered by id, so concurrent checkouts
-	 * always acquire the pessimistic SKU locks in the same order and cannot
-	 * deadlock each other.
-	 */
 	private static SortedMap<Long, Integer> consolidateItems(List<CheckoutItemDTO> items) {
 		SortedMap<Long, Integer> quantityBySkuId = new TreeMap<>();
 		for (CheckoutItemDTO item : items) {
@@ -165,7 +144,6 @@ public class OrderService {
 		return quantityBySkuId;
 	}
 
-	/** Second half of checkout: links the created PaymentIntent to the order. */
 	@Transactional
 	public OrderResponseDTO attachPaymentIntent(Long orderId, PaymentIntentResult paymentIntentResult) {
 		Order order = orderRepository.findByIdWithItems(orderId)
@@ -177,12 +155,8 @@ public class OrderService {
 		return toResponseDTO(order, paymentIntentResult.clientSecret());
 	}
 
-	/**
-	 * Cancels an order that never got paid and returns its reserved stock. Returns
-	 * {@code false} without touching stock when the order already moved on (e.g. it
-	 * was paid in the meantime).
-	 */
 	@Transactional
+	@CacheEvict(value = CacheNames.CATALOG_SLUG, allEntries = true)
 	public boolean cancelAndRestoreStock(Long orderId) {
 		Order order = orderRepository.findByIdWithItems(orderId)
 				.orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
@@ -213,9 +187,6 @@ public class OrderService {
 		}
 	}
 
-	/**
-	 * Ids of orders whose payment window has closed, for the scheduler to cancel.
-	 */
 	@Transactional(readOnly = true)
 	public List<Long> findExpiredOrderIds() {
 		return orderRepository.findIdsByStatusInAndExpiresAtBefore(AWAITING_PAYMENT_STATUSES, LocalDateTime.now());
@@ -232,8 +203,6 @@ public class OrderService {
 		}
 
 		if (!AWAITING_PAYMENT_STATUSES.contains(order.getStatus())) {
-			// Money was captured for an order we can no longer fulfil as-is (most likely
-			// cancelled by expiration). Needs manual reconciliation / refund.
 			log.error("Payment succeeded for order {} in unexpected status {} — manual review required", order.getId(),
 					order.getStatus());
 			return;
@@ -241,8 +210,6 @@ public class OrderService {
 
 		order.setStatus(OrderStatus.PAID);
 
-		// Sent only after this transaction commits, so a mail failure cannot roll the
-		// PAID status back.
 		eventPublisher.publishEvent(new OrderPaidEvent(order.getId(), order.getUser().getEmail(),
 				order.getUser().getFirstName(), order.getTotalAmount()));
 	}
@@ -269,8 +236,6 @@ public class OrderService {
 		Order order = orderRepository.findByIdWithItems(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
-		// Negar acesso ao pedido de outro usuário é 403, não 500: antes isso subia
-		// como IllegalArgumentException e virava erro de servidor no handler genérico.
 		if (!order.getUser().getId().equals(user.getId()) && user.getRole() != Role.ADMIN) {
 			throw new AccessDeniedException("Access denied");
 		}

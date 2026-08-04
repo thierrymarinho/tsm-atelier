@@ -52,7 +52,7 @@ class ProductAdminControllerTest {
 	class CreateProduct {
 
 		@Test
-		@DisplayName("Deve retornar 201 quando o produto é criado com sucesso")
+		@DisplayName("Should return 201 when the product is created successfully")
 		void shouldReturn201WhenProductIsCreatedSuccessfully() throws Exception {
 			// Arrange
 			ProductRequestDTO requestDTO = aProductRequest().build();
@@ -70,7 +70,7 @@ class ProductAdminControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 422 (Unprocessable Entity) quando os dados do produto são inválidos")
+		@DisplayName("Should return 422 (Unprocessable Entity) when the product data is invalid")
 		void shouldReturn422WhenProductDataIsInvalid() throws Exception {
 			// Arrange
 			ProductRequestDTO requestDTO = aProductRequest().withName("").withPrice(new java.math.BigDecimal("-10.00"))
@@ -90,7 +90,7 @@ class ProductAdminControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 403 quando o usuário CUSTOMER tenta criar produto")
+		@DisplayName("Should return 403 when a CUSTOMER user tries to create a product")
 		void shouldReturn403WhenCustomerTriesToCreate() throws Exception {
 			// Arrange
 			ProductRequestDTO requestDTO = aProductRequest().build();
@@ -104,7 +104,7 @@ class ProductAdminControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 404 quando a coleção vinculada não for encontrada")
+		@DisplayName("Should return 404 when the linked collection is not found")
 		void shouldReturn404WhenCollectionIsNotFound() throws Exception {
 			// Arrange
 			ProductRequestDTO requestDTO = aProductRequest().withCollectionId(1L).build();
@@ -128,7 +128,7 @@ class ProductAdminControllerTest {
 	class FindAllProducts {
 
 		@Test
-		@DisplayName("Deve retornar 200 e a lista de produtos")
+		@DisplayName("Should return 200 and the product list")
 		void shouldReturn200AndProductList() {
 			// Arrange
 
@@ -143,13 +143,13 @@ class ProductAdminControllerTest {
 	class FindProductById {
 
 		@Test
-		@DisplayName("Deve retornar 200 e o produto quando encontrado")
+		@DisplayName("Should return 200 and the product when found")
 		void shouldReturn200AndProductWhenFound() {
 			// Cenário a ser implementado
 		}
 
 		@Test
-		@DisplayName("Deve retornar 404 quando o produto não for encontrado")
+		@DisplayName("Should return 404 when the product is not found")
 		void shouldReturn404WhenProductNotFound() {
 			// Cenário a ser implementado
 		}

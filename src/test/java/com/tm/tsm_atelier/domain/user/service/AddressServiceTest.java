@@ -53,7 +53,7 @@ class AddressServiceTest {
 	class Create {
 
 		@Test
-		@DisplayName("Deve criar o primeiro endereço como default, independentemente do request")
+		@DisplayName("Should create the first address as default regardless of the request")
 		void shouldCreateFirstAddressAsDefault() {
 			User user = createUser();
 			AddressRequestDTO request = createRequest(false);
@@ -78,7 +78,7 @@ class AddressServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar erro quando usuário já tem 5 endereços")
+		@DisplayName("Should throw when the user already has 5 addresses")
 		void shouldThrowWhenLimitExceeded() {
 			User user = createUser();
 			AddressRequestDTO request = createRequest(false);
@@ -94,7 +94,7 @@ class AddressServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve limpar o default antigo quando novo endereço é criado como default")
+		@DisplayName("Should clear the previous default when a new address is created as default")
 		void shouldClearOldDefaultWhenNewIsDefault() {
 			User user = createUser();
 			AddressRequestDTO request = createRequest(true);
@@ -122,7 +122,7 @@ class AddressServiceTest {
 	class Delete {
 
 		@Test
-		@DisplayName("Deve apagar endereço não-default sem afetar os outros")
+		@DisplayName("Should delete a non-default address without affecting the others")
 		void shouldDeleteNonDefaultAddress() {
 			User user = createUser();
 			Long addrId = 1L;
@@ -137,7 +137,7 @@ class AddressServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve promover outro endereço a default quando o default é apagado")
+		@DisplayName("Should promote another address to default when the default one is deleted")
 		void shouldPromoteNewDefaultWhenDefaultIsDeleted() {
 			User user = createUser();
 			Long addrId = 1L;
@@ -156,12 +156,8 @@ class AddressServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve descarregar o delete antes de promover o novo default")
+		@DisplayName("Should flush the delete before promoting the new default")
 		void shouldFlushDeleteBeforePromotingNewDefault() {
-			// O índice uk_addresses_user_default só aceita um default por usuário e o
-			// Hibernate emite UPDATEs antes de DELETEs no mesmo flush. Sem o flush
-			// explícito entre as duas operações o banco enxergaria dois defaults ao
-			// mesmo tempo e recusaria a exclusão.
 			User user = createUser();
 			Long addrId = 1L;
 			Address addr = Address.builder().id(1L).user(user).isDefault(true).build();
@@ -179,7 +175,7 @@ class AddressServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar erro se endereço não pertence ao usuário")
+		@DisplayName("Should throw when the address does not belong to the user")
 		void shouldThrowIfAddressNotBelongsToUser() {
 			User user = createUser();
 			User anotherUser = aUser().withId(UUID.randomUUID()).build();

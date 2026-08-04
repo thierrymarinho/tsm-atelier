@@ -5,6 +5,7 @@ import static com.tm.tsm_atelier.common.utils.SlugUtils.generateSlug;
 import com.tm.tsm_atelier.common.dto.CustomPageImpl;
 import com.tm.tsm_atelier.common.exception.custom.EntityAlreadyExistsException;
 import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
+import com.tm.tsm_atelier.config.CacheNames;
 import com.tm.tsm_atelier.domain.collection.repository.CollectionRepository;
 import com.tm.tsm_atelier.domain.product.dto.*;
 import com.tm.tsm_atelier.domain.product.entity.Product;
@@ -13,7 +14,6 @@ import com.tm.tsm_atelier.domain.product.entity.ProductSKU;
 import com.tm.tsm_atelier.domain.product.enums.Category;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import com.tm.tsm_atelier.domain.product.mapper.ProductMapper;
-import com.tm.tsm_atelier.domain.product.repository.ProductColorRepository;
 import com.tm.tsm_atelier.domain.product.repository.ProductRepository;
 import com.tm.tsm_atelier.domain.product.repository.ProductSKURepository;
 import com.tm.tsm_atelier.domain.product.repository.ProductSpecification;
@@ -21,6 +21,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -37,25 +41,22 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
 	private final ProductRepository productRepository;
-	private final ProductColorRepository colorRepository;
 	private final ProductSKURepository skuRepository;
 	private final CollectionRepository collectionRepository;
 	private final ProductMapper productMapper;
 
 	@Transactional
-	@CacheEvict(value = {"catalog_products", "catalog_slug"}, allEntries = true)
+	@CacheEvict(value = {CacheNames.CATALOG_PRODUCTS, CacheNames.CATALOG_SLUG}, allEntries = true)
 	public ProductResponseDTO create(ProductRequestDTO request) {
 		if (productRepository.existsByNameAndDeletedAtIsNull(request.name()))
 			throw new EntityAlreadyExistsException("Product", request.name());
 
-		// #8 — Validação de Category vs TargetAudience
 		validateCategoryForAudience(request.category(), request.targetAudience());
 
 		validateFabricComposition(request.fabricCompositions());
 
 		Product product = productMapper.toEntity(request);
 
-		// #7 — Preservar ordem das instruções de cuidado
 		if (request.careInstructions() != null) {
 			product.setCareInstructions(new LinkedHashSet<>(request.careInstructions()));
 		}
@@ -65,7 +66,6 @@ public class ProductService {
 					.orElseThrow(() -> new ResourceNotFoundException("Collection", request.collectionId())));
 		}
 
-		// #2 — Validação de SKU em batch (1 query ao invés de N)
 		validateSkuCodesUniqueness(request.colors());
 
 		request.colors().forEach(colorDto -> {
@@ -78,7 +78,6 @@ public class ProductService {
 			product.getColors().add(color);
 		});
 
-		// #1 — Gerar slug definitivo único antes do save
 		product.setSlug(generateUniqueSlug(product.getName()));
 
 		Product savedProduct = productRepository.save(product);
@@ -87,7 +86,7 @@ public class ProductService {
 	}
 
 	@Transactional
-	@CacheEvict(value = {"catalog_products", "catalog_slug"}, allEntries = true)
+	@CacheEvict(value = {CacheNames.CATALOG_PRODUCTS, CacheNames.CATALOG_SLUG}, allEntries = true)
 	public ProductResponseDTO update(Long id, ProductRequestDTO request) {
 		Product product = productRepository.findByIdAndDeletedAtIsNull(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Product", id));
@@ -97,14 +96,12 @@ public class ProductService {
 			throw new EntityAlreadyExistsException("Product", request.name());
 		}
 
-		// #8 — Validação de Category vs TargetAudience
 		validateCategoryForAudience(request.category(), request.targetAudience());
 
 		validateFabricComposition(request.fabricCompositions());
 
 		productMapper.updateEntityFromRequest(request, product);
 
-		// #7 — Preservar ordem das instruções de cuidado
 		if (request.careInstructions() != null) {
 			product.getCareInstructions().clear();
 			product.getCareInstructions().addAll(request.careInstructions());
@@ -128,11 +125,11 @@ public class ProductService {
 	}
 
 	private void mergeColors(Product product, List<ProductColorRequestDTO> requestColors) {
-		java.util.Set<ProductColor> existingColors = product.getColors();
-		java.util.Map<Long, ProductColor> existingById = existingColors.stream().filter(c -> c.getId() != null).collect(
-				java.util.stream.Collectors.toMap(ProductColor::getId, java.util.function.Function.identity()));
+		Set<ProductColor> existingColors = product.getColors();
+		Map<Long, ProductColor> existingById = existingColors.stream().filter(c -> c.getId() != null)
+				.collect(Collectors.toMap(ProductColor::getId, Function.identity()));
 
-		java.util.Set<ProductColor> keptColors = new java.util.LinkedHashSet<>();
+		Set<ProductColor> keptColors = new LinkedHashSet<>();
 
 		if (requestColors != null) {
 			for (var colorReq : requestColors) {
@@ -156,8 +153,8 @@ public class ProductService {
 							.colorHex(colorReq.colorHex()).coverImageUrl(colorReq.coverImageUrl())
 							.hoverImageUrl(colorReq.hoverImageUrl())
 							.galleryImages(colorReq.galleryImages() == null
-									? new java.util.LinkedHashSet<>()
-									: new java.util.LinkedHashSet<>(colorReq.galleryImages()))
+									? new LinkedHashSet<>()
+									: new LinkedHashSet<>(colorReq.galleryImages()))
 							.build();
 				}
 
@@ -171,11 +168,11 @@ public class ProductService {
 	}
 
 	private void mergeSkus(ProductColor colorEntity, List<ProductSKURequestDTO> requestSkus) {
-		java.util.Set<ProductSKU> existingSkus = colorEntity.getSkus();
-		java.util.Map<Long, ProductSKU> existingById = existingSkus.stream().filter(s -> s.getId() != null)
-				.collect(java.util.stream.Collectors.toMap(ProductSKU::getId, java.util.function.Function.identity()));
+		Set<ProductSKU> existingSkus = colorEntity.getSkus();
+		Map<Long, ProductSKU> existingById = existingSkus.stream().filter(s -> s.getId() != null)
+				.collect(Collectors.toMap(ProductSKU::getId, Function.identity()));
 
-		java.util.Set<ProductSKU> keptSkus = new java.util.LinkedHashSet<>();
+		Set<ProductSKU> keptSkus = new LinkedHashSet<>();
 
 		if (requestSkus != null) {
 			for (var skuReq : requestSkus) {
@@ -210,14 +207,13 @@ public class ProductService {
 	}
 
 	@Transactional
-	@CacheEvict(value = {"catalog_products", "catalog_slug"}, allEntries = true)
+	@CacheEvict(value = {CacheNames.CATALOG_PRODUCTS, CacheNames.CATALOG_SLUG}, allEntries = true)
 	public void delete(Long id) {
 		Product product = productRepository.findByIdAndDeletedAtIsNull(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Product", id));
 
 		LocalDateTime now = LocalDateTime.now();
 
-		// #5 — Soft-delete propagado para cores e SKUs
 		product.getColors().forEach(color -> {
 			color.getSkus().forEach(sku -> {
 				sku.setDeletedAt(now);
@@ -231,7 +227,7 @@ public class ProductService {
 	}
 
 	@Transactional(readOnly = true)
-	@Cacheable(value = "catalog_products", key = "{#searchTerm, #category, #targetAudience, #collectionId, #minPrice, #maxPrice, #isFeatured, #pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString()}")
+	@Cacheable(value = CacheNames.CATALOG_PRODUCTS, key = "{#searchTerm, #category, #targetAudience, #collectionId, #minPrice, #maxPrice, #isFeatured, #pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString()}")
 	public Page<ProductSummaryDTO> searchCatalog(String searchTerm, Category category, TargetAudience targetAudience,
 			Long collectionId, BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, Pageable pageable) {
 
@@ -246,9 +242,6 @@ public class ProductService {
 		Page<Product> page = productRepository.findAll(spec, pageable);
 
 		if (page.hasContent()) {
-			// #6 — O retorno é descartado intencionalmente: o Hibernate L1 cache hidrata
-			// os proxies de colors nas mesmas instâncias gerenciadas dentro desta
-			// transação.
 			productRepository.fetchColorsForProducts(page.getContent());
 		}
 
@@ -305,13 +298,12 @@ public class ProductService {
 	}
 
 	@Transactional(readOnly = true)
-	@Cacheable(value = "catalog_slug", key = "#slug")
+	@Cacheable(value = CacheNames.CATALOG_SLUG, key = "#slug")
 	public ProductResponseDTO findBySlug(String slug) {
 		Product product = productRepository.findBySlugAndDeletedAtIsNull(slug)
 				.orElseThrow(() -> new ResourceNotFoundException("Product", slug));
 		return productMapper.toCatalogResponse(product);
 	}
-	// --- Métodos auxiliares de validação ---
 
 	private void validateCategoryForAudience(Category category, TargetAudience audience) {
 		if (!category.isValidFor(audience)) {

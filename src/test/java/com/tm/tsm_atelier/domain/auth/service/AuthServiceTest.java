@@ -84,7 +84,7 @@ class AuthServiceTest {
 	class Register {
 
 		@Test
-		@DisplayName("Deve registrar um novo usuário, enviar email de verificação e retornar mensagem")
+		@DisplayName("Should register a new user, send the verification email and return a message")
 		void shouldRegisterNewUserAndSendVerificationEmail() {
 			// Arrange
 			ReflectionTestUtils.setField(authService, "emailVerificationExpiration", 86400000L);
@@ -126,7 +126,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando o email já está em uso")
+		@DisplayName("Should throw when the email is already in use")
 		void shouldThrowWhenEmailAlreadyExists() {
 			// Arrange
 			RegisterRequestDTO request = aRegisterRequest().build();
@@ -148,7 +148,7 @@ class AuthServiceTest {
 	class VerifyEmail {
 
 		@Test
-		@DisplayName("Deve verificar o email e retornar JWT quando o token é válido")
+		@DisplayName("Should verify the email and return a JWT when the token is valid")
 		void shouldVerifyEmailAndReturnTokensWhenTokenIsValid() {
 			// Arrange
 			String token = UUID.randomUUID().toString();
@@ -182,7 +182,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando o token de verificação é inválido ou expirado")
+		@DisplayName("Should throw when the verification token is invalid or expired")
 		void shouldThrowWhenVerificationTokenIsInvalid() {
 			// Arrange
 			String invalidToken = "invalid-token";
@@ -205,7 +205,7 @@ class AuthServiceTest {
 	class Login {
 
 		@Test
-		@DisplayName("Deve retornar tokens quando as credenciais são válidas e email está verificado")
+		@DisplayName("Should return tokens when the credentials are valid and the email is verified")
 		void shouldReturnTokensWhenCredentialsAreValid() {
 			// 1. Arrange
 			ReflectionTestUtils.setField(authService, "refreshTokenExpiration", 604800000L);
@@ -235,7 +235,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar EmailNotVerifiedException quando o email não foi verificado")
+		@DisplayName("Should throw EmailNotVerifiedException when the email is not verified")
 		void shouldThrowWhenEmailIsNotVerified() {
 			// Arrange
 			LoginRequestDTO login = aLoginRequest().build();
@@ -253,7 +253,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando as credenciais são inválidas")
+		@DisplayName("Should throw when the credentials are invalid")
 		void shouldThrowBadCredentialsWhenCredentialsAreInvalid() {
 			// Arrange
 			LoginRequestDTO request = aLoginRequest().build();
@@ -272,7 +272,7 @@ class AuthServiceTest {
 	class Refresh {
 
 		@Test
-		@DisplayName("Deve retornar novos tokens e dados do usuário quando o refresh token é válido")
+		@DisplayName("Should return new tokens and user data when the refresh token is valid")
 		void shouldReturnNewTokensWhenRefreshTokenIsValid() {
 			// Arrange
 			ReflectionTestUtils.setField(authService, "refreshTokenExpiration", 604800000L);
@@ -303,7 +303,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando o refresh token é inválido ou expirado")
+		@DisplayName("Should throw when the refresh token is invalid or expired")
 		void shouldThrowWhenRefreshTokenIsInvalidOrExpired() {
 			// Arrange
 			String invalidToken = "invalid-token";
@@ -322,7 +322,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve revogar todos os tokens do usuário quando detectar reuso do refresh token")
+		@DisplayName("Should revoke every user token when refresh token reuse is detected")
 		void shouldRevokeAllTokensWhenTokenReuseDetected() {
 			// Arrange
 			String reusedToken = "reused-token";
@@ -353,7 +353,7 @@ class AuthServiceTest {
 	class GetMe {
 
 		@Test
-		@DisplayName("Deve retornar os dados do usuário buscando pelo email")
+		@DisplayName("Should return the user data looked up by email")
 		void shouldReturnUserProfileByEmail() {
 			// Arrange
 			User user = aUser().withEmail("user@email.com").build();
@@ -373,7 +373,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando usuário não for encontrado")
+		@DisplayName("Should throw when the user is not found")
 		void shouldThrowWhenUserNotFound() {
 			// Arrange
 			when(userRepository.findByEmail("notfound@email.com")).thenReturn(Optional.empty());
@@ -390,7 +390,7 @@ class AuthServiceTest {
 	class Logout {
 
 		@Test
-		@DisplayName("Deve apagar o refresh token do Redis")
+		@DisplayName("Should delete the refresh token from Redis")
 		void shouldDeleteRefreshTokenFromRedis() {
 			// Arrange
 			String tokenToRevoke = "my-valid-token";
@@ -409,7 +409,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lidar com refresh token nulo sem lançar exceção")
+		@DisplayName("Should handle a null refresh token without throwing")
 		void shouldHandleNullRefreshTokenGracefully() {
 			// Act
 			authService.logout(null);

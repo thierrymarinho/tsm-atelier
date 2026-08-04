@@ -102,6 +102,12 @@ public class AddressService {
 
 		addressRepository.delete(address);
 
+		// O índice uk_addresses_user_default só permite uma linha com is_default =
+		// true por usuário. Como o Hibernate ordena UPDATEs antes de DELETEs dentro
+		// de um mesmo flush, promover o próximo endereço sem forçar o DELETE antes
+		// deixaria duas linhas default ao mesmo tempo e violaria o índice.
+		addressRepository.flush();
+
 		if (wasDefault) {
 			List<Address> remainingAddresses = addressRepository.findByUserIdOrderByCreatedAtAsc(user.getId());
 			if (!remainingAddresses.isEmpty()) {

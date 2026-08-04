@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -164,6 +165,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ProblemDetail handleAccountLocked(AccountLockedException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
 		problem.setTitle("Account Locked");
+		return problem;
+	}
+
+	/**
+	 * Sem este handler, validações de negócio que lançam IllegalArgumentException
+	 * caíam no handler genérico e voltavam como 500 — reportando erro de servidor
+	 * para o que na verdade é erro do cliente, e enchendo o log de ERROR com stack
+	 * traces de situações rotineiras.
+	 */
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		problem.setTitle("Invalid request");
+		return problem;
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ProblemDetail handleAccessDeniedException(AccessDeniedException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+		problem.setTitle("Access denied");
 		return problem;
 	}
 

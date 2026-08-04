@@ -6,10 +6,15 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "product_skus")
 @SQLDelete(sql = "UPDATE product_skus SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+// Sem o @SQLRestriction o soft-delete apenas escondia o SKU do catálogo: um
+// findById direto seguia devolvendo o registro, permitindo comprar um produto
+// que a loja já havia retirado de venda.
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor

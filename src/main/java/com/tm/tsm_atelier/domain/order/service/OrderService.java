@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,6 +104,12 @@ public class OrderService {
 
 			ProductSKU sku = skuRepository.findByIdWithPessimisticLock(skuId)
 					.orElseThrow(() -> new ResourceNotFoundException("SKU", skuId));
+
+			// Um produto retirado de venda não pode ser comprado nem com um carrinho
+			// antigo ou um SKU informado na mão: o catálogo esconde, o checkout recusa.
+			if (!sku.getProductColor().getProduct().isActive()) {
+				throw new OutOfStockException("This product is no longer available.", 0);
+			}
 
 			if (sku.getStockQuantity() < quantity) {
 				throw new OutOfStockException(
@@ -240,8 +247,10 @@ public class OrderService {
 	public OrderResponseDTO getOrderDetails(Long id, User user) {
 		Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
+		// Negar acesso ao pedido de outro usuário é 403, não 500: antes isso subia
+		// como IllegalArgumentException e virava erro de servidor no handler genérico.
 		if (!order.getUser().getId().equals(user.getId()) && user.getRole() != Role.ADMIN) {
-			throw new IllegalArgumentException("Access denied");
+			throw new AccessDeniedException("Access denied");
 		}
 
 		return toResponseDTO(order, null);

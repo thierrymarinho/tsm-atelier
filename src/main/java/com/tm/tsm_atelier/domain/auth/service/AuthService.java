@@ -89,18 +89,18 @@ public class AuthService {
 	}
 
 	@Transactional(readOnly = true)
-	public AuthResponseDTO login(LoginRequestDTO request) {
-		rateLimitService.checkAccountLockout(request.email());
+	public AuthResponseDTO login(LoginRequestDTO request, String clientIp) {
+		rateLimitService.checkAccountLockout(request.email(), clientIp);
 
 		try {
 			authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 		} catch (BadCredentialsException e) {
-			rateLimitService.recordFailedAttempt(request.email(), 5, Duration.ofMinutes(15));
+			rateLimitService.recordFailedAttempt(request.email(), clientIp, 5, Duration.ofMinutes(15));
 			throw e;
 		}
 
-		rateLimitService.resetFailedAttempts(request.email());
+		rateLimitService.resetFailedAttempts(request.email(), clientIp);
 
 		User user = userRepository.findByEmail(request.email())
 				.orElseThrow(() -> new UserNotFoundException("User not found."));

@@ -26,6 +26,18 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      # O contexto da aplicação registra StringRedisTemplate e o CacheManager do
+      # Redis, então o @SpringBootTest não sobe sem este serviço.
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - name: Checkout Source Code
       uses: actions/checkout@v4
@@ -46,3 +58,5 @@ jobs:
         SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/tsm_atelier_test
         DB_USER: postgres
         DB_PASSWORD: postgres
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379

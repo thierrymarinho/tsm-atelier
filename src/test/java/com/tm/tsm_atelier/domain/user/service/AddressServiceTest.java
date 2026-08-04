@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -152,6 +153,29 @@ class AddressServiceTest {
 			verify(addressRepository).delete(addr);
 			verify(addressRepository).save(newDefault);
 			assertThat(newDefault.isDefault()).isTrue();
+		}
+
+		@Test
+		@DisplayName("Deve descarregar o delete antes de promover o novo default")
+		void shouldFlushDeleteBeforePromotingNewDefault() {
+			// O índice uk_addresses_user_default só aceita um default por usuário e o
+			// Hibernate emite UPDATEs antes de DELETEs no mesmo flush. Sem o flush
+			// explícito entre as duas operações o banco enxergaria dois defaults ao
+			// mesmo tempo e recusaria a exclusão.
+			User user = createUser();
+			Long addrId = 1L;
+			Address addr = Address.builder().id(1L).user(user).isDefault(true).build();
+			Address newDefault = Address.builder().id(2L).user(user).isDefault(false).build();
+
+			when(addressRepository.findById(addrId)).thenReturn(Optional.of(addr));
+			when(addressRepository.findByUserIdOrderByCreatedAtAsc(user.getId())).thenReturn(List.of(newDefault));
+
+			addressService.delete(user, addrId);
+
+			InOrder inOrder = inOrder(addressRepository);
+			inOrder.verify(addressRepository).delete(addr);
+			inOrder.verify(addressRepository).flush();
+			inOrder.verify(addressRepository).save(newDefault);
 		}
 
 		@Test

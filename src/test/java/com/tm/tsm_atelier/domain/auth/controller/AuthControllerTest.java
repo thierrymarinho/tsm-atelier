@@ -164,7 +164,7 @@ class AuthControllerTest {
 			LoginRequestDTO request = aLoginRequest().build();
 			AuthResponseDTO mockTokens = anAuthResponseDTO().build();
 
-			when(authService.login(any(LoginRequestDTO.class))).thenReturn(mockTokens);
+			when(authService.login(any(LoginRequestDTO.class), anyString())).thenReturn(mockTokens);
 			// Act & Assert
 			performLogin(request).andExpect(status().isOk()).andExpect(cookie().exists("access_token"))
 					.andExpect(cookie().value("access_token", mockTokens.accessToken()))
@@ -173,7 +173,7 @@ class AuthControllerTest {
 					.andExpect(jsonPath("$.email").value(mockTokens.email()))
 					.andExpect(jsonPath("$.name").value(mockTokens.name()));
 
-			verify(authService).login(any(LoginRequestDTO.class));
+			verify(authService).login(any(LoginRequestDTO.class), anyString());
 		}
 
 		@Test
@@ -182,7 +182,7 @@ class AuthControllerTest {
 			// Arrange
 			LoginRequestDTO request = aLoginRequest().build();
 
-			when(authService.login(any(LoginRequestDTO.class)))
+			when(authService.login(any(LoginRequestDTO.class), anyString()))
 					.thenThrow(new BadCredentialsException("Invalid email or password."));
 
 			// Act & Assert
@@ -190,7 +190,7 @@ class AuthControllerTest {
 					.andExpect(jsonPath("$.title").value("Authentication failed"))
 					.andExpect(jsonPath("$.detail").value("Invalid email or password."));
 
-			verify(authService).login(any(LoginRequestDTO.class));
+			verify(authService).login(any(LoginRequestDTO.class), anyString());
 		}
 
 		@Test
@@ -199,7 +199,7 @@ class AuthControllerTest {
 			LoginRequestDTO request = aLoginRequest().build();
 			AuthResponseDTO mockTokens = anAuthResponseDTO().build();
 
-			when(authService.login(any(LoginRequestDTO.class))).thenReturn(mockTokens);
+			when(authService.login(any(LoginRequestDTO.class), anyString())).thenReturn(mockTokens);
 
 			// Act & Assert
 			performLogin(request).andExpect(status().isOk()).andExpect(cookie().exists("access_token"))
@@ -218,7 +218,7 @@ class AuthControllerTest {
 			LoginRequestDTO request = aLoginRequest().build();
 			AuthResponseDTO mockTokens = anAuthResponseDTO().build();
 
-			when(authService.login(any(LoginRequestDTO.class))).thenReturn(mockTokens);
+			when(authService.login(any(LoginRequestDTO.class), anyString())).thenReturn(mockTokens);
 
 			// Act & Assert
 			performLogin(request).andExpect(status().isOk()).andExpect(cookie().path("refresh_token", "/api/v1/auth"));

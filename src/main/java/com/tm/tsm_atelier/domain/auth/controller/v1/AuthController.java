@@ -76,8 +76,9 @@ public class AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request,
 			HttpServletRequest httpRequest, HttpServletResponse response) {
-		rateLimitService.checkRateLimit("login", getClientIp(httpRequest), 10, Duration.ofMinutes(15));
-		AuthResponseDTO tokens = authService.login(request);
+		String clientIp = getClientIp(httpRequest);
+		rateLimitService.checkRateLimit("login", clientIp, 10, Duration.ofMinutes(15));
+		AuthResponseDTO tokens = authService.login(request, clientIp);
 		addCookiesToResponse(response, tokens);
 		return ResponseEntity.ok(tokens);
 	}
@@ -188,14 +189,14 @@ public class AuthController {
 		return null;
 	}
 
+	/**
+	 * Ler X-Forwarded-For diretamente permitiria que qualquer cliente forjasse o
+	 * header e gerasse uma chave nova de rate limit a cada requisição, anulando o
+	 * limitador. Com server.forward-headers-strategy=FRAMEWORK o próprio Spring
+	 * resolve o header apenas quando ele vem do proxy da plataforma, então
+	 * getRemoteAddr() já devolve o IP real e confiável.
+	 */
 	private String getClientIp(HttpServletRequest request) {
-		String ipAddress = request.getHeader("X-Forwarded-For");
-		if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
-			ipAddress = request.getRemoteAddr();
-		}
-		if (ipAddress != null && ipAddress.contains(",")) {
-			ipAddress = ipAddress.split(",")[0].trim();
-		}
-		return ipAddress;
+		return request.getRemoteAddr();
 	}
 }

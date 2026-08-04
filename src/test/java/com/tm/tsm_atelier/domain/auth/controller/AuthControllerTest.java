@@ -18,6 +18,7 @@ import com.tm.tsm_atelier.domain.auth.dto.AuthResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
+import com.tm.tsm_atelier.domain.auth.dto.VerifyEmailRequestDTO;
 import com.tm.tsm_atelier.domain.auth.service.AuthService;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Role;
@@ -65,6 +66,11 @@ class AuthControllerTest {
 	private ResultActions performRegister(RegisterRequestDTO request) throws Exception {
 		return mockMvc.perform(post(BASE_URL + "/register").with(csrf()).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)));
+	}
+
+	private ResultActions performVerifyEmail(String token) throws Exception {
+		return mockMvc.perform(post(BASE_URL + "/verify-email").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(new VerifyEmailRequestDTO(token))));
 	}
 
 	private ResultActions performLogin(LoginRequestDTO request) throws Exception {
@@ -368,7 +374,7 @@ class AuthControllerTest {
 	}
 
 	@Nested
-	@DisplayName("GET /verify-email")
+	@DisplayName("POST /verify-email")
 	class VerifyEmail {
 
 		@Test
@@ -381,8 +387,7 @@ class AuthControllerTest {
 			when(authService.verifyEmail(token)).thenReturn(mockTokens);
 
 			// Act & Assert
-			mockMvc.perform(get(BASE_URL + "/verify-email").param("token", token)).andExpect(status().isOk())
-					.andExpect(cookie().exists("access_token"))
+			performVerifyEmail(token).andExpect(status().isOk()).andExpect(cookie().exists("access_token"))
 					.andExpect(cookie().value("access_token", mockTokens.accessToken()))
 					.andExpect(cookie().exists("refresh_token"))
 					.andExpect(cookie().value("refresh_token", mockTokens.refreshToken()));
@@ -401,8 +406,7 @@ class AuthControllerTest {
 							"Invalid or expired verification token."));
 
 			// Act & Assert
-			mockMvc.perform(get(BASE_URL + "/verify-email").param("token", invalidToken))
-					.andExpect(status().isUnauthorized());
+			performVerifyEmail(invalidToken).andExpect(status().isUnauthorized());
 
 			verify(authService).verifyEmail(invalidToken);
 		}

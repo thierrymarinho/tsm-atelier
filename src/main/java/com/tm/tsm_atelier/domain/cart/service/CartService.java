@@ -17,10 +17,12 @@ import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CartService {
 
@@ -149,8 +151,11 @@ public class CartService {
 						cart.addItem(newItem);
 					}
 				}
-			} catch (Exception e) {
-				// Ignore items that cause errors during sync (e.g., deleted SKUs)
+			} catch (ResourceNotFoundException | OutOfStockException e) {
+				// Só o que é esperado ao mesclar um carrinho antigo — SKU removido ou
+				// produto fora de venda. Capturar Exception aqui engolia também falhas
+				// de conexão e bugs reais, e o carrinho perdia itens sem deixar rastro.
+				log.info("Skipping SKU {} during cart sync for user {}: {}", reqItem.skuId(), userId, e.getMessage());
 			}
 		}
 
@@ -176,13 +181,23 @@ public class CartService {
 		}
 	}
 
+	/**
+	 * carts.user_id é UNIQUE, então duas requisições simultâneas do mesmo usuário
+	 * (o SPA disparando GET /cart e POST /cart/items ao carregar) podiam não achar
+	 * o carrinho e tentar criar as duas, quebrando uma delas com 409. O lock
+	 * pessimista no usuário serializa apenas o caminho de criação; quando o
+	 * carrinho já existe, nada é bloqueado.
+	 */
 	private Cart getOrCreateCartEntity(UUID userId) {
 		return cartRepository.findByUserIdWithItems(userId).orElseGet(() -> {
-			User user = userRepository.findById(userId)
+			User user = userRepository.findByIdWithPessimisticLock(userId)
 					.orElseThrow(() -> new ResourceNotFoundException("User", userId));
-			Cart newCart = new Cart();
-			newCart.setUser(user);
-			return cartRepository.save(newCart);
+
+			return cartRepository.findByUserIdWithItems(userId).orElseGet(() -> {
+				Cart newCart = new Cart();
+				newCart.setUser(user);
+				return cartRepository.save(newCart);
+			});
 		});
 	}
 }

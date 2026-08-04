@@ -65,6 +65,17 @@ public class OrderService {
 	private static final Set<OrderStatus> AWAITING_PAYMENT_STATUSES = Set.of(OrderStatus.PENDING_PAYMENT,
 			OrderStatus.PAYMENT_FAILED);
 
+	/**
+	 * Transições permitidas na atualização manual de status. Sem esse mapa a rota
+	 * de admin aceitava qualquer destino, inclusive voltar um pedido entregue para
+	 * aguardando pagamento ou reabrir um cancelado.
+	 */
+	private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS = Map.of(OrderStatus.PENDING_PAYMENT,
+			Set.of(OrderStatus.PAID, OrderStatus.PAYMENT_FAILED, OrderStatus.CANCELLED), OrderStatus.PAYMENT_FAILED,
+			Set.of(OrderStatus.PAID, OrderStatus.CANCELLED), OrderStatus.PAID,
+			Set.of(OrderStatus.SHIPPED, OrderStatus.CANCELLED), OrderStatus.SHIPPED, Set.of(OrderStatus.DELIVERED),
+			OrderStatus.DELIVERED, Set.of(), OrderStatus.CANCELLED, Set.of());
+
 	public OrderService(OrderRepository orderRepository, ProductSKURepository skuRepository,
 			AddressRepository addressRepository, ApplicationEventPublisher eventPublisher, CartService cartService) {
 		this.orderRepository = orderRepository;
@@ -182,7 +193,17 @@ public class OrderService {
 		}
 
 		order.setStatus(OrderStatus.CANCELLED);
+		restoreStock(order);
 
+		return true;
+	}
+
+	/**
+	 * Devolve ao estoque as unidades que o pedido mantinha reservadas. Pega o lock
+	 * pessimista no SKU pelo mesmo motivo do checkout: duas devoluções simultâneas
+	 * sobre o mesmo SKU perderiam uma das somas.
+	 */
+	private void restoreStock(Order order) {
 		for (OrderItem item : order.getItems()) {
 			if (item.getSku() == null) {
 				continue;
@@ -190,8 +211,6 @@ public class OrderService {
 			skuRepository.findByIdWithPessimisticLock(item.getSku().getId())
 					.ifPresent(sku -> sku.setStockQuantity(sku.getStockQuantity() + item.getQuantity()));
 		}
-
-		return true;
 	}
 
 	/**
@@ -245,7 +264,10 @@ public class OrderService {
 
 	@Transactional(readOnly = true)
 	public OrderResponseDTO getOrderDetails(Long id, User user) {
-		Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order", id));
+		// Um único pedido pode usar fetch join com segurança — não há paginação
+		// envolvida, então o Hibernate resolve tudo em uma consulta.
+		Order order = orderRepository.findByIdWithItems(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
 		// Negar acesso ao pedido de outro usuário é 403, não 500: antes isso subia
 		// como IllegalArgumentException e virava erro de servidor no handler genérico.
@@ -266,7 +288,25 @@ public class OrderService {
 
 	@Transactional
 	public OrderResponseDTO updateOrderStatus(Long id, OrderStatus newStatus) {
-		Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order", id));
+		Order order = orderRepository.findByIdWithItems(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Order", id));
+
+		if (order.getStatus() == newStatus) {
+			return toResponseDTO(order, null);
+		}
+
+		if (!ALLOWED_TRANSITIONS.getOrDefault(order.getStatus(), Set.of()).contains(newStatus)) {
+			throw new IllegalArgumentException(
+					"Cannot move an order from " + order.getStatus() + " to " + newStatus + ".");
+		}
+
+		// Cancelar precisa devolver o estoque reservado. A versão anterior apenas
+		// trocava o status, então todo cancelamento feito pelo admin vazava o
+		// estoque daquele pedido para sempre.
+		if (newStatus == OrderStatus.CANCELLED) {
+			restoreStock(order);
+		}
+
 		order.setStatus(newStatus);
 		return toResponseDTO(order, null);
 	}

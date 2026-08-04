@@ -44,13 +44,11 @@ public class RateLimitService {
 	 *
 	 * @param email
 	 *            O email do usuário
-	 * @param maxAttempts
-	 *            Máximo de tentativas falhas consecutivas permitidas
-	 * @param lockDuration
-	 *            O tempo de bloqueio após o limite ser atingido
+	 * @param ip
+	 *            O IP de onde partiu a tentativa
 	 */
-	public void checkAccountLockout(String email) {
-		String key = "rl:lockout:" + email;
+	public void checkAccountLockout(String email, String ip) {
+		String key = lockoutKey(email, ip);
 		String value = redisTemplate.opsForValue().get(key);
 		if (value != null && Integer.parseInt(value) >= 5) {
 			// A regra de negócio é fixa em 5 tentativas e 15 minutos, conforme acordo com o
@@ -69,13 +67,15 @@ public class RateLimitService {
 	 *
 	 * @param email
 	 *            O email do usuário
+	 * @param ip
+	 *            O IP de onde partiu a tentativa
 	 * @param maxAttempts
 	 *            Máximo de tentativas falhas consecutivas permitidas
 	 * @param lockDuration
 	 *            O tempo de bloqueio após o limite ser atingido
 	 */
-	public void recordFailedAttempt(String email, int maxAttempts, Duration lockDuration) {
-		String key = "rl:lockout:" + email;
+	public void recordFailedAttempt(String email, String ip, int maxAttempts, Duration lockDuration) {
+		String key = lockoutKey(email, ip);
 		Long attempts = redisTemplate.opsForValue().increment(key);
 
 		if (attempts != null) {
@@ -97,9 +97,22 @@ public class RateLimitService {
 	 *
 	 * @param email
 	 *            O email do usuário
+	 * @param ip
+	 *            O IP de onde partiu a tentativa
 	 */
-	public void resetFailedAttempts(String email) {
-		String key = "rl:lockout:" + email;
+	public void resetFailedAttempts(String email, String ip) {
+		String key = lockoutKey(email, ip);
 		redisTemplate.delete(key);
+	}
+
+	/**
+	 * A chave de lockout combina email + IP de propósito. Se ela fosse apenas o
+	 * email, qualquer pessoa que soubesse o endereço de uma vítima poderia trancar
+	 * a conta dela de fora, transformando a proteção contra força bruta em um vetor
+	 * de negação de serviço. Com o IP na chave, o atacante só consegue bloquear a
+	 * si mesmo.
+	 */
+	private String lockoutKey(String email, String ip) {
+		return "rl:lockout:" + email + ":" + (ip == null ? "unknown" : ip);
 	}
 }

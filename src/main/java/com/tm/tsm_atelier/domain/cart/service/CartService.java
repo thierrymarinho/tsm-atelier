@@ -45,6 +45,8 @@ public class CartService {
 		ProductSKU sku = skuRepository.findById(request.skuId())
 				.orElseThrow(() -> new ResourceNotFoundException("Product SKU", request.skuId()));
 
+		requirePurchasable(sku);
+
 		Optional<CartItem> existingItemOpt = cart.getItems().stream()
 				.filter(item -> item.getSku().getId().equals(sku.getId())).findFirst();
 
@@ -116,6 +118,8 @@ public class CartService {
 				ProductSKU sku = skuRepository.findById(reqItem.skuId())
 						.orElseThrow(() -> new ResourceNotFoundException("Product SKU", reqItem.skuId()));
 
+				requirePurchasable(sku);
+
 				Optional<CartItem> existingItemOpt = cart.getItems().stream()
 						.filter(item -> item.getSku().getId().equals(sku.getId())).findFirst();
 
@@ -159,6 +163,17 @@ public class CartService {
 		Cart cart = getOrCreateCartEntity(userId);
 		cart.clearItems();
 		cartRepository.save(cart);
+	}
+
+	/**
+	 * O @SQLRestriction em ProductSKU já barra SKUs soft-deleted, mas um produto
+	 * pode estar apenas desativado (active = false) sem ter sido excluído. Nesse
+	 * caso ele some do catálogo e precisa sumir também do carrinho.
+	 */
+	private void requirePurchasable(ProductSKU sku) {
+		if (!sku.getProductColor().getProduct().isActive()) {
+			throw new OutOfStockException("This product is no longer available.", 0);
+		}
 	}
 
 	private Cart getOrCreateCartEntity(UUID userId) {

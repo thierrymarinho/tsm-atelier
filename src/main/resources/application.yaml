@@ -34,6 +34,12 @@ spring:
       max-file-size: 5MB
       max-request-size: 20MB
 
+server:
+  # Faz o Spring interpretar X-Forwarded-* apenas quando vindos do proxy da
+  # plataforma. Sem isso, request.getRemoteAddr() devolve o IP do proxy e o
+  # header pode ser forjado por qualquer cliente para burlar o rate limit.
+  forward-headers-strategy: FRAMEWORK
+
 jwt:
   secret: ${JWT_SECRET:super-secret-key-for-jwt-generation-tsm-atelier}
   access-token-expiration: 60000 # 15 minutos em ms

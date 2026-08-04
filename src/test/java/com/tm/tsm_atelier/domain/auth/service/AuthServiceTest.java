@@ -219,7 +219,7 @@ class AuthServiceTest {
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
 			// 2. Act
-			AuthResponseDTO result = authService.login(login);
+			AuthResponseDTO result = authService.login(login, "203.0.113.10");
 
 			// 3. Assert
 			assertThat(result).isNotNull();
@@ -245,7 +245,8 @@ class AuthServiceTest {
 			when(userRepository.findByEmail(login.email())).thenReturn(Optional.of(user));
 
 			// Act & Assert
-			assertThatThrownBy(() -> authService.login(login)).isInstanceOf(EmailNotVerifiedException.class)
+			assertThatThrownBy(() -> authService.login(login, "203.0.113.10"))
+					.isInstanceOf(EmailNotVerifiedException.class)
 					.hasMessage("Please verify your email before logging in.");
 
 			verify(jwtService, never()).generateToken(any());
@@ -259,8 +260,8 @@ class AuthServiceTest {
 
 			when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Bad credentials"));
 			// Act & Assert
-			assertThatThrownBy(() -> authService.login(request)).isInstanceOf(BadCredentialsException.class)
-					.hasMessage("Bad credentials");
+			assertThatThrownBy(() -> authService.login(request, "203.0.113.10"))
+					.isInstanceOf(BadCredentialsException.class).hasMessage("Bad credentials");
 
 			verify(userRepository, never()).findByEmail(anyString());
 		}

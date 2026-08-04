@@ -195,7 +195,7 @@ public class ProductService {
 					skuEntity.setSkuCode(skuReq.skuCode());
 					skuEntity.setStockQuantity(skuReq.stockQuantity());
 				} else {
-					if (skuRepository.findBySkuCode(skuReq.skuCode()).isPresent()) {
+					if (skuRepository.existsBySkuCodeIncludingDeleted(skuReq.skuCode())) {
 						throw new EntityAlreadyExistsException("SKU", skuReq.skuCode());
 					}
 					skuEntity = ProductSKU.builder().productColor(colorEntity).size(skuReq.size())

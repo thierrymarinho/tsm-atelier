@@ -14,10 +14,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
-        format_sql: true
+        format_sql: ${JPA_SHOW_SQL:false}
+        default_batch_fetch_size: 16
     open-in-view: false
 
   data:
@@ -35,9 +36,6 @@ spring:
       max-request-size: 20MB
 
 server:
-  # Faz o Spring interpretar X-Forwarded-* apenas quando vindos do proxy da
-  # plataforma. Sem isso, request.getRemoteAddr() devolve o IP do proxy e o
-  # header pode ser forjado por qualquer cliente para burlar o rate limit.
   forward-headers-strategy: FRAMEWORK
 
 jwt:

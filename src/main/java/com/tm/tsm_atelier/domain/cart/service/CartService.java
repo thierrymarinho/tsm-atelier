@@ -17,10 +17,12 @@ import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CartService {
 
@@ -149,8 +151,8 @@ public class CartService {
 						cart.addItem(newItem);
 					}
 				}
-			} catch (Exception e) {
-				// Ignore items that cause errors during sync (e.g., deleted SKUs)
+			} catch (ResourceNotFoundException | OutOfStockException e) {
+				log.info("Skipping SKU {} during cart sync for user {}: {}", reqItem.skuId(), userId, e.getMessage());
 			}
 		}
 
@@ -165,11 +167,6 @@ public class CartService {
 		cartRepository.save(cart);
 	}
 
-	/**
-	 * O @SQLRestriction em ProductSKU já barra SKUs soft-deleted, mas um produto
-	 * pode estar apenas desativado (active = false) sem ter sido excluído. Nesse
-	 * caso ele some do catálogo e precisa sumir também do carrinho.
-	 */
 	private void requirePurchasable(ProductSKU sku) {
 		if (!sku.getProductColor().getProduct().isActive()) {
 			throw new OutOfStockException("This product is no longer available.", 0);
@@ -178,11 +175,14 @@ public class CartService {
 
 	private Cart getOrCreateCartEntity(UUID userId) {
 		return cartRepository.findByUserIdWithItems(userId).orElseGet(() -> {
-			User user = userRepository.findById(userId)
+			User user = userRepository.findByIdWithPessimisticLock(userId)
 					.orElseThrow(() -> new ResourceNotFoundException("User", userId));
-			Cart newCart = new Cart();
-			newCart.setUser(user);
-			return cartRepository.save(newCart);
+
+			return cartRepository.findByUserIdWithItems(userId).orElseGet(() -> {
+				Cart newCart = new Cart();
+				newCart.setUser(user);
+				return cartRepository.save(newCart);
+			});
 		});
 	}
 }

@@ -7,6 +7,7 @@ import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.ResendVerificationRequestDTO;
+import com.tm.tsm_atelier.domain.auth.dto.VerifyEmailRequestDTO;
 import com.tm.tsm_atelier.domain.auth.service.AuthService;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.security.JwtService;
@@ -27,7 +28,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -58,9 +58,10 @@ public class AuthController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
-	@GetMapping("/verify-email")
-	public ResponseEntity<Void> verifyEmail(@RequestParam String token, HttpServletResponse response) {
-		AuthResponseDTO tokens = authService.verifyEmail(token);
+	@PostMapping("/verify-email")
+	public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequestDTO request,
+			HttpServletResponse response) {
+		AuthResponseDTO tokens = authService.verifyEmail(request.token());
 		addCookiesToResponse(response, tokens);
 		return ResponseEntity.ok().build();
 	}

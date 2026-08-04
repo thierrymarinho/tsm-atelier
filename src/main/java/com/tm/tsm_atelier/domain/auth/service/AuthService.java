@@ -48,6 +48,17 @@ public class AuthService {
 	@Value("${app.email-verification-expiration}")
 	private long emailVerificationExpiration;
 
+	/**
+	 * Por quanto tempo um refresh token recem-rotacionado ainda e aceito. Existe
+	 * porque o cliente legitimo reaparece com o token antigo o tempo todo: resposta
+	 * perdida no caminho, timeout, duas abas renovando juntas. Sem a janela, cada
+	 * um desses casos caia na deteccao de reuso e derrubava todas as sessoes do
+	 * usuario. O preco e que um replay dentro da janela passa despercebido, entao
+	 * ela e curta de proposito.
+	 */
+	@Value("${app.refresh-token-grace-ms:30000}")
+	private long refreshTokenGraceMs;
+
 	@Value("${app.base-url}")
 	private String appBaseUrl;
 
@@ -148,26 +159,55 @@ public class AuthService {
 
 	public AuthResponseDTO refresh(String refreshToken) {
 		String hashedToken = hashToken(refreshToken);
-		String email = redisTemplate.opsForValue().get("rt:valid:" + hashedToken);
 
-		if (email == null) {
-			String reusedEmail = redisTemplate.opsForValue().get("rt:used:" + hashedToken);
-			if (reusedEmail != null) {
-				revokeAllUserTokens(reusedEmail);
-				throw new InvalidTokenException(
-						"Security Alert: Token reuse detected. All sessions have been revoked.");
+		// GETDEL em vez de GET seguido de DELETE: com as duas operacoes separadas,
+		// duas requisicoes simultaneas com o mesmo token liam a chave antes de
+		// qualquer uma apagar e as duas eram atendidas — sem disparar a deteccao de
+		// reuso, que e exatamente o cenario que ela existe para pegar. Agora so uma
+		// consegue consumir o token.
+		String email = redisTemplate.opsForValue().getAndDelete("rt:valid:" + hashedToken);
+
+		if (email != null) {
+			redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
+
+			// Marcado antes de ir ao banco para estreitar ao maximo o intervalo em que
+			// uma requisicao concorrente veria o token como simplesmente inexistente.
+			if (refreshTokenGraceMs > 0) {
+				redisTemplate.opsForValue().set("rt:grace:" + hashedToken, email,
+						Duration.ofMillis(refreshTokenGraceMs));
 			}
-			throw new InvalidTokenException("Invalid or expired refresh token.");
+			redisTemplate.opsForValue().set("rt:used:" + hashedToken, email, Duration.ofMillis(refreshTokenExpiration));
+
+			return issueTokensFor(email);
 		}
 
+		// Retry do cliente dentro da janela: trata como renovacao normal, nao como
+		// ataque. E checado antes de rt:used justamente para nao revogar tudo.
+		String graceEmail = redisTemplate.opsForValue().get("rt:grace:" + hashedToken);
+		if (graceEmail != null) {
+			return issueTokensFor(graceEmail);
+		}
+
+		String reusedEmail = redisTemplate.opsForValue().get("rt:used:" + hashedToken);
+		if (reusedEmail != null) {
+			revokeAllUserTokens(reusedEmail);
+			throw new InvalidTokenException("Security Alert: Token reuse detected. All sessions have been revoked.");
+		}
+
+		throw new InvalidTokenException("Invalid or expired refresh token.");
+	}
+
+	/**
+	 * O refresh repete as validacoes de acesso do login. Antes so o login barrava
+	 * conta nao verificada, entao quem ja tivesse uma sessao aberta seguia
+	 * renovando indefinidamente mesmo depois de perder a verificacao.
+	 */
+	private AuthResponseDTO issueTokensFor(String email) {
 		User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found."));
 
-		// Invalidate old token (Rotation)
-		redisTemplate.delete("rt:valid:" + hashedToken);
-		redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
-
-		// Mark as used to detect future replay attacks
-		redisTemplate.opsForValue().set("rt:used:" + hashedToken, email, Duration.ofMillis(refreshTokenExpiration));
+		if (!user.isEmailVerified()) {
+			throw new EmailNotVerifiedException("Please verify your email before logging in.");
+		}
 
 		return generateAndSaveTokens(user);
 	}
@@ -182,13 +222,19 @@ public class AuthService {
 	}
 
 	public void logout(String refreshToken) {
-		if (refreshToken != null) {
-			String hashedToken = hashToken(refreshToken);
-			String email = redisTemplate.opsForValue().get("rt:valid:" + hashedToken);
-			if (email != null) {
-				redisTemplate.delete("rt:valid:" + hashedToken);
-				redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
-			}
+		if (refreshToken == null) {
+			return;
+		}
+
+		String hashedToken = hashToken(refreshToken);
+		String email = redisTemplate.opsForValue().getAndDelete("rt:valid:" + hashedToken);
+
+		// Um logout dentro da janela de graca precisa mata-la tambem, senao o token
+		// que acabou de ser invalidado ainda renderia uma sessao nova.
+		redisTemplate.delete("rt:grace:" + hashedToken);
+
+		if (email != null) {
+			redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
 		}
 	}
 
@@ -201,6 +247,12 @@ public class AuthService {
 				Duration.ofMillis(refreshTokenExpiration));
 
 		redisTemplate.opsForSet().add("rt:user:" + user.getEmail(), hashedToken);
+
+		// O set nunca expirava: hashes de tokens que morreram por TTL ficavam nele
+		// para sempre, porque so a rotacao e o logout removem membros. Renovar o
+		// prazo a cada emissao faz o indice morrer junto com o ultimo token que ele
+		// guarda.
+		redisTemplate.expire("rt:user:" + user.getEmail(), Duration.ofMillis(refreshTokenExpiration));
 
 		String fullName = formatFullName(user.getFirstName(), user.getLastName());
 		return new AuthResponseDTO(accessToken, rawRefreshToken, user.getEmail(), fullName);
@@ -242,6 +294,7 @@ public class AuthService {
 		if (activeHashes != null && !activeHashes.isEmpty()) {
 			for (String hash : activeHashes) {
 				redisTemplate.delete("rt:valid:" + hash);
+				redisTemplate.delete("rt:grace:" + hash);
 			}
 		}
 		redisTemplate.delete("rt:user:" + email);

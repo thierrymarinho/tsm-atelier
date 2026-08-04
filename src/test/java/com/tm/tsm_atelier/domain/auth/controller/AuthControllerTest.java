@@ -16,6 +16,7 @@ import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyExistsException;
 import com.tm.tsm_atelier.domain.auth.controller.v1.AuthController;
 import com.tm.tsm_atelier.domain.auth.dto.AuthResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
+import com.tm.tsm_atelier.domain.auth.dto.RefreshRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.VerifyEmailRequestDTO;
@@ -255,6 +256,58 @@ class AuthControllerTest {
 					.andExpect(jsonPath("$.name").value(newTokens.name()));
 
 			verify(authService).refresh(validToken);
+		}
+
+		@Test
+		@DisplayName("Deve aceitar o refresh token pelo corpo quando não há cookie")
+		void shouldAcceptRefreshTokenFromRequestBody() throws Exception {
+			// Arrange
+			String bodyToken = "body-refresh-token";
+			AuthResponseDTO newTokens = anAuthResponseDTO().withAccessToken("new-access")
+					.withRefreshToken("new-refresh").build();
+
+			when(authService.refresh(bodyToken)).thenReturn(newTokens);
+
+			// Act & Assert
+			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper.writeValueAsString(new RefreshRequestDTO(bodyToken))))
+					.andExpect(status().isOk()).andExpect(cookie().value("refresh_token", "new-refresh"));
+
+			verify(authService).refresh(bodyToken);
+		}
+
+		@Test
+		@DisplayName("Deve priorizar o token do corpo sobre o do cookie")
+		void shouldPreferTheBodyTokenOverTheCookie() throws Exception {
+			// Arrange
+			when(authService.refresh("from-body")).thenReturn(anAuthResponseDTO().build());
+
+			// Act & Assert
+			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())
+					.cookie(new jakarta.servlet.http.Cookie("refresh_token", "from-cookie"))
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper.writeValueAsString(new RefreshRequestDTO("from-body"))))
+					.andExpect(status().isOk());
+
+			verify(authService).refresh("from-body");
+			verify(authService, never()).refresh("from-cookie");
+		}
+
+		@Test
+		@DisplayName("Deve devolver o motivo e limpar os cookies quando o refresh falha")
+		void shouldReturnTheReasonAndClearCookiesWhenRefreshFails() throws Exception {
+			// Arrange
+			String token = "reused-token";
+			when(authService.refresh(token))
+					.thenThrow(new com.tm.tsm_atelier.common.exception.custom.InvalidTokenException(
+							"Security Alert: Token reuse detected. All sessions have been revoked."));
+
+			// Act & Assert
+			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())
+					.cookie(new jakarta.servlet.http.Cookie("refresh_token", token)))
+					.andExpect(status().isUnauthorized())
+					.andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("reuse detected")))
+					.andExpect(cookie().maxAge("refresh_token", 0)).andExpect(cookie().maxAge("access_token", 0));
 		}
 
 		@Test

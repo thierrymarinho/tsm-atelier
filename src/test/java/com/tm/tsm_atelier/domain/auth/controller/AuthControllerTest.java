@@ -16,7 +16,6 @@ import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyExistsException;
 import com.tm.tsm_atelier.domain.auth.controller.v1.AuthController;
 import com.tm.tsm_atelier.domain.auth.dto.AuthResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
-import com.tm.tsm_atelier.domain.auth.dto.RefreshRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.VerifyEmailRequestDTO;

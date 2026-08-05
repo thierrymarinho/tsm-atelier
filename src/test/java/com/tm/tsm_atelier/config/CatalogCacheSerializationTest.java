@@ -29,12 +29,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-// O scheduler de expiracao roda de minuto em minuto dentro do contexto, e o
-// @CacheEvict(allEntries) de cancelAndRestoreStock limparia o catalogo no meio
-// do teste. Ele so evicta quando existem pedidos vencidos, entao dificilmente
-// era a causa da intermitencia — essa era a corrida entre as conexoes de
-// escrita e leitura, tratada em roundTrip. Desligar aqui e barato e remove a
-// variavel.
 @TestPropertySource(properties = "app.scheduler.order-expiration.enabled=false")
 @DisplayName("Catalog cache serialization")
 class CatalogCacheSerializationTest {

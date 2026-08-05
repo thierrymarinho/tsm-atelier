@@ -8,11 +8,6 @@
             "key": "baseUrl",
             "value": "http://localhost:8080",
             "type": "string"
-        },
-        {
-            "key": "token",
-            "value": "",
-            "type": "string"
         }
     ],
     "item": [
@@ -49,20 +44,6 @@
                 },
                 {
                     "name": "2. Login",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "var jsonData = pm.response.json();",
-                                    "if(jsonData.token) {",
-                                    "    pm.collectionVariables.set(\"token\", jsonData.token);",
-                                    "}"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
                     "request": {
                         "method": "POST",
                         "header": [
@@ -93,12 +74,6 @@
                     "name": "3. Refresh",
                     "request": {
                         "method": "POST",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/auth/refresh",
                             "host": [
@@ -169,12 +144,6 @@
                     "name": "6. Me",
                     "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/auth/me",
                             "host": [
@@ -193,12 +162,6 @@
                     "name": "7. Logout",
                     "request": {
                         "method": "POST",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/auth/logout",
                             "host": [
@@ -227,10 +190,6 @@
                                 "method": "POST",
                                 "header": [
                                     {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    },
-                                    {
                                         "key": "Content-Type",
                                         "value": "application/json"
                                     }
@@ -257,12 +216,6 @@
                             "name": "2. Find All",
                             "request": {
                                 "method": "GET",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/admin/collections",
                                     "host": [
@@ -281,12 +234,6 @@
                             "name": "3. Find By Id",
                             "request": {
                                 "method": "GET",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/admin/collections/1",
                                     "host": [
@@ -307,10 +254,6 @@
                             "request": {
                                 "method": "PUT",
                                 "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    },
                                     {
                                         "key": "Content-Type",
                                         "value": "application/json"
@@ -339,12 +282,6 @@
                             "name": "5. Delete",
                             "request": {
                                 "method": "DELETE",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/admin/collections/1",
                                     "host": [
@@ -370,10 +307,6 @@
                             "request": {
                                 "method": "POST",
                                 "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    },
                                     {
                                         "key": "Content-Type",
                                         "value": "application/json"
@@ -401,12 +334,6 @@
                             "name": "2. Search",
                             "request": {
                                 "method": "GET",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/admin/products?page=0&size=10&sort=createdAt,desc",
                                     "host": [
@@ -439,12 +366,6 @@
                             "name": "3. Find By Id",
                             "request": {
                                 "method": "GET",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/admin/products/1",
                                     "host": [
@@ -465,10 +386,6 @@
                             "request": {
                                 "method": "PUT",
                                 "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    },
                                     {
                                         "key": "Content-Type",
                                         "value": "application/json"
@@ -497,12 +414,6 @@
                             "name": "5. Delete",
                             "request": {
                                 "method": "DELETE",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/admin/products/1",
                                     "host": [
@@ -527,12 +438,6 @@
                             "name": "1. List",
                             "request": {
                                 "method": "GET",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/admin/orders?status=PENDING_PAYMENT&page=0&size=20&sort=createdAt,desc",
                                     "host": [
@@ -569,12 +474,6 @@
                             "name": "2. Update Status",
                             "request": {
                                 "method": "PATCH",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/admin/orders/1/status?newStatus=SHIPPED",
                                     "host": [
@@ -606,12 +505,6 @@
                             "name": "1. Upload File",
                             "request": {
                                 "method": "POST",
-                                "header": [
-                                    {
-                                        "key": "Authorization",
-                                        "value": "Bearer {{token}}"
-                                    }
-                                ],
                                 "body": {
                                     "mode": "formdata",
                                     "formdata": [
@@ -810,12 +703,6 @@
                     "name": "1. Get All",
                     "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/addresses",
                             "host": [
@@ -834,10 +721,6 @@
                     "request": {
                         "method": "POST",
                         "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
@@ -866,10 +749,6 @@
                         "method": "PUT",
                         "header": [
                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
-                            {
                                 "key": "Content-Type",
                                 "value": "application/json"
                             }
@@ -896,12 +775,6 @@
                     "name": "4. Set Default",
                     "request": {
                         "method": "PATCH",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/addresses/1/default",
                             "host": [
@@ -921,12 +794,6 @@
                     "name": "5. Delete",
                     "request": {
                         "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/addresses/1",
                             "host": [
@@ -950,12 +817,6 @@
                     "name": "1. Get Cart",
                     "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/cart",
                             "host": [
@@ -974,10 +835,6 @@
                     "request": {
                         "method": "POST",
                         "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
@@ -1007,10 +864,6 @@
                         "method": "PUT",
                         "header": [
                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
-                            {
                                 "key": "Content-Type",
                                 "value": "application/json"
                             }
@@ -1038,12 +891,6 @@
                     "name": "4. Remove Item",
                     "request": {
                         "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/cart/items/1",
                             "host": [
@@ -1064,10 +911,6 @@
                     "request": {
                         "method": "POST",
                         "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
@@ -1095,12 +938,6 @@
                     "name": "6. Clear Cart",
                     "request": {
                         "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/cart",
                             "host": [
@@ -1124,10 +961,6 @@
                     "request": {
                         "method": "POST",
                         "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
@@ -1155,12 +988,6 @@
                     "name": "2. My Orders",
                     "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/orders/my-orders?page=0&size=10&sort=createdAt,desc",
                             "host": [
@@ -1193,12 +1020,6 @@
                     "name": "3. Get By Id",
                     "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/orders/1",
                             "host": [

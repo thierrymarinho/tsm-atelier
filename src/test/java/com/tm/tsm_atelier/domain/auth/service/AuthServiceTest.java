@@ -276,12 +276,13 @@ class AuthServiceTest {
 		void shouldReturnNewTokensWhenRefreshTokenIsValid() {
 			// Arrange
 			ReflectionTestUtils.setField(authService, "refreshTokenExpiration", 604800000L);
+			ReflectionTestUtils.setField(authService, "refreshTokenGraceMs", 30000L);
 			String oldRefreshToken = UUID.randomUUID().toString();
 			User user = aUser().withEmail("user@email.com").build();
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
-			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(user.getEmail());
+			when(valueOperations.getAndDelete(startsWith("rt:valid:"))).thenReturn(user.getEmail());
 			when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 			when(jwtService.generateToken(user)).thenReturn("new-jwt-token");
 
@@ -294,12 +295,17 @@ class AuthServiceTest {
 			assertThat(result.refreshToken()).isNotBlank().isNotEqualTo(oldRefreshToken);
 			assertThat(result.email()).isEqualTo(user.getEmail());
 
-			verify(valueOperations).get(startsWith("rt:valid:"));
+			// GETDEL, e nao GET seguido de DELETE: e o que garante que duas requisicoes
+			// simultaneas nao consumam o mesmo token.
+			verify(valueOperations).getAndDelete(startsWith("rt:valid:"));
+			verify(redisTemplate, never()).delete(startsWith("rt:valid:"));
+
 			verify(jwtService).generateToken(user);
-			verify(redisTemplate).delete(startsWith("rt:valid:"));
 			verify(setOperations).remove(eq("rt:user:" + user.getEmail()), anyString());
+			verify(valueOperations).set(startsWith("rt:grace:"), eq(user.getEmail()), any(Duration.class));
 			verify(valueOperations).set(startsWith("rt:used:"), eq(user.getEmail()), any(Duration.class));
-			verify(valueOperations, times(2)).set(anyString(), eq(user.getEmail()), any(Duration.class));
+			verify(valueOperations, times(3)).set(anyString(), eq(user.getEmail()), any(Duration.class));
+			verify(redisTemplate).expire(eq("rt:user:" + user.getEmail()), any(Duration.class));
 		}
 
 		@Test
@@ -309,7 +315,8 @@ class AuthServiceTest {
 			String invalidToken = "invalid-token";
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.getAndDelete(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.get(startsWith("rt:grace:"))).thenReturn(null);
 			when(valueOperations.get(startsWith("rt:used:"))).thenReturn(null);
 
 			// Act & Assert
@@ -330,7 +337,8 @@ class AuthServiceTest {
 			java.util.Set<String> activeHashes = java.util.Set.of("hash1", "hash2");
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.getAndDelete(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.get(startsWith("rt:grace:"))).thenReturn(null);
 			when(valueOperations.get(startsWith("rt:used:"))).thenReturn(victimEmail);
 
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
@@ -343,6 +351,10 @@ class AuthServiceTest {
 
 			verify(redisTemplate).delete("rt:valid:hash1");
 			verify(redisTemplate).delete("rt:valid:hash2");
+			// A revogacao tem de fechar a janela de graca tambem, senao um token
+			// recem-rotacionado sobreviveria ao alerta.
+			verify(redisTemplate).delete("rt:grace:hash1");
+			verify(redisTemplate).delete("rt:grace:hash2");
 			verify(redisTemplate).delete("rt:user:" + victimEmail);
 			verify(jwtService, never()).generateToken(any());
 		}
@@ -397,14 +409,15 @@ class AuthServiceTest {
 			String email = "user@example.com";
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(email);
+			when(valueOperations.getAndDelete(startsWith("rt:valid:"))).thenReturn(email);
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
 			// Act
 			authService.logout(tokenToRevoke);
 
 			// Assert
-			verify(redisTemplate).delete(startsWith("rt:valid:"));
+			verify(valueOperations).getAndDelete(startsWith("rt:valid:"));
+			verify(redisTemplate).delete(startsWith("rt:grace:"));
 			verify(setOperations).remove(eq("rt:user:" + email), anyString());
 		}
 

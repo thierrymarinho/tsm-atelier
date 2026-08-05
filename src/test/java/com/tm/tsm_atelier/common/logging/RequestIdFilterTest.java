@@ -24,7 +24,7 @@ class RequestIdFilterTest {
 	}
 
 	@Test
-	@DisplayName("Gera um id quando o cliente não envia nenhum e devolve no header")
+	@DisplayName("Generates an id when the client sends none and echoes it back in the header")
 	void shouldGenerateAnIdWhenTheClientSendsNone() throws Exception {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		AtomicReference<String> idDuringChain = new AtomicReference<>();
@@ -36,7 +36,7 @@ class RequestIdFilterTest {
 	}
 
 	@Test
-	@DisplayName("Reaproveita o id enviado pelo cliente para manter o rastro entre serviços")
+	@DisplayName("Reuses the id sent by the client so the trail survives across services")
 	void shouldReuseTheIdSentByTheClient() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addHeader(HEADER, "front-42");
@@ -48,7 +48,7 @@ class RequestIdFilterTest {
 	}
 
 	@Test
-	@DisplayName("Remove quebras de linha do header para impedir forja de linhas de log")
+	@DisplayName("Strips line breaks from the header to prevent forged log lines")
 	void shouldStripLineBreaksFromTheHeader() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addHeader(HEADER, "abc\n2026-01-01 ERROR forged log line");
@@ -60,7 +60,7 @@ class RequestIdFilterTest {
 	}
 
 	@Test
-	@DisplayName("Limpa o MDC no fim para a próxima requisição não herdar o id")
+	@DisplayName("Clears the MDC on the way out so the next request cannot inherit the id")
 	void shouldClearTheMdcWhenTheRequestEnds() throws Exception {
 		filter.doFilter(new MockHttpServletRequest(), new MockHttpServletResponse(),
 				captureMdc(new AtomicReference<>()));

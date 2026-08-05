@@ -19,14 +19,14 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("RequestIdFilter na cadeia da aplicação")
+@DisplayName("RequestIdFilter in the application filter chain")
 class RequestIdFilterRegistrationTest {
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	@Test
-	@DisplayName("Toda resposta carrega o id da requisição, mesmo quando a rota não existe")
+	@DisplayName("Every response carries the request id, even when the route does not exist")
 	void everyResponseCarriesTheRequestId() throws Exception {
 		// Rota inexistente de propósito: o filtro roda antes do roteamento e da
 		// segurança, então o rastro precisa existir independente do desfecho.

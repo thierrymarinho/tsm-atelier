@@ -13,13 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Cobre a assimetria criada pelo soft-delete de SKUs: o @SQLRestriction precisa
- * esconder a linha das consultas de entidade (senão um produto retirado de
- * venda continua comprável), enquanto as checagens de duplicidade precisam
- * continuar enxergando a mesma linha, porque o índice único de sku_code no
- * banco não ignora registros deletados.
- */
 @SpringBootTest
 @Transactional
 class ProductSKURepositoryIntegrationTest {
@@ -34,7 +27,7 @@ class ProductSKURepositoryIntegrationTest {
 	private EntityManager entityManager;
 
 	@Test
-	@DisplayName("SKU soft-deleted some das consultas de entidade mas segue visível para a checagem de duplicidade")
+	@DisplayName("A soft-deleted SKU disappears from entity queries but stays visible to the uniqueness check")
 	void softDeletedSkuIsHiddenFromEntityQueriesButVisibleToUniquenessChecks() {
 		ProductSKU sku = skuRepository.findAll().stream().findFirst().orElseThrow();
 		Long skuId = sku.getId();
@@ -42,8 +35,6 @@ class ProductSKURepositoryIntegrationTest {
 
 		jdbcTemplate.update("UPDATE product_skus SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", skuId);
 
-		// O @SQLRestriction age no SQL; sem limpar o contexto de persistência o
-		// findById devolveria a instância já carregada pelo cache de 1º nível.
 		entityManager.clear();
 
 		assertThat(skuRepository.findById(skuId)).isEmpty();

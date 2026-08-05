@@ -4,11 +4,13 @@ import com.tm.tsm_atelier.domain.order.service.OrderService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "app.scheduler.order-expiration.enabled", havingValue = "true", matchIfMissing = true)
 public class OrderExpirationScheduler {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderExpirationScheduler.class);
@@ -30,16 +32,12 @@ public class OrderExpirationScheduler {
 		log.info("Found {} expired orders to cancel", expiredOrderIds.size());
 
 		int cancelled = 0;
-		// One transaction per order: a single failure must not roll back the whole
-		// batch, and short transactions keep the SKU locks brief.
 		for (Long orderId : expiredOrderIds) {
 			try {
 				if (orderService.cancelAndRestoreStock(orderId)) {
 					cancelled++;
 				}
 			} catch (OptimisticLockingFailureException e) {
-				// The order changed concurrently — almost always the Stripe webhook marking
-				// it PAID. Leaving it alone is the correct outcome.
 				log.info("Order {} was updated concurrently; skipping cancellation", orderId);
 			} catch (Exception e) {
 				log.error("Failed to cancel expired order {}", orderId, e);

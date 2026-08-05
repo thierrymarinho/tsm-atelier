@@ -2,6 +2,7 @@ package com.tm.tsm_atelier.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 
 import com.tm.tsm_atelier.common.dto.CustomPageImpl;
 import com.tm.tsm_atelier.domain.collection.dto.CollectionResponseDTO;
@@ -15,7 +16,9 @@ import com.tm.tsm_atelier.domain.product.enums.Category;
 import com.tm.tsm_atelier.domain.product.enums.ProductSize;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +29,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-// Sem isto o teste fica intermitente: o scheduler de expiracao roda de minuto
-// em
-// minuto dentro do contexto, cancela pedidos vencidos e o
-// @CacheEvict(allEntries)
-// de cancelAndRestoreStock apaga a entrada entre o put e o get.
+// O scheduler de expiracao roda de minuto em minuto dentro do contexto, e o
+// @CacheEvict(allEntries) de cancelAndRestoreStock limparia o catalogo no meio
+// do teste. Ele so evicta quando existem pedidos vencidos, entao dificilmente
+// era a causa da intermitencia — essa era a corrida entre as conexoes de
+// escrita e leitura, tratada em roundTrip. Desligar aqui e barato e remove a
+// variavel.
 @TestPropertySource(properties = "app.scheduler.order-expiration.enabled=false")
 @DisplayName("Catalog cache serialization")
 class CatalogCacheSerializationTest {
@@ -107,8 +111,14 @@ class CatalogCacheSerializationTest {
 		cache.evict(key);
 		cache.put(key, value);
 
-		Cache.ValueWrapper wrapper = cache.get(key);
-		assertThat(wrapper).as("nothing came back from cache %s", cacheName).isNotNull();
+		// A escrita e a leitura nao viajam pela mesma conexao: o RedisCache escreve
+		// por um socket e le por outro, e o put retorna antes de o SET ser executado
+		// no servidor. Sem esperar, o GET chegava ate 0,1 ms antes do SET e o teste
+		// via um cache vazio. O alvo aqui e a serializacao dos DTOs, nao o modelo de
+		// consistencia do Redis, entao a espera remove a corrida sem esconder falha:
+		// se o valor nunca aparecer, o teste estoura no timeout.
+		Cache.ValueWrapper wrapper = await().atMost(Duration.ofSeconds(5)).until(() -> cache.get(key),
+				Objects::nonNull);
 
 		return type.cast(wrapper.get());
 	}

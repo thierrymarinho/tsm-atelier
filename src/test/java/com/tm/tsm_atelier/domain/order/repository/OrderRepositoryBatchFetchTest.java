@@ -39,7 +39,7 @@ class OrderRepositoryBatchFetchTest {
 	private EntityManager entityManager;
 
 	@Test
-	@DisplayName("Carrega os itens de uma página inteira de pedidos sem uma consulta por pedido")
+	@DisplayName("Loads the items of a whole page of orders without one query per order")
 	void loadsItemsForAWholePageWithoutOneQueryPerOrder() {
 		UUID userId = seedUserWithOrders();
 		entityManager.flush();

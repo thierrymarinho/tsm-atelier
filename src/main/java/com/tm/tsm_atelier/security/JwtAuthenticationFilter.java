@@ -18,10 +18,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtService jwtService;
 	private final UserDetailsService userDetailsService;
+	private final AccessTokenDenylist accessTokenDenylist;
 
-	public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+	public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService,
+			AccessTokenDenylist accessTokenDenylist) {
 		this.jwtService = jwtService;
 		this.userDetailsService = userDetailsService;
+		this.accessTokenDenylist = accessTokenDenylist;
 	}
 
 	@Override
@@ -50,12 +53,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 
+		// Um token revogado no logout continua tecnicamente válido — assinatura boa,
+		// dentro da validade. Só o denylist sabe que ele não vale mais.
+		if (accessTokenDenylist.isRevoked(jwt)) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
 		try {
 			String userEmail = jwtService.extractUsername(jwt);
 
 			if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-				String role = jwtService.extractRole(jwt);
-
+				// A role vem de userDetails.getAuthorities(), ou seja, do banco — nunca
+				// do claim do token. É o que faz um admin rebaixado perder o acesso na
+				// requisição seguinte, em vez de só quando o token expira. Havia aqui um
+				// extractRole(jwt) atribuído e nunca usado; foi removido para ninguém
+				// achar que a role do token serve para autorizar.
 				if (jwtService.isTokenValid(jwt, userEmail)) {
 					UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 

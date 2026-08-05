@@ -104,7 +104,7 @@ class RefreshTokenFlowTest {
 		// Depois da rotação o token inicial fica na janela de graça: é justamente o
 		// estado em que ele ainda renderia uma sessão nova.
 		authService.refresh(initial.refreshToken());
-		authService.logout(initial.refreshToken());
+		authService.logout(null, initial.refreshToken());
 
 		assertThatThrownBy(() -> authService.refresh(initial.refreshToken())).isInstanceOf(InvalidTokenException.class);
 	}

@@ -413,7 +413,7 @@ class AuthServiceTest {
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
 			// Act
-			authService.logout(tokenToRevoke);
+			authService.logout(null, tokenToRevoke);
 
 			// Assert
 			verify(valueOperations).getAndDelete(startsWith("rt:valid:"));
@@ -425,7 +425,7 @@ class AuthServiceTest {
 		@DisplayName("Should handle a null refresh token without throwing")
 		void shouldHandleNullRefreshTokenGracefully() {
 			// Act
-			authService.logout(null);
+			authService.logout(null, null);
 
 			// Assert
 			verify(redisTemplate, never()).delete(anyString());

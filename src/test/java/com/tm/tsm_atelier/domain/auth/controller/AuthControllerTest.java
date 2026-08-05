@@ -22,6 +22,7 @@ import com.tm.tsm_atelier.domain.auth.dto.VerifyEmailRequestDTO;
 import com.tm.tsm_atelier.domain.auth.service.AuthService;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Role;
+import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import com.tm.tsm_atelier.security.JwtService;
 import com.tm.tsm_atelier.security.SecurityConfig;
@@ -57,6 +58,9 @@ class AuthControllerTest {
 
 	@MockitoBean
 	private UserRepository userRepository;
+
+	@MockitoBean
+	private com.tm.tsm_atelier.security.AccessTokenDenylist accessTokenDenylist;
 
 	@MockitoBean
 	private com.tm.tsm_atelier.security.RateLimitService rateLimitService;
@@ -297,9 +301,15 @@ class AuthControllerTest {
 					"user@example.com", Role.CUSTOMER);
 
 			when(jwtService.extractUsername(anyString())).thenReturn("user@example.com");
-			when(jwtService.extractRole(anyString())).thenReturn("ROLE_CUSTOMER");
 			when(jwtService.isTokenValid(anyString(), anyString())).thenReturn(true);
 			when(authService.getMe("user@example.com")).thenReturn(profile);
+
+			// /me deixou de ser rota pública, então quem autentica agora é o filtro — e
+			// ele carrega o usuário do banco para tirar dali as authorities, em vez de
+			// confiar no claim de role do token.
+			when(userRepository.findByEmail("user@example.com")).thenReturn(
+					java.util.Optional.of(User.builder().id(UUID.randomUUID()).firstName("Maria").lastName("Silva")
+							.email("user@example.com").password("x").role(Role.CUSTOMER).emailVerified(true).build()));
 
 			// Act & Assert
 			mockMvc.perform(get(BASE_URL + "/me").cookie(new jakarta.servlet.http.Cookie("access_token", token)))
@@ -359,7 +369,7 @@ class AuthControllerTest {
 					.cookie(new jakarta.servlet.http.Cookie("refresh_token", token))).andExpect(status().isOk())
 					.andExpect(cookie().value("access_token", "")).andExpect(cookie().value("refresh_token", ""));
 
-			verify(authService).logout(token);
+			verify(authService).logout(null, token);
 		}
 
 		@Test
@@ -369,7 +379,7 @@ class AuthControllerTest {
 			mockMvc.perform(post(BASE_URL + "/logout").with(csrf())).andExpect(status().isOk())
 					.andExpect(cookie().maxAge("access_token", 0)).andExpect(cookie().maxAge("refresh_token", 0));
 
-			verify(authService).logout(null);
+			verify(authService).logout(null, null);
 		}
 	}
 

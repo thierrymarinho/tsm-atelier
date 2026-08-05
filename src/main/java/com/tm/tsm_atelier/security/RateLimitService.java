@@ -4,12 +4,16 @@ import com.tm.tsm_atelier.common.exception.custom.AccountLockedException;
 import com.tm.tsm_atelier.common.exception.custom.TooManyRequestsException;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class RateLimitService {
+
+	private static final Logger log = LoggerFactory.getLogger(RateLimitService.class);
 
 	private final StringRedisTemplate redisTemplate;
 
@@ -35,6 +39,12 @@ public class RateLimitService {
 		}
 
 		if (hits != null && hits > maxRequests) {
+			// Só a primeira requisição barrada é registrada. Logar todas deixaria o
+			// atacante escolher quantas linhas escrever no nosso log, enterrando o
+			// resto — a informação útil é que o limite estourou, não cada repetição.
+			if (hits == maxRequests + 1L) {
+				log.warn("Rate limit exceeded for action '{}' from IP {}", action, ip);
+			}
 			throw new TooManyRequestsException("Você excedeu o limite de tentativas. Tente novamente mais tarde.");
 		}
 	}
@@ -86,6 +96,13 @@ public class RateLimitService {
 				// Se atingiu o limite (ex: 5ª falha), "Trava" a conta reiniciando o tempo para
 				// a duração de Lockout
 				redisTemplate.expire(key, lockDuration);
+
+				// Registrado só no momento em que a trava fecha: as tentativas
+				// seguintes param antes disso, em checkAccountLockout. Sem esta linha,
+				// um chamado de "não consigo entrar" é indistinguível de um ataque de
+				// força bruta em andamento.
+				log.warn("Account lockout triggered for {} from IP {} after {} failed attempts", email, ip, attempts);
+
 				throw new AccountLockedException("Sua conta foi bloqueada por " + lockDuration.toMinutes()
 						+ " minutos devido a múltiplas falhas.");
 			}

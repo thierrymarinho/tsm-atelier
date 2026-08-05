@@ -22,6 +22,8 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+
+	private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
@@ -190,6 +194,12 @@ public class AuthService {
 
 		String reusedEmail = redisTemplate.opsForValue().get("rt:used:" + hashedToken);
 		if (reusedEmail != null) {
+			// Único sinal de que um refresh token vazou, e ele não deixa rastro no
+			// banco. O usuário também não reclama: ele só é deslogado. Sem esta
+			// linha, a revogação em massa acontece sem nenhuma evidência de por quê.
+			// O e-mail entra aqui de propósito — é um evento de segurança, e sem ele
+			// não há como saber qual conta investigar.
+			log.warn("Refresh token reuse detected for {}; revoking all sessions", reusedEmail);
 			revokeAllUserTokens(reusedEmail);
 			throw new InvalidTokenException("Security Alert: Token reuse detected. All sessions have been revoked.");
 		}

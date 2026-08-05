@@ -34,6 +34,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -199,6 +201,18 @@ public class OrderService {
 	}
 
 	/**
+	 * Quem disparou a ação, para o rastro de auditoria. Lido do contexto de
+	 * segurança em vez de virar parâmetro do método porque é informação de log, e
+	 * não de negócio — a assinatura pública do serviço não deveria mudar por causa
+	 * disso. Cai em "system" quando não há requisição autenticada por trás, como no
+	 * scheduler de expiração.
+	 */
+	private String currentActor() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		return authentication == null ? "system" : authentication.getName();
+	}
+
+	/**
 	 * Devolve ao estoque as unidades que o pedido mantinha reservadas. Pega o lock
 	 * pessimista no SKU pelo mesmo motivo do checkout: duas devoluções simultâneas
 	 * sobre o mesmo SKU perderiam uma das somas.
@@ -291,13 +305,15 @@ public class OrderService {
 		Order order = orderRepository.findByIdWithItems(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
-		if (order.getStatus() == newStatus) {
+		OrderStatus previousStatus = order.getStatus();
+
+		if (previousStatus == newStatus) {
 			return toResponseDTO(order, null);
 		}
 
-		if (!ALLOWED_TRANSITIONS.getOrDefault(order.getStatus(), Set.of()).contains(newStatus)) {
+		if (!ALLOWED_TRANSITIONS.getOrDefault(previousStatus, Set.of()).contains(newStatus)) {
 			throw new IllegalArgumentException(
-					"Cannot move an order from " + order.getStatus() + " to " + newStatus + ".");
+					"Cannot move an order from " + previousStatus + " to " + newStatus + ".");
 		}
 
 		// Cancelar precisa devolver o estoque reservado. A versão anterior apenas
@@ -308,6 +324,12 @@ public class OrderService {
 		}
 
 		order.setStatus(newStatus);
+
+		// Não existe tabela de auditoria: sem esta linha, quem moveu o pedido — e
+		// devolveu estoque ao cancelá-lo — não fica registrado em lugar nenhum. O
+		// banco guarda só o estado final, nunca quem o produziu.
+		log.info("Order {} moved from {} to {} by {}", id, previousStatus, newStatus, currentActor());
+
 		return toResponseDTO(order, null);
 	}
 

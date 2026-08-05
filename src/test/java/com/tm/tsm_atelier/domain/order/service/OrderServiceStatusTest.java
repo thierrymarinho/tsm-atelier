@@ -49,7 +49,7 @@ class OrderServiceStatusTest {
 	private OrderService orderService;
 
 	@Test
-	@DisplayName("Deve recusar uma transição que não existe no fluxo do pedido")
+	@DisplayName("Should reject a transition that does not exist in the order flow")
 	void shouldRejectTransitionOutsideTheOrderFlow() {
 		Order order = anOrder(OrderStatus.DELIVERED, 2);
 		when(orderRepository.findByIdWithItems(1L)).thenReturn(Optional.of(order));
@@ -62,7 +62,7 @@ class OrderServiceStatusTest {
 	}
 
 	@Test
-	@DisplayName("Deve devolver o estoque ao cancelar um pedido pago")
+	@DisplayName("Should restore stock when a paid order is cancelled")
 	void shouldRestoreStockWhenCancellingAPaidOrder() {
 		Order order = anOrder(OrderStatus.PAID, 2);
 		ProductSKU sku = order.getItems().get(0).getSku();
@@ -77,7 +77,7 @@ class OrderServiceStatusTest {
 	}
 
 	@Test
-	@DisplayName("Deve avançar o status sem mexer no estoque em uma transição válida")
+	@DisplayName("Should advance the status without touching stock on a valid transition")
 	void shouldAdvanceStatusWithoutTouchingStock() {
 		Order order = anOrder(OrderStatus.PAID, 2);
 		when(orderRepository.findByIdWithItems(1L)).thenReturn(Optional.of(order));

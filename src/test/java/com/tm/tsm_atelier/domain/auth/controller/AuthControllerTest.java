@@ -83,7 +83,7 @@ class AuthControllerTest {
 	class Register {
 
 		@Test
-		@DisplayName("Deve retornar 201 e mensagem de verificação quando o registro é válido")
+		@DisplayName("Should return 201 and the verification message when the registration is valid")
 		void shouldReturn201WithMessageWhenRegistrationIsValid() throws Exception {
 			// Arrange
 			RegisterRequestDTO request = aRegisterRequest().build();
@@ -101,7 +101,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 422 quando o email é inválido")
+		@DisplayName("Should return 422 when the email is invalid")
 		void shouldReturn422WhenEmailIsInvalid() throws Exception {
 			// Arrange
 			RegisterRequestDTO request = aRegisterRequest().withEmail("email-invalido").build();
@@ -115,7 +115,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 422 quando campos obrigatórios estão em branco")
+		@DisplayName("Should return 422 when required fields are blank")
 		void shouldReturn422WhenRequiredFieldsAreBlank() throws Exception {
 			// Arrange
 			RegisterRequestDTO request = aRegisterRequest().withFirstName("").withPassword("").build();
@@ -129,7 +129,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 409 quando o email já está em uso")
+		@DisplayName("Should return 409 when the email is already in use")
 		void shouldReturn409WhenEmailAlreadyExists() throws Exception {
 			// Arrange
 			RegisterRequestDTO request = aRegisterRequest().build();
@@ -145,7 +145,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 422 quando a senha é menor que o mínimo")
+		@DisplayName("Should return 422 when the password is shorter than the minimum")
 		void shouldReturn422WhenPasswordIsTooShort() throws Exception {
 			// Arrange
 			RegisterRequestDTO request = aRegisterRequest().withPassword("12").build();
@@ -164,7 +164,7 @@ class AuthControllerTest {
 	class Login {
 
 		@Test
-		@DisplayName("Deve retornar 200 e setar cookies quando as credenciais são válidas")
+		@DisplayName("Should return 200 and set the cookies when the credentials are valid")
 		void shouldReturn200AndSetCookiesWhenCredentialsAreValid() throws Exception {
 			// Arrange
 			LoginRequestDTO request = aLoginRequest().build();
@@ -183,7 +183,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 401 quando as credenciais são inválidas")
+		@DisplayName("Should return 401 when the credentials are invalid")
 		void shouldReturn401WhenCredentialsAreInvalid() throws Exception {
 			// Arrange
 			LoginRequestDTO request = aLoginRequest().build();
@@ -200,7 +200,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve setar cookie access_token como HttpOnly")
+		@DisplayName("Should set the access_token cookie as HttpOnly")
 		void shouldSetAccessTokenCookieAsHttpOnly() throws Exception {
 			LoginRequestDTO request = aLoginRequest().build();
 			AuthResponseDTO mockTokens = anAuthResponseDTO().build();
@@ -218,7 +218,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve setar cookie refresh_token com path restrito")
+		@DisplayName("Should set the refresh_token cookie with a restricted path")
 		void shouldSetRefreshTokenCookieWithRestrictedPath() throws Exception {
 			// Arrange
 			LoginRequestDTO request = aLoginRequest().build();
@@ -236,7 +236,7 @@ class AuthControllerTest {
 	class Refresh {
 
 		@Test
-		@DisplayName("Deve retornar 200 e setar novos cookies quando o refresh token é válido")
+		@DisplayName("Should return 200 and set new cookies when the refresh token is valid")
 		void shouldReturn200AndSetNewCookiesWhenRefreshTokenIsValid() throws Exception {
 			// Arrange
 			String validToken = "valid-refresh-token";
@@ -258,7 +258,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 401 quando não há cookie de refresh token")
+		@DisplayName("Should return 401 when there is no refresh token cookie")
 		void shouldReturn401WhenNoRefreshTokenCookie() throws Exception {
 			// Act & Assert
 			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())).andExpect(status().isUnauthorized());
@@ -267,7 +267,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 401 quando o refresh token é inválido")
+		@DisplayName("Should return 401 when the refresh token is invalid")
 		void shouldReturn401WhenRefreshTokenIsInvalid() throws Exception {
 			// Arrange
 			String invalidToken = "invalid-refresh-token";
@@ -289,7 +289,7 @@ class AuthControllerTest {
 	class Me {
 
 		@Test
-		@DisplayName("Deve retornar 200 e dados do usuário quando autenticado via cookie de access_token")
+		@DisplayName("Should return 200 and the user data when authenticated via the access_token cookie")
 		void shouldReturn200AndUserProfileWhenAuthenticatedViaCookie() throws Exception {
 			// Arrange
 			String token = "valid-access-token";
@@ -312,7 +312,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 200 e dados do usuário quando autenticado via header Authorization Bearer")
+		@DisplayName("Should return 200 and the user data when authenticated via the Authorization Bearer header")
 		void shouldReturn200AndUserProfileWhenAuthenticatedViaHeader() throws Exception {
 			// Arrange
 			String token = "valid-access-token";
@@ -335,7 +335,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 401 quando não está autenticado")
+		@DisplayName("Should return 401 when not authenticated")
 		void shouldReturn401WhenNotAuthenticated() throws Exception {
 			// Act & Assert
 			mockMvc.perform(get(BASE_URL + "/me")).andExpect(status().isUnauthorized());
@@ -349,7 +349,7 @@ class AuthControllerTest {
 	class Logout {
 
 		@Test
-		@DisplayName("Deve retornar 200 e limpar os cookies")
+		@DisplayName("Should return 200 and clear the cookies")
 		void shouldReturn200AndClearCookies() throws Exception {
 			// Arrange
 			String token = "any-token";
@@ -363,7 +363,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve setar maxAge=0 nos cookies para forçar remoção no navegador")
+		@DisplayName("Should set maxAge=0 on the cookies to force removal in the browser")
 		void shouldSetMaxAgeZeroOnCookies() throws Exception {
 			// Act & Assert
 			mockMvc.perform(post(BASE_URL + "/logout").with(csrf())).andExpect(status().isOk())
@@ -378,7 +378,7 @@ class AuthControllerTest {
 	class VerifyEmail {
 
 		@Test
-		@DisplayName("Deve retornar 200 e setar cookies JWT quando o token de verificação é válido")
+		@DisplayName("Should return 200 and set the JWT cookies when the verification token is valid")
 		void shouldReturn200AndSetCookiesWhenTokenIsValid() throws Exception {
 			// Arrange
 			String token = "valid-verification-token";
@@ -396,7 +396,7 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Deve retornar 401 quando o token de verificação é inválido ou expirado")
+		@DisplayName("Should return 401 when the verification token is invalid or expired")
 		void shouldReturn401WhenTokenIsInvalid() throws Exception {
 			// Arrange
 			String invalidToken = "invalid-token";

@@ -1,9 +1,11 @@
 package com.tm.tsm_atelier.domain.auth.controller.v1;
 
+import com.tm.tsm_atelier.common.exception.custom.EmailNotVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.InvalidTokenException;
 import com.tm.tsm_atelier.common.exception.custom.UserNotFoundException;
 import com.tm.tsm_atelier.domain.auth.dto.AuthResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
+import com.tm.tsm_atelier.domain.auth.dto.RefreshRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.RegisterResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.ResendVerificationRequestDTO;
@@ -20,6 +22,7 @@ import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -84,20 +87,45 @@ public class AuthController {
 		return ResponseEntity.ok(tokens);
 	}
 
+	/**
+	 * O corpo é opcional: o cookie httpOnly continua sendo o caminho do SPA e tem
+	 * prioridade zero — só é lido quando não veio token no corpo. Antes o cookie
+	 * era a única origem aceita, então o refreshToken devolvido no JSON do login
+	 * não servia para nada em cliente sem cookie jar.
+	 */
 	@PostMapping("/refresh")
-	public ResponseEntity<AuthResponseDTO> refresh(HttpServletRequest request, HttpServletResponse response) {
-		String refreshToken = extractRefreshToken(request);
+	public ResponseEntity<Object> refresh(@RequestBody(required = false) RefreshRequestDTO body,
+			HttpServletRequest request, HttpServletResponse response) {
+		String refreshToken = body != null && body.refreshToken() != null && !body.refreshToken().isBlank()
+				? body.refreshToken()
+				: extractRefreshToken(request);
+
 		if (refreshToken == null) {
-			return ResponseEntity.status(401).build();
+			return unauthorized(response, "No refresh token was provided.");
 		}
 
 		try {
 			AuthResponseDTO newTokens = authService.refresh(refreshToken);
 			addCookiesToResponse(response, newTokens);
 			return ResponseEntity.ok(newTokens);
-		} catch (InvalidTokenException | UserNotFoundException e) {
-			return ResponseEntity.status(401).build();
+		} catch (InvalidTokenException | UserNotFoundException | EmailNotVerifiedException e) {
+			return unauthorized(response, e.getMessage());
 		}
+	}
+
+	/**
+	 * O 401 do refresh vinha sem corpo e sem mexer nos cookies: o frontend não
+	 * distinguia "o token expirou, faça login" de "detectamos reuso e revogamos
+	 * tudo", e o browser seguia mandando o token morto em toda tentativa seguinte.
+	 */
+	private ResponseEntity<Object> unauthorized(HttpServletResponse response, String detail) {
+		response.addHeader(HttpHeaders.SET_COOKIE, createEmptyCookie("access_token"));
+		response.addHeader(HttpHeaders.SET_COOKIE, createEmptyCookie("refresh_token"));
+
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, detail);
+		problem.setTitle("Invalid token");
+
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
 	}
 
 	@GetMapping("/me")

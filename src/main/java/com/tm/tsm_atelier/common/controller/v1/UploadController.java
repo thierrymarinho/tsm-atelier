@@ -41,27 +41,27 @@ public class UploadController {
 
 	private void validateFile(MultipartFile file) {
 		if (file.isEmpty()) {
-			throw new InvalidFileTypeException("O arquivo está vazio.");
+			throw new InvalidFileTypeException("The file is empty.");
 		}
 
 		String contentType = file.getContentType();
 		if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-			throw new InvalidFileTypeException("Formato não suportado: " + contentType);
+			throw new InvalidFileTypeException("Unsupported format: " + contentType);
 		}
 
 		try {
 			byte[] header = new byte[12];
 			int read = file.getInputStream().read(header);
 			if (read == -1) {
-				throw new InvalidFileTypeException("O arquivo está vazio.");
+				throw new InvalidFileTypeException("The file is empty.");
 			}
 
 			if (isJPEG(header) || isPNG(header) || isWEBP(header)) {
 				return;
 			}
-			throw new InvalidFileTypeException("Assinatura do arquivo inválida. Formato real não suportado.");
+			throw new InvalidFileTypeException("Invalid file signature. The actual format is not supported.");
 		} catch (IOException e) {
-			throw new RuntimeException("Erro ao ler o arquivo para validação", e);
+			throw new RuntimeException("Error reading the file for validation", e);
 		}
 	}
 

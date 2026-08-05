@@ -38,6 +38,21 @@ spring:
 server:
   forward-headers-strategy: FRAMEWORK
 
+logging:
+  level:
+    root: INFO
+    # Ajustável por variável de ambiente: dá para subir para DEBUG e investigar um
+    # incidente em produção sem alterar código nem refazer o deploy.
+    com.tm.tsm_atelier: ${LOG_LEVEL:INFO}
+    # Silencia o banner e a validação de schema a cada boot. Avisos continuam
+    # passando — inclusive o HHH000104, que denuncia paginação em memória.
+    org.hibernate: WARN
+  pattern:
+    # Injeta o id da requisição (RequestIdFilter) no lugar reservado ao nível de
+    # log, sem substituir o padrão do Boot. Fora de uma requisição — scheduler,
+    # boot — o campo aparece como "-".
+    level: "%5p [%X{requestId:--}]"
+
 jwt:
   secret: ${JWT_SECRET:super-secret-key-for-jwt-generation-tsm-atelier}
   access-token-expiration: 60000 # 15 minutos em ms

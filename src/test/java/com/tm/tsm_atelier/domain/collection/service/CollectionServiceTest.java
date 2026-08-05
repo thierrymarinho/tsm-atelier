@@ -30,7 +30,7 @@ class CollectionServiceTest {
 	private CollectionService collectionService;
 
 	@Test
-	@DisplayName("Deve criar uma coleção com sucesso")
+	@DisplayName("Should create a collection successfully")
 	void shouldCreateCollectionSuccessfully() {
 		// Arrange
 		CollectionRequestDTO requestDTO = aCollectionRequest().build();
@@ -58,15 +58,5 @@ class CollectionServiceTest {
 		verify(collectionMapper, times(1)).toEntity(any(CollectionRequestDTO.class));
 		verify(collectionRepository, times(1)).findByNameAndTargetAudience(requestDTO.name(),
 				requestDTO.targetAudience());
-	}
-
-	@Test
-	@DisplayName("Deve buscar todas as coleções")
-	void shouldFindAllCollections() {
-		// Arrange
-
-		// Act
-
-		// Assert
 	}
 }

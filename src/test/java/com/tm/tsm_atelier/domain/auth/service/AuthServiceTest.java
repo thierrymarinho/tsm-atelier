@@ -84,7 +84,7 @@ class AuthServiceTest {
 	class Register {
 
 		@Test
-		@DisplayName("Deve registrar um novo usuário, enviar email de verificação e retornar mensagem")
+		@DisplayName("Should register a new user, send the verification email and return a message")
 		void shouldRegisterNewUserAndSendVerificationEmail() {
 			// Arrange
 			ReflectionTestUtils.setField(authService, "emailVerificationExpiration", 86400000L);
@@ -126,7 +126,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando o email já está em uso")
+		@DisplayName("Should throw when the email is already in use")
 		void shouldThrowWhenEmailAlreadyExists() {
 			// Arrange
 			RegisterRequestDTO request = aRegisterRequest().build();
@@ -148,7 +148,7 @@ class AuthServiceTest {
 	class VerifyEmail {
 
 		@Test
-		@DisplayName("Deve verificar o email e retornar JWT quando o token é válido")
+		@DisplayName("Should verify the email and return a JWT when the token is valid")
 		void shouldVerifyEmailAndReturnTokensWhenTokenIsValid() {
 			// Arrange
 			String token = UUID.randomUUID().toString();
@@ -182,7 +182,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando o token de verificação é inválido ou expirado")
+		@DisplayName("Should throw when the verification token is invalid or expired")
 		void shouldThrowWhenVerificationTokenIsInvalid() {
 			// Arrange
 			String invalidToken = "invalid-token";
@@ -205,7 +205,7 @@ class AuthServiceTest {
 	class Login {
 
 		@Test
-		@DisplayName("Deve retornar tokens quando as credenciais são válidas e email está verificado")
+		@DisplayName("Should return tokens when the credentials are valid and the email is verified")
 		void shouldReturnTokensWhenCredentialsAreValid() {
 			// 1. Arrange
 			ReflectionTestUtils.setField(authService, "refreshTokenExpiration", 604800000L);
@@ -235,7 +235,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar EmailNotVerifiedException quando o email não foi verificado")
+		@DisplayName("Should throw EmailNotVerifiedException when the email is not verified")
 		void shouldThrowWhenEmailIsNotVerified() {
 			// Arrange
 			LoginRequestDTO login = aLoginRequest().build();
@@ -253,7 +253,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando as credenciais são inválidas")
+		@DisplayName("Should throw when the credentials are invalid")
 		void shouldThrowBadCredentialsWhenCredentialsAreInvalid() {
 			// Arrange
 			LoginRequestDTO request = aLoginRequest().build();
@@ -272,16 +272,17 @@ class AuthServiceTest {
 	class Refresh {
 
 		@Test
-		@DisplayName("Deve retornar novos tokens e dados do usuário quando o refresh token é válido")
+		@DisplayName("Should return new tokens and user data when the refresh token is valid")
 		void shouldReturnNewTokensWhenRefreshTokenIsValid() {
 			// Arrange
 			ReflectionTestUtils.setField(authService, "refreshTokenExpiration", 604800000L);
+			ReflectionTestUtils.setField(authService, "refreshTokenGraceMs", 30000L);
 			String oldRefreshToken = UUID.randomUUID().toString();
 			User user = aUser().withEmail("user@email.com").build();
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
-			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(user.getEmail());
+			when(valueOperations.getAndDelete(startsWith("rt:valid:"))).thenReturn(user.getEmail());
 			when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 			when(jwtService.generateToken(user)).thenReturn("new-jwt-token");
 
@@ -294,22 +295,28 @@ class AuthServiceTest {
 			assertThat(result.refreshToken()).isNotBlank().isNotEqualTo(oldRefreshToken);
 			assertThat(result.email()).isEqualTo(user.getEmail());
 
-			verify(valueOperations).get(startsWith("rt:valid:"));
+			// GETDEL, e nao GET seguido de DELETE: e o que garante que duas requisicoes
+			// simultaneas nao consumam o mesmo token.
+			verify(valueOperations).getAndDelete(startsWith("rt:valid:"));
+			verify(redisTemplate, never()).delete(startsWith("rt:valid:"));
+
 			verify(jwtService).generateToken(user);
-			verify(redisTemplate).delete(startsWith("rt:valid:"));
 			verify(setOperations).remove(eq("rt:user:" + user.getEmail()), anyString());
+			verify(valueOperations).set(startsWith("rt:grace:"), eq(user.getEmail()), any(Duration.class));
 			verify(valueOperations).set(startsWith("rt:used:"), eq(user.getEmail()), any(Duration.class));
-			verify(valueOperations, times(2)).set(anyString(), eq(user.getEmail()), any(Duration.class));
+			verify(valueOperations, times(3)).set(anyString(), eq(user.getEmail()), any(Duration.class));
+			verify(redisTemplate).expire(eq("rt:user:" + user.getEmail()), any(Duration.class));
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando o refresh token é inválido ou expirado")
+		@DisplayName("Should throw when the refresh token is invalid or expired")
 		void shouldThrowWhenRefreshTokenIsInvalidOrExpired() {
 			// Arrange
 			String invalidToken = "invalid-token";
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.getAndDelete(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.get(startsWith("rt:grace:"))).thenReturn(null);
 			when(valueOperations.get(startsWith("rt:used:"))).thenReturn(null);
 
 			// Act & Assert
@@ -322,7 +329,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve revogar todos os tokens do usuário quando detectar reuso do refresh token")
+		@DisplayName("Should revoke every user token when refresh token reuse is detected")
 		void shouldRevokeAllTokensWhenTokenReuseDetected() {
 			// Arrange
 			String reusedToken = "reused-token";
@@ -330,7 +337,8 @@ class AuthServiceTest {
 			java.util.Set<String> activeHashes = java.util.Set.of("hash1", "hash2");
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.getAndDelete(startsWith("rt:valid:"))).thenReturn(null);
+			when(valueOperations.get(startsWith("rt:grace:"))).thenReturn(null);
 			when(valueOperations.get(startsWith("rt:used:"))).thenReturn(victimEmail);
 
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
@@ -343,6 +351,10 @@ class AuthServiceTest {
 
 			verify(redisTemplate).delete("rt:valid:hash1");
 			verify(redisTemplate).delete("rt:valid:hash2");
+			// A revogacao tem de fechar a janela de graca tambem, senao um token
+			// recem-rotacionado sobreviveria ao alerta.
+			verify(redisTemplate).delete("rt:grace:hash1");
+			verify(redisTemplate).delete("rt:grace:hash2");
 			verify(redisTemplate).delete("rt:user:" + victimEmail);
 			verify(jwtService, never()).generateToken(any());
 		}
@@ -353,7 +365,7 @@ class AuthServiceTest {
 	class GetMe {
 
 		@Test
-		@DisplayName("Deve retornar os dados do usuário buscando pelo email")
+		@DisplayName("Should return the user data looked up by email")
 		void shouldReturnUserProfileByEmail() {
 			// Arrange
 			User user = aUser().withEmail("user@email.com").build();
@@ -373,7 +385,7 @@ class AuthServiceTest {
 		}
 
 		@Test
-		@DisplayName("Deve lançar exceção quando usuário não for encontrado")
+		@DisplayName("Should throw when the user is not found")
 		void shouldThrowWhenUserNotFound() {
 			// Arrange
 			when(userRepository.findByEmail("notfound@email.com")).thenReturn(Optional.empty());
@@ -390,26 +402,27 @@ class AuthServiceTest {
 	class Logout {
 
 		@Test
-		@DisplayName("Deve apagar o refresh token do Redis")
+		@DisplayName("Should delete the refresh token from Redis")
 		void shouldDeleteRefreshTokenFromRedis() {
 			// Arrange
 			String tokenToRevoke = "my-valid-token";
 			String email = "user@example.com";
 
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-			when(valueOperations.get(startsWith("rt:valid:"))).thenReturn(email);
+			when(valueOperations.getAndDelete(startsWith("rt:valid:"))).thenReturn(email);
 			when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
 			// Act
 			authService.logout(tokenToRevoke);
 
 			// Assert
-			verify(redisTemplate).delete(startsWith("rt:valid:"));
+			verify(valueOperations).getAndDelete(startsWith("rt:valid:"));
+			verify(redisTemplate).delete(startsWith("rt:grace:"));
 			verify(setOperations).remove(eq("rt:user:" + email), anyString());
 		}
 
 		@Test
-		@DisplayName("Deve lidar com refresh token nulo sem lançar exceção")
+		@DisplayName("Should handle a null refresh token without throwing")
 		void shouldHandleNullRefreshTokenGracefully() {
 			// Act
 			authService.logout(null);

@@ -32,6 +32,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +56,8 @@ public class ProductService {
 		validateCategoryForAudience(request.category(), request.targetAudience());
 
 		validateFabricComposition(request.fabricCompositions());
+
+		validatePromotionalPrice(request);
 
 		Product product = productMapper.toEntity(request);
 
@@ -100,6 +104,10 @@ public class ProductService {
 
 		validateFabricComposition(request.fabricCompositions());
 
+		validatePromotionalPrice(request);
+
+		BigDecimal previousPromotionalPrice = product.getPromotionalPrice();
+
 		productMapper.updateEntityFromRequest(request, product);
 
 		if (request.careInstructions() != null) {
@@ -121,6 +129,9 @@ public class ProductService {
 		mergeColors(product, request.colors());
 
 		Product updatedProduct = productRepository.save(product);
+
+		logPromotionalPriceChange(id, previousPromotionalPrice, updatedProduct.getPromotionalPrice());
+
 		return productMapper.toAdminResponse(updatedProduct);
 	}
 
@@ -303,6 +314,37 @@ public class ProductService {
 		Product product = productRepository.findBySlugAndDeletedAtIsNull(slug)
 				.orElseThrow(() -> new ResourceNotFoundException("Product", slug));
 		return productMapper.toCatalogResponse(product);
+	}
+
+	/**
+	 * A regra tambem existe como CHECK constraint na migration V10. Aqui ela vale
+	 * pela mensagem: sem esta validacao o erro chegaria ao admin como violacao de
+	 * integridade, sem dizer qual campo esta errado.
+	 */
+	private void validatePromotionalPrice(ProductRequestDTO request) {
+		if (request.promotionalPrice() == null) {
+			return;
+		}
+
+		if (request.promotionalPrice().compareTo(request.price()) >= 0) {
+			throw new IllegalArgumentException("The promotional price must be lower than the regular price.");
+		}
+	}
+
+	/**
+	 * Mudanca de preco mexe em dinheiro e o banco guarda apenas o estado final —
+	 * nao ha como saber depois quem colocou ou retirou uma promocao. Mesma razao do
+	 * log de mudanca de status em OrderService.
+	 */
+	private void logPromotionalPriceChange(Long productId, BigDecimal previous, BigDecimal current) {
+		if (java.util.Objects.equals(previous, current)) {
+			return;
+		}
+
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String actor = authentication == null ? "system" : authentication.getName();
+
+		log.info("Product {} promotional price changed from {} to {} by {}", productId, previous, current, actor);
 	}
 
 	private void validateCategoryForAudience(Category category, TargetAudience audience) {

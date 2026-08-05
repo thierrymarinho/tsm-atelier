@@ -5,8 +5,15 @@ import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
 import com.tm.tsm_atelier.domain.product.entity.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+/**
+ * A estrategia de nulo e declarada de proposito, e nao herdada do default. Com
+ * IGNORE, um promotionalPrice nulo vindo do request seria descartado e a
+ * promocao ficaria impossivel de remover — o admin salvaria, receberia 200 e o
+ * preco promocional continuaria la, sem erro nenhum.
+ */
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
 public interface ProductMapper {
 
 	@Mapping(target = "id", ignore = true)
@@ -39,8 +46,9 @@ public interface ProductMapper {
 		}
 		return new ProductResponseDTO(fullResponse.id(), fullResponse.name(), fullResponse.slug(),
 				fullResponse.description(), fullResponse.fabricCompositions(), fullResponse.careInstructions(),
-				fullResponse.price(), fullResponse.collection(), fullResponse.category(), fullResponse.targetAudience(),
-				fullResponse.active(), fullResponse.featured(), activeColors, fullResponse.deletedAt());
+				fullResponse.price(), fullResponse.promotionalPrice(), fullResponse.collection(),
+				fullResponse.category(), fullResponse.targetAudience(), fullResponse.active(), fullResponse.featured(),
+				activeColors, fullResponse.deletedAt());
 	}
 
 	@Mapping(target = "id", ignore = true)
@@ -72,7 +80,7 @@ public interface ProductMapper {
 		}
 
 		return new com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO(entity.getId(), entity.getName(),
-				entity.getSlug(), entity.getPrice(), entity.isFeatured(), coverImage, hoverImage, colorsHex,
-				entity.getDeletedAt(), entity.isActive());
+				entity.getSlug(), entity.getPrice(), entity.getPromotionalPrice(), entity.isFeatured(), coverImage,
+				hoverImage, colorsHex, entity.getDeletedAt(), entity.isActive());
 	}
 }

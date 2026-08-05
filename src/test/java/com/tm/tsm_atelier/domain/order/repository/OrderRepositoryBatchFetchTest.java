@@ -69,10 +69,9 @@ class OrderRepositoryBatchFetchTest {
 					+ "VALUES (?, 'PAID', 10.00, 0.00, 'Street', '1', 'Center', 'City', 'SP', '12345678', "
 					+ "CURRENT_TIMESTAMP) RETURNING id", Long.class, userId);
 
-			jdbcTemplate.update(
-					"INSERT INTO order_items (order_id, product_name, sku_code, size, "
-							+ "price_at_purchase, quantity) VALUES (?, 'Product', ?, 'M', 10.00, 1)",
-					orderId, "BATCH-" + orderId);
+			jdbcTemplate.update("INSERT INTO order_items (order_id, product_name, sku_code, size, "
+					+ "price_at_purchase, list_price_at_purchase, quantity) "
+					+ "VALUES (?, 'Product', ?, 'M', 10.00, 10.00, 1)", orderId, "BATCH-" + orderId);
 		}
 
 		return userId;

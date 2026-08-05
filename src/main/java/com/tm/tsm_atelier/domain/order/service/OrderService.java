@@ -117,12 +117,12 @@ public class OrderService {
 
 			sku.setStockQuantity(sku.getStockQuantity() - quantity);
 
-			BigDecimal priceAtPurchase = sku.getProductColor().getProduct().getPrice();
+			BigDecimal priceAtPurchase = sku.getProductColor().getProduct().getEffectivePrice();
 
 			OrderItem orderItem = OrderItem.builder().sku(sku).productName(sku.getProductColor().getProduct().getName())
 					.skuCode(sku.getSkuCode()).size(sku.getSize().name()).color(sku.getProductColor().getColorName())
 					.imageUrl(sku.getProductColor().getCoverImageUrl()).priceAtPurchase(priceAtPurchase)
-					.quantity(quantity).build();
+					.listPriceAtPurchase(sku.getProductColor().getProduct().getPrice()).quantity(quantity).build();
 
 			order.addItem(orderItem);
 
@@ -307,7 +307,7 @@ public class OrderService {
 				.map(item -> new OrderItemResponseDTO(item.getId(),
 						item.getSku() != null ? item.getSku().getId() : null, item.getProductName(), item.getSkuCode(),
 						item.getSize(), item.getColor(), item.getImageUrl(), item.getPriceAtPurchase(),
-						item.getQuantity()))
+						item.getListPriceAtPurchase(), item.getQuantity()))
 				.toList();
 
 		return new OrderResponseDTO(order.getId(), order.getStatus(), order.getTotalAmount(), order.getShippingFee(),

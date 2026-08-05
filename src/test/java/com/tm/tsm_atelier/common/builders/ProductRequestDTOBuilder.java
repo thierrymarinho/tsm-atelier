@@ -18,6 +18,7 @@ public class ProductRequestDTOBuilder {
 			.of(new FabricCompositionRequestDTO("Algodão", 98), new FabricCompositionRequestDTO("Elastano", 2));
 	private List<String> careInstructions = new ArrayList<>(List.of("Lavar a frio"));
 	private BigDecimal price = new BigDecimal("200.00");
+	private BigDecimal promotionalPrice = null;
 	private Long collectionId = 1L;
 	private Category category = Category.DRESSES;
 	private TargetAudience targetAudience = TargetAudience.WOMEN;
@@ -33,6 +34,11 @@ public class ProductRequestDTOBuilder {
 
 	public ProductRequestDTOBuilder withName(String name) {
 		this.name = name;
+		return this;
+	}
+
+	public ProductRequestDTOBuilder withPromotionalPrice(BigDecimal promotionalPrice) {
+		this.promotionalPrice = promotionalPrice;
 		return this;
 	}
 
@@ -52,7 +58,7 @@ public class ProductRequestDTOBuilder {
 	}
 
 	public ProductRequestDTO build() {
-		return new ProductRequestDTO(name, description, fabricCompositions, careInstructions, price, collectionId,
-				category, targetAudience, active, featured, colors);
+		return new ProductRequestDTO(name, description, fabricCompositions, careInstructions, price, promotionalPrice,
+				collectionId, category, targetAudience, active, featured, colors);
 	}
 }

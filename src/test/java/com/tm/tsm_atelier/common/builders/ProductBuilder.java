@@ -18,6 +18,7 @@ public class ProductBuilder {
 	private List<FabricComposition> fabricCompositions = List.of(new FabricComposition("Algodão", 100));
 	private List<String> careInstructions = new ArrayList<>(List.of("Lavar a mão", "Não usar alvejante"));
 	private BigDecimal price = new BigDecimal("150.00");
+	private BigDecimal promotionalPrice = null;
 	private Collection collection = null;
 	private Category category = Category.T_SHIRTS;
 	private TargetAudience targetAudience = TargetAudience.MEN;
@@ -35,6 +36,11 @@ public class ProductBuilder {
 
 	public ProductBuilder withName(String name) {
 		this.name = name;
+		return this;
+	}
+
+	public ProductBuilder withPromotionalPrice(BigDecimal promotionalPrice) {
+		this.promotionalPrice = promotionalPrice;
 		return this;
 	}
 
@@ -61,8 +67,8 @@ public class ProductBuilder {
 	public Product build() {
 		return Product.builder().id(id).name(name).description(description)
 				.fabricCompositions(new ArrayList<>(fabricCompositions))
-				.careInstructions(new java.util.LinkedHashSet<>(careInstructions)).price(price).collection(collection)
-				.category(category).targetAudience(targetAudience).active(active)
-				.colors(new java.util.LinkedHashSet<>(colors)).build();
+				.careInstructions(new java.util.LinkedHashSet<>(careInstructions)).price(price)
+				.promotionalPrice(promotionalPrice).collection(collection).category(category)
+				.targetAudience(targetAudience).active(active).colors(new java.util.LinkedHashSet<>(colors)).build();
 	}
 }

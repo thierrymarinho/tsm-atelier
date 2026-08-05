@@ -2,6 +2,7 @@ package com.tm.tsm_atelier.domain.order.entity;
 
 import com.tm.tsm_atelier.domain.common.entity.BaseEntity;
 import com.tm.tsm_atelier.domain.product.entity.ProductSKU;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -48,7 +49,15 @@ public class OrderItem extends BaseEntity {
 
 	private String imageUrl;
 
+	/** O que foi efetivamente cobrado — promocional, quando havia promocao. */
 	private BigDecimal priceAtPurchase;
+
+	/**
+	 * O preco de tabela no momento da compra. Sem ele o desconto sumiria do
+	 * historico: o pedido saberia quanto custou, mas nao que houve promocao.
+	 */
+	@Column(name = "list_price_at_purchase", nullable = false)
+	private BigDecimal listPriceAtPurchase;
 
 	private Integer quantity;
 

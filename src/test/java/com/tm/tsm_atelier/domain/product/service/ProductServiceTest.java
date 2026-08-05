@@ -52,7 +52,7 @@ class ProductServiceTest {
 		Collection collection = aCollection().build();
 		ProductColor savedColor = new ProductColor();
 		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Calça Jeans Skinny", "calca-jeans-skinny-1", null,
-				null, null, null, null, null, null, true, false, null, null);
+				null, null, null, null, null, null, null, true, false, null, null);
 
 		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
 		when(collectionRepository.findById(requestDTO.collectionId())).thenReturn(Optional.of(collection));
@@ -98,7 +98,7 @@ class ProductServiceTest {
 		Product product = aProduct().build();
 		ProductColor savedColor = new ProductColor();
 		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Camiseta Básica", "camiseta-basica-1", null, null,
-				null, null, null, null, null, true, false, null, null);
+				null, null, null, null, null, null, true, false, null, null);
 
 		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
 		when(productRepository.save(any(Product.class))).thenReturn(product);
@@ -119,7 +119,7 @@ class ProductServiceTest {
 		// Arrange
 		Product product = aProduct().withId(1L).build();
 		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Produto Encontrado", "produto-encontrado-1", null,
-				null, null, null, null, null, null, true, false, null, null);
+				null, null, null, null, null, null, null, true, false, null, null);
 
 		when(productRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(product));
 		when(productMapper.toCatalogResponse(product)).thenReturn(responseDTO);
@@ -145,5 +145,36 @@ class ProductServiceTest {
 				.hasMessage("Product not found with identifier: 99");
 				
 		verify(productMapper, never()).toCatalogResponse(any());
+	}
+
+	@Test
+	@DisplayName("Should reject a promotional price that is not lower than the regular price")
+	void shouldRejectPromotionalPriceNotLowerThanPrice() {
+		// A mesma regra existe como CHECK constraint na migration V10. Aqui ela vale
+		// pela mensagem: sem esta validacao o admin receberia uma violacao de
+		// integridade do banco, sem saber qual campo corrigir.
+		ProductRequestDTO request = aProductRequest().withPrice(new java.math.BigDecimal("100.00"))
+				.withPromotionalPrice(new java.math.BigDecimal("100.00")).build();
+
+		assertThatThrownBy(() -> productService.create(request)).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("must be lower than the regular price");
+
+		verify(productRepository, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("Should accept a promotional price below the regular price")
+	void shouldAcceptPromotionalPriceBelowPrice() {
+		ProductRequestDTO request = aProductRequest().withCollectionId(null)
+				.withPrice(new java.math.BigDecimal("100.00")).withPromotionalPrice(new java.math.BigDecimal("79.90"))
+				.build();
+		Product product = aProduct().withPromotionalPrice(new java.math.BigDecimal("79.90")).build();
+
+		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
+		when(productRepository.save(any(Product.class))).thenReturn(product);
+
+		productService.create(request);
+
+		verify(productRepository).save(any(Product.class));
 	}
 }

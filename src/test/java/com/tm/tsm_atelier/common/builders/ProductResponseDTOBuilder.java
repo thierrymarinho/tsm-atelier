@@ -20,6 +20,7 @@ public class ProductResponseDTOBuilder {
 			.of(new FabricCompositionResponseDTO("Algodão", 100));
 	private List<String> careInstructions = new ArrayList<>(List.of("Lavar à mão", "Não usar alvejante"));
 	private BigDecimal price = new BigDecimal("199.90");
+	private BigDecimal promotionalPrice = null;
 	private CollectionResponseDTO collection = null; // null por padrão para testes mais simples
 	private Category category = Category.JEANS;
 	private TargetAudience targetAudience = TargetAudience.MEN;
@@ -56,6 +57,11 @@ public class ProductResponseDTOBuilder {
 		return this;
 	}
 
+	public ProductResponseDTOBuilder withPromotionalPrice(BigDecimal promotionalPrice) {
+		this.promotionalPrice = promotionalPrice;
+		return this;
+	}
+
 	public ProductResponseDTOBuilder withPrice(BigDecimal price) {
 		this.price = price;
 		return this;
@@ -88,6 +94,6 @@ public class ProductResponseDTOBuilder {
 
 	public ProductResponseDTO build() {
 		return new ProductResponseDTO(id, name, slug, description, fabricCompositions, careInstructions, price,
-				collection, category, targetAudience, active, featured, colors, null);
+				promotionalPrice, collection, category, targetAudience, active, featured, colors, null);
 	}
 }

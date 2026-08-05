@@ -47,7 +47,7 @@ class CatalogCacheSerializationTest {
 	void productDetailRoundTrips() {
 		ProductResponseDTO stored = new ProductResponseDTO(1L, "Camisa Vestido", "camisa-vestido-1", "Descrição",
 				List.of(new FabricCompositionResponseDTO("Algodão", 100)), List.of("Lavar à mão", "Não usar alvejante"),
-				new BigDecimal("199.90"),
+				new BigDecimal("199.90"), new BigDecimal("149.90"),
 				new CollectionResponseDTO(2L, "Verão", "verao", "Descrição", true, "hero.jpg", "portrait.jpg",
 						"square.jpg", DisplayPosition.HEADER, 1, TargetAudience.WOMEN),
 				Category.DRESSES, TargetAudience.WOMEN, true, true,
@@ -67,8 +67,9 @@ class CatalogCacheSerializationTest {
 	@Test
 	@DisplayName("Catalog page comes back from Redis with pagination preserved")
 	void catalogPageRoundTrips() {
-		var stored = new CustomPageImpl<>(List.of(new ProductSummaryDTO(1L, "Camisa Vestido", "camisa-vestido-1",
-				new BigDecimal("199.90"), true, "cover.jpg", "hover.jpg", List.of("#000000"), null, true)),
+		var stored = new CustomPageImpl<>(
+				List.of(new ProductSummaryDTO(1L, "Camisa Vestido", "camisa-vestido-1", new BigDecimal("199.90"),
+						new BigDecimal("149.90"), true, "cover.jpg", "hover.jpg", List.of("#000000"), null, true)),
 				PageRequest.of(0, 12), 37);
 
 		Object key = List.of("termo", "DRESSES", 0, 12);

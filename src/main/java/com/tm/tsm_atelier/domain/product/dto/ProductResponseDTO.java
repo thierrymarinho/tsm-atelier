@@ -8,6 +8,6 @@ import java.util.List;
 
 public record ProductResponseDTO(Long id, String name, String slug, String description,
 		List<FabricCompositionResponseDTO> fabricCompositions, List<String> careInstructions, BigDecimal price,
-		CollectionResponseDTO collection, Category category, TargetAudience targetAudience, boolean active,
-		boolean featured, List<ProductColorResponseDTO> colors, java.time.LocalDateTime deletedAt) {
+		BigDecimal promotionalPrice, CollectionResponseDTO collection, Category category, TargetAudience targetAudience,
+		boolean active, boolean featured, List<ProductColorResponseDTO> colors, java.time.LocalDateTime deletedAt) {
 }

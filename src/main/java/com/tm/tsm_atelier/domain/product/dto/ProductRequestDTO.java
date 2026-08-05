@@ -22,6 +22,13 @@ public record ProductRequestDTO(
 
 		@NotNull(message = "Price is required") @Positive(message = "Price must be greater than zero") BigDecimal price,
 
+		/**
+		 * Opcional. Ausente ou nulo retira o produto da promocao: o update e um PUT, de
+		 * substituicao total, e trata campo ausente como remocao — mesma semantica ja
+		 * usada por collectionId.
+		 */
+		@Positive(message = "Promotional price must be greater than zero") BigDecimal promotionalPrice,
+
 		Long collectionId,
 
 		@NotNull(message = "Category is required") Category category,

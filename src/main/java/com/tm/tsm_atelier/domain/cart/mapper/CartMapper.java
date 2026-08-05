@@ -36,7 +36,7 @@ public class CartMapper {
 		ProductColor color = sku.getProductColor();
 		Product product = color.getProduct();
 
-		BigDecimal unitPrice = product.getPrice();
+		BigDecimal unitPrice = product.getEffectivePrice();
 		BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
 
 		boolean available = product.isActive() && product.getDeletedAt() == null && sku.getDeletedAt() == null

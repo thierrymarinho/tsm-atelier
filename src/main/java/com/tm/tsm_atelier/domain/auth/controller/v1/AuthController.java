@@ -192,6 +192,10 @@ public class AuthController {
 				.path(name.equals("refresh_token") ? "/api/v1/auth" : "/").maxAge(0).sameSite("Lax").build().toString();
 	}
 
+	/**
+	 * Só o cookie, pelo mesmo motivo do JwtAuthenticationFilter: uma credencial,
+	 * uma porta de entrada.
+	 */
 	private String extractAccessToken(HttpServletRequest request) {
 		if (request.getCookies() != null) {
 			for (Cookie cookie : request.getCookies()) {
@@ -199,10 +203,6 @@ public class AuthController {
 					return cookie.getValue();
 				}
 			}
-		}
-		String authHeader = request.getHeader("Authorization");
-		if (authHeader != null && authHeader.startsWith("Bearer ")) {
-			return authHeader.substring(7);
 		}
 		return null;
 	}

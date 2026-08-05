@@ -85,10 +85,9 @@ class AddressControllerTest {
 
 		when(addressService.create(any(), any())).thenReturn(res);
 
-		mockMvc.perform(post("/api/v1/addresses").header("Authorization", "Bearer token")
-				.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(req)))
-				.andExpect(status().isCreated()).andExpect(jsonPath("$.id").value(1))
-				.andExpect(jsonPath("$.postalCode").value("12345678"));
+		mockMvc.perform(post("/api/v1/addresses").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(req))).andExpect(status().isCreated())
+				.andExpect(jsonPath("$.id").value(1)).andExpect(jsonPath("$.postalCode").value("12345678"));
 	}
 
 	@Test

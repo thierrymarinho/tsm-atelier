@@ -69,7 +69,12 @@ public class SecurityConfig {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(allowedOrigins);
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-		config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+		// Authorization saiu junto com o fallback de Bearer: a sessão viaja no cookie
+		// httpOnly, que o browser envia sozinho. X-XSRF-TOKEN entrou porque é o
+		// header que o CookieCsrfTokenRepository espera de volta — sem ele na lista,
+		// o preflight barrava todo POST/PUT/DELETE vindo do SPA em outra origem, e
+		// as rotas protegidas por CSRF simplesmente não funcionavam.
+		config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
 		config.setAllowCredentials(true);
 		config.setMaxAge(3600L);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

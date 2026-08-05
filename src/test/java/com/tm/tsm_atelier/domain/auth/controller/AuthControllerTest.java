@@ -312,26 +312,26 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Should return 200 and the user data when authenticated via the Authorization Bearer header")
-		void shouldReturn200AndUserProfileWhenAuthenticatedViaHeader() throws Exception {
-			// Arrange
-			String token = "valid-access-token";
+		@DisplayName("Should return 401 when the token arrives only in the Authorization Bearer header")
+		void shouldReturn401WhenTokenArrivesOnlyInTheAuthorizationHeader() throws Exception {
+			// O header era aceito como fallback do cookie. Deixou de ser: a sessão tem
+			// uma porta só. Este teste existe para a porta não reabrir sem ninguém
+			// perceber — era exatamente assim que o caminho seguia vivo, sem uso real
+			// e sem nada acusando.
+			//
+			// Os stubs são o que dá força ao teste: com eles, um token lido do header
+			// autenticaria. Sem eles o mock devolveria null e o 401 viria de qualquer
+			// jeito, inclusive com o fallback de volta no lugar.
 			UserResponseDTO profile = new UserResponseDTO(UUID.randomUUID(), "Maria", "Silva", "Maria Silva",
 					"user@example.com", Role.CUSTOMER);
-
 			when(jwtService.extractUsername(anyString())).thenReturn("user@example.com");
-			when(jwtService.extractRole(anyString())).thenReturn("ROLE_CUSTOMER");
 			when(jwtService.isTokenValid(anyString(), anyString())).thenReturn(true);
 			when(authService.getMe("user@example.com")).thenReturn(profile);
 
-			// Act & Assert
-			mockMvc.perform(get(BASE_URL + "/me").header("Authorization", "Bearer " + token)).andExpect(status().isOk())
-					.andExpect(jsonPath("$.firstName").value("Maria")).andExpect(jsonPath("$.lastName").value("Silva"))
-					.andExpect(jsonPath("$.name").value("Maria Silva"))
-					.andExpect(jsonPath("$.email").value("user@example.com"))
-					.andExpect(jsonPath("$.role").value("CUSTOMER"));
+			mockMvc.perform(get(BASE_URL + "/me").header("Authorization", "Bearer valid-access-token"))
+					.andExpect(status().isUnauthorized());
 
-			verify(authService).getMe("user@example.com");
+			verify(authService, never()).getMe(anyString());
 		}
 
 		@Test

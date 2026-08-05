@@ -28,23 +28,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,
 			@NonNull FilterChain filterChain) throws ServletException, IOException {
 
+		// O cookie httpOnly é a única entrada aceita. Havia um fallback para
+		// Authorization: Bearer, removido de propósito — ele era uma segunda porta
+		// para a mesma credencial, e fora do modelo de ameaça em que o resto do
+		// fluxo foi desenhado: o SameSite do cookie não cobre um header, e um token
+		// que vaze em log, URL ou proxy vira sessão utilizável por essa via.
 		String jwt = null;
 
-		// Try to extract the token from the HttpOnly cookie
 		if (request.getCookies() != null) {
 			for (Cookie cookie : request.getCookies()) {
 				if ("access_token".equals(cookie.getName())) {
 					jwt = cookie.getValue();
 					break;
 				}
-			}
-		}
-
-		// Fallback to Authorization Bearer header if cookie is missing
-		if (jwt == null) {
-			String authHeader = request.getHeader("Authorization");
-			if (authHeader != null && authHeader.startsWith("Bearer ")) {
-				jwt = authHeader.substring(7);
 			}
 		}
 

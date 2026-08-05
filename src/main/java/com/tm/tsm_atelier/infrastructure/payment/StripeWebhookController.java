@@ -4,6 +4,7 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.net.Webhook;
 import com.tm.tsm_atelier.domain.order.service.OrderService;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,20 @@ public class StripeWebhookController {
 		this.orderService = orderService;
 	}
 
+	/**
+	 * A rota é pública e a assinatura é a única barreira dela. Com o segredo vazio
+	 * a verificação não falha — o HMAC é calculado com chave vazia e qualquer um
+	 * que soubesse disso poderia forjar um evento de pagamento aprovado. Por isso a
+	 * ausência derruba a aplicação em vez de virar um webhook que aceita tudo.
+	 */
+	@PostConstruct
+	void validateEndpointSecret() {
+		if (endpointSecret == null || endpointSecret.isBlank()) {
+			throw new IllegalStateException(
+					"STRIPE_WEBHOOK_SECRET is required: an empty secret still produces a verifiable signature.");
+		}
+	}
+
 	@PostMapping
 	public ResponseEntity<String> handleStripeEvent(@RequestBody String payload,
 			@RequestHeader("Stripe-Signature") String sigHeader) {
@@ -41,7 +56,10 @@ public class StripeWebhookController {
 		try {
 			event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
 		} catch (SignatureVerificationException e) {
-			logger.warn("Invalid Stripe signature received from IP/request. Signature: {}", sigHeader, e);
+			// A assinatura recebida não entra no log: é dado de requisição de terceiro
+			// e não ajuda a diagnosticar nada — o que importa é que uma chamada não
+			// autenticada chegou ao webhook.
+			logger.warn("Rejected a Stripe webhook call with an invalid signature");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
 		} catch (Exception e) {
 			logger.error("Failed to parse Stripe Webhook payload", e);

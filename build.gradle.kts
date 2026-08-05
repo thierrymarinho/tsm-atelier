@@ -65,6 +65,15 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+
+	// JWT_SECRET e STRIPE_WEBHOOK_SECRET perderam o default para a aplicação não
+	// subir mal configurada. Como consequência, a suíte precisa fornecê-los — são
+	// valores descartáveis, válidos apenas aqui, e nunca chegam a um ambiente real.
+	environment("JWT_SECRET", "test-only-jwt-secret-with-more-than-32-bytes")
+	environment("STRIPE_WEBHOOK_SECRET", "whsec_test_only")
+	environment("STRIPE_API_KEY", "sk_test_only")
+	environment("DB_PASSWORD", "postgres")
+
 	finalizedBy(tasks.jacocoTestReport)
 }
 

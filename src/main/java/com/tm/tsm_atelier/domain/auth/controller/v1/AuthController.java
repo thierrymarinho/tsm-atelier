@@ -12,7 +12,6 @@ import com.tm.tsm_atelier.domain.auth.dto.ResendVerificationRequestDTO;
 import com.tm.tsm_atelier.domain.auth.dto.VerifyEmailRequestDTO;
 import com.tm.tsm_atelier.domain.auth.service.AuthService;
 import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
-import com.tm.tsm_atelier.security.JwtService;
 import com.tm.tsm_atelier.security.RateLimitService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +25,6 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,7 +36,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
 	private final AuthService authService;
-	private final JwtService jwtService;
 	private final RateLimitService rateLimitService;
 
 	@Value("${jwt.access-token-expiration}")
@@ -47,9 +44,8 @@ public class AuthController {
 	@Value("${jwt.refresh-token-expiration}")
 	private long refreshTokenExpiration;
 
-	public AuthController(AuthService authService, JwtService jwtService, RateLimitService rateLimitService) {
+	public AuthController(AuthService authService, RateLimitService rateLimitService) {
 		this.authService = authService;
-		this.jwtService = jwtService;
 		this.rateLimitService = rateLimitService;
 	}
 
@@ -128,36 +124,16 @@ public class AuthController {
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
 	}
 
+	/**
+	 * Sem fallback: /me deixou de ser rota pública, então o filtro já autenticou
+	 * quem chega aqui. A validação manual de JWT que existia neste método era um
+	 * segundo caminho de autenticação — qualquer regra nova adicionada ao filtro
+	 * teria de ser lembrada aqui também, e não seria.
+	 */
 	@GetMapping("/me")
-	public ResponseEntity<UserResponseDTO> getMe(HttpServletRequest request) {
-		String email = null;
-
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication != null && authentication.isAuthenticated()
-				&& !"anonymousUser".equals(authentication.getPrincipal())) {
-			email = authentication.getName();
-		}
-
-		if (email == null) {
-			String jwt = extractAccessToken(request);
-			if (jwt != null) {
-				try {
-					String extractedEmail = jwtService.extractUsername(jwt);
-					if (extractedEmail != null && jwtService.isTokenValid(jwt, extractedEmail)) {
-						email = extractedEmail;
-					}
-				} catch (Exception ignored) {
-				}
-			}
-		}
-
-		if (email == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		}
-
+	public ResponseEntity<UserResponseDTO> getMe(Authentication authentication) {
 		try {
-			UserResponseDTO userProfile = authService.getMe(email);
-			return ResponseEntity.ok(userProfile);
+			return ResponseEntity.ok(authService.getMe(authentication.getName()));
 		} catch (UserNotFoundException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
@@ -165,8 +141,7 @@ public class AuthController {
 
 	@PostMapping("/logout")
 	public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-		String refreshToken = extractRefreshToken(request);
-		authService.logout(refreshToken);
+		authService.logout(extractAccessToken(request), extractRefreshToken(request));
 
 		response.addHeader(HttpHeaders.SET_COOKIE, createEmptyCookie("access_token"));
 		response.addHeader(HttpHeaders.SET_COOKIE, createEmptyCookie("refresh_token"));
@@ -192,6 +167,10 @@ public class AuthController {
 				.path(name.equals("refresh_token") ? "/api/v1/auth" : "/").maxAge(0).sameSite("Lax").build().toString();
 	}
 
+	/**
+	 * Só o cookie, pelo mesmo motivo do JwtAuthenticationFilter: uma credencial,
+	 * uma porta de entrada.
+	 */
 	private String extractAccessToken(HttpServletRequest request) {
 		if (request.getCookies() != null) {
 			for (Cookie cookie : request.getCookies()) {
@@ -199,10 +178,6 @@ public class AuthController {
 					return cookie.getValue();
 				}
 			}
-		}
-		String authHeader = request.getHeader("Authorization");
-		if (authHeader != null && authHeader.startsWith("Bearer ")) {
-			return authHeader.substring(7);
 		}
 		return null;
 	}

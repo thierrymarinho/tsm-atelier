@@ -5,7 +5,9 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tsm_atelier}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:postgres}
+    # Sem default: "postgres" funcionava calado em qualquer ambiente que aceitasse
+    # essa senha, inclusive um que não deveria.
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   flyway:
@@ -54,8 +56,17 @@ logging:
     level: "%5p [%X{requestId:--}]"
 
 jwt:
-  secret: ${JWT_SECRET:super-secret-key-for-jwt-generation-tsm-atelier}
-  access-token-expiration: 60000 # 15 minutos em ms
+  # Sem default de propósito. O valor anterior estava versionado aqui, então
+  # qualquer pessoa com acesso ao repositório podia assinar um token válido e se
+  # passar por qualquer conta cujo e-mail conhecesse. Faltando a variável, a
+  # aplicação não sobe — um container que morre é visível, um que sobe com chave
+  # pública não é.
+  secret: ${JWT_SECRET}
+  # Eram 60000 (1 minuto) com um comentário dizendo 15. O valor agora é o que o
+  # comentário sempre afirmou. Um minuto forçava o SPA a renovar a sessão a cada
+  # 60s, gastando uma rotação de refresh token por usuário por minuto no Redis, e
+  # deixava a janela de graça de 30s cobrindo metade da vida do token.
+  access-token-expiration: 900000 # 15 minutos em ms
   refresh-token-expiration: 604800000 # 7 dias em ms
 
 cloudinary:
@@ -74,5 +85,11 @@ app:
   email-verification-expiration: 86400000 # 24h em ms
 
 stripe:
-  api-key: ${STRIPE_API_KEY:sk_test_fake_key}
-  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  # Sem default: com a chave falsa a aplicação subia normalmente e só quebrava no
+  # primeiro checkout de um cliente real.
+  api-key: ${STRIPE_API_KEY}
+  # Sem default de propósito. Com segredo vazio a verificação de assinatura não
+  # falha: o Stripe calcula o HMAC com chave vazia e quem soubesse disso poderia
+  # forjar um payment_intent.succeeded, marcando pedidos como pagos. A rota é
+  # pública, então essa assinatura é a única barreira que ela tem.
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}

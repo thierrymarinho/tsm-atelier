@@ -45,6 +45,9 @@ class ProductAdminControllerTest {
 	@MockitoBean
 	private UserRepository userRepository;
 
+	@MockitoBean
+	private com.tm.tsm_atelier.security.AccessTokenDenylist accessTokenDenylist;
+
 	private static final String BASE_URL = "/api/v1/admin/products";
 
 	@Nested

@@ -1,7 +1,6 @@
 package com.tm.tsm_atelier.domain.auth.service;
 
 import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyExistsException;
-import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.EmailNotVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.InvalidTokenException;
 import com.tm.tsm_atelier.common.exception.custom.UserNotFoundException;
@@ -14,6 +13,7 @@ import com.tm.tsm_atelier.domain.user.dto.UserResponseDTO;
 import com.tm.tsm_atelier.domain.user.entity.Role;
 import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
+import com.tm.tsm_atelier.security.AccessTokenDenylist;
 import com.tm.tsm_atelier.security.JwtService;
 import com.tm.tsm_atelier.security.RateLimitService;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +45,7 @@ public class AuthService {
 	private final StringRedisTemplate redisTemplate;
 	private final EmailPort emailPort;
 	private final RateLimitService rateLimitService;
+	private final AccessTokenDenylist accessTokenDenylist;
 
 	@Value("${jwt.refresh-token-expiration}")
 	private long refreshTokenExpiration;
@@ -68,7 +69,7 @@ public class AuthService {
 
 	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService,
 			AuthenticationManager authenticationManager, StringRedisTemplate redisTemplate, EmailPort emailPort,
-			RateLimitService rateLimitService) {
+			RateLimitService rateLimitService, AccessTokenDenylist accessTokenDenylist) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
@@ -76,6 +77,7 @@ public class AuthService {
 		this.redisTemplate = redisTemplate;
 		this.emailPort = emailPort;
 		this.rateLimitService = rateLimitService;
+		this.accessTokenDenylist = accessTokenDenylist;
 	}
 
 	@Transactional
@@ -146,11 +148,19 @@ public class AuthService {
 		return generateAndSaveTokens(user);
 	}
 
+	/**
+	 * Não sinaliza se a conta existe nem se já foi verificada. Antes, um e-mail
+	 * desconhecido voltava 400 "User not found" e um já verificado voltava outro
+	 * erro — bastava iterar uma lista para descobrir quem tem conta na loja, que é
+	 * insumo direto para phishing dirigido. O rate limit por IP limitava a
+	 * velocidade, não o vazamento. A rota agora responde igual nos três casos e só
+	 * envia o e-mail quando faz sentido enviar.
+	 */
 	public void resendVerificationEmail(String email) {
-		User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found."));
+		User user = userRepository.findByEmail(email).orElse(null);
 
-		if (user.isEmailVerified()) {
-			throw new EmailAlreadyVerifiedException("This email is already verified.");
+		if (user == null || user.isEmailVerified()) {
+			return;
 		}
 
 		String verificationToken = UUID.randomUUID().toString();
@@ -231,7 +241,20 @@ public class AuthService {
 				user.getRole());
 	}
 
-	public void logout(String refreshToken) {
+	public void logout(String accessToken, String refreshToken) {
+		// O access token sobrevive ao logout até expirar: assinatura válida, dentro
+		// do prazo. Com 15 minutos de vida, uma cópia tirada antes do logout seguia
+		// abrindo a conta por todo esse tempo. O denylist encerra isso agora.
+		if (accessToken != null) {
+			try {
+				accessTokenDenylist.revoke(accessToken, jwtService.remainingValidity(accessToken));
+			} catch (Exception e) {
+				// Token ilegível ou já expirado — não há o que revogar, e um logout
+				// nunca deve falhar por causa da credencial que está descartando.
+				log.debug("Could not revoke the access token during logout: {}", e.getMessage());
+			}
+		}
+
 		if (refreshToken == null) {
 			return;
 		}

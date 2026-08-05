@@ -133,4 +133,49 @@ class JwtServiceTest {
 					.isInstanceOf(ExpiredJwtException.class);
 		}
 	}
+
+	/**
+	 * A validação roda na subida da aplicação. Estes testes existem porque o
+	 * segredo anterior estava versionado e a aplicação subia com ele em silêncio —
+	 * o que só apareceria como conta invadida, nunca como erro.
+	 */
+	@Nested
+	@DisplayName("validateSecret()")
+	class ValidateSecret {
+
+		@Test
+		@DisplayName("Should accept a secret long enough for HS256")
+		void shouldAcceptASecretLongEnoughForHs256() {
+			ReflectionTestUtils.setField(jwtService, "secretKey", SECRET);
+
+			jwtService.validateSecret();
+		}
+
+		@Test
+		@DisplayName("Should reject a missing secret")
+		void shouldRejectAMissingSecret() {
+			ReflectionTestUtils.setField(jwtService, "secretKey", "   ");
+
+			assertThatThrownBy(() -> jwtService.validateSecret()).isInstanceOf(IllegalStateException.class)
+					.hasMessageContaining("JWT_SECRET is required");
+		}
+
+		@Test
+		@DisplayName("Should reject the secret that was published in the repository history")
+		void shouldRejectThePublishedSecret() {
+			ReflectionTestUtils.setField(jwtService, "secretKey", "super-secret-key-for-jwt-generation-tsm-atelier");
+
+			assertThatThrownBy(() -> jwtService.validateSecret()).isInstanceOf(IllegalStateException.class)
+					.hasMessageContaining("published in this repository's history");
+		}
+
+		@Test
+		@DisplayName("Should reject a secret shorter than 256 bits")
+		void shouldRejectASecretShorterThan256Bits() {
+			ReflectionTestUtils.setField(jwtService, "secretKey", "too-short");
+
+			assertThatThrownBy(() -> jwtService.validateSecret()).isInstanceOf(IllegalStateException.class)
+					.hasMessageContaining("at least 32 bytes");
+		}
+	}
 }

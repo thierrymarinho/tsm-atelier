@@ -10,6 +10,7 @@ import static org.mockito.Mockito.*;
 
 import com.tm.tsm_atelier.domain.collection.entity.Collection;
 import com.tm.tsm_atelier.domain.collection.repository.CollectionRepository;
+import com.tm.tsm_atelier.domain.product.dto.FabricCompositionRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
 import com.tm.tsm_atelier.domain.product.entity.Product;
@@ -160,6 +161,38 @@ class ProductServiceTest {
 				.hasMessageContaining("must be lower than the regular price");
 
 		verify(productRepository, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("Should reject a fabric composition that repeats the same material")
+	void shouldRejectDuplicateFabricMaterials() {
+		// A PK (product_id, material) rejeitaria isso no banco, mas como um 409
+		// "A data conflict occurred" que nao diz qual material esta repetido. E os
+		// dois 50% somam 100%, entao a validacao de percentual deixava passar.
+		ProductRequestDTO request = aProductRequest().withFabricCompositions(java.util.List
+				.of(new FabricCompositionRequestDTO("Algodao", 50), new FabricCompositionRequestDTO("Algodao", 50)))
+				.build();
+
+		assertThatThrownBy(() -> productService.create(request)).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("cannot repeat the same material").hasMessageContaining("Algodao");
+
+		verify(productRepository, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("Should accept a fabric composition with distinct materials")
+	void shouldAcceptDistinctFabricMaterials() {
+		ProductRequestDTO request = aProductRequest().withCollectionId(null).withFabricCompositions(java.util.List
+				.of(new FabricCompositionRequestDTO("Algodao", 60), new FabricCompositionRequestDTO("Elastano", 40)))
+				.build();
+		Product product = aProduct().build();
+
+		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
+		when(productRepository.save(any(Product.class))).thenReturn(product);
+
+		productService.create(request);
+
+		verify(productRepository).save(any(Product.class));
 	}
 
 	@Test

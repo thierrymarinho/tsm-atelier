@@ -42,6 +42,11 @@ public class ProductRequestDTOBuilder {
 		return this;
 	}
 
+	public ProductRequestDTOBuilder withFabricCompositions(List<FabricCompositionRequestDTO> fabricCompositions) {
+		this.fabricCompositions = fabricCompositions;
+		return this;
+	}
+
 	public ProductRequestDTOBuilder withPrice(BigDecimal price) {
 		this.price = price;
 		return this;

@@ -2,12 +2,10 @@ package com.tm.tsm_atelier.domain.product.controller.v1;
 
 import com.tm.tsm_atelier.domain.product.dto.ProductRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.ProductSearchFilter;
 import com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO;
-import com.tm.tsm_atelier.domain.product.enums.Category;
-import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import com.tm.tsm_atelier.domain.product.service.ProductService;
 import jakarta.validation.Valid;
-import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,14 +27,9 @@ public class ProductAdminController {
 	}
 
 	@GetMapping
-	public ResponseEntity<Page<ProductSummaryDTO>> search(@RequestParam(required = false) String searchTerm,
-			@RequestParam(required = false) Category category,
-			@RequestParam(required = false) TargetAudience targetAudience,
-			@RequestParam(required = false) Long collectionId, @RequestParam(required = false) BigDecimal minPrice,
-			@RequestParam(required = false) BigDecimal maxPrice, @RequestParam(required = false) Boolean isFeatured,
+	public ResponseEntity<Page<ProductSummaryDTO>> search(@ModelAttribute ProductSearchFilter filter,
 			@PageableDefault(size = 20) Pageable pageable) {
-		return ResponseEntity.ok(productService.searchAdmin(searchTerm, category, targetAudience, collectionId,
-				minPrice, maxPrice, isFeatured, pageable));
+		return ResponseEntity.ok(productService.searchAdmin(filter, pageable));
 	}
 
 	@GetMapping("/{id}")

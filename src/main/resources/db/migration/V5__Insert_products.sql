@@ -4,8 +4,8 @@
 -- ======================================================================
 
 -- Vestidos
-INSERT INTO products (id, name, slug, description, price, category, target_audience, collection_id, is_featured, active) VALUES
-    (1, 'CAMISA VESTIDO', 'camisa-vestido-1', 'Descubra a elegância do Camisa Vestido. Confeccionado com tecidos premium, este vestido oferece um caimento impecável que valoriza a silhueta. Perfeito para ocasiões onde você deseja se destacar com sofisticação e conforto, combinando estilo atemporal com tendências modernas.', 299.90, 'DRESSES', 'WOMEN', null,true, true);
+INSERT INTO products (id, name, slug, description, price, promotional_price, category, target_audience, collection_id, is_featured, active) VALUES
+    (1, 'CAMISA VESTIDO', 'camisa-vestido-1', 'Descubra a elegância do Camisa Vestido. Confeccionado com tecidos premium, este vestido oferece um caimento impecável que valoriza a silhueta. Perfeito para ocasiões onde você deseja se destacar com sofisticação e conforto, combinando estilo atemporal com tendências modernas.', 299.90, 180.90,'DRESSES', 'WOMEN', null,true, true);
 
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (1, 'Viscose', 90), (1, 'Elastano', 10);
 

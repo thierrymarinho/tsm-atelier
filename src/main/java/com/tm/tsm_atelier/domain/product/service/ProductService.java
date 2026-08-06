@@ -237,42 +237,49 @@ public class ProductService {
 		productRepository.save(product);
 	}
 
+	/**
+	 * A chave do cache e deliberadamente omitida: sem ela o Spring usa o
+	 * SimpleKeyGenerator, que monta a chave com todos os parametros do metodo. Como
+	 * os filtros viajam num record, cujo toString() inclui todos os componentes, um
+	 * filtro novo entra na chave sozinho.
+	 *
+	 * <p>
+	 * Enquanto a chave era uma lista de parametros escrita a mao em SpEL, adicionar
+	 * um filtro sem lembrar de adicionalo a chave fazia duas buscas diferentes
+	 * compartilharem a mesma entrada no Redis — a vitrine de promocoes servia o
+	 * catalogo inteiro, ou o contrario, dependendo de quem chegou primeiro com o
+	 * cache frio. Compilava, passava nos testes e so aparecia em producao.
+	 */
 	@Transactional(readOnly = true)
-	@Cacheable(value = CacheNames.CATALOG_PRODUCTS, key = "{#searchTerm, #category, #targetAudience, #collectionId, #minPrice, #maxPrice, #isFeatured, #pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString()}")
-	public Page<ProductSummaryDTO> searchCatalog(String searchTerm, Category category, TargetAudience targetAudience,
-			Long collectionId, BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, Pageable pageable) {
+	@Cacheable(value = CacheNames.CATALOG_PRODUCTS)
+	public Page<ProductSummaryDTO> searchCatalog(ProductSearchFilter filter, Pageable pageable) {
 
 		Specification<Product> spec = Specification.where(ProductSpecification.isNotDeleted())
-				.and(ProductSpecification.isActive()).and(ProductSpecification.search(searchTerm))
-				.and(ProductSpecification.hasCategory(category))
-				.and(ProductSpecification.hasTargetAudience(targetAudience))
-				.and(ProductSpecification.hasCollectionId(collectionId))
-				.and(ProductSpecification.priceBetween(minPrice, maxPrice))
-				.and(ProductSpecification.isFeatured(isFeatured));
+				.and(ProductSpecification.isActive()).and(matches(filter));
 
-		Page<Product> page = productRepository.findAll(spec, pageable);
-
-		if (page.hasContent()) {
-			productRepository.fetchColorsForProducts(page.getContent());
-		}
-
-		Page<ProductSummaryDTO> mappedPage = page.map(productMapper::toSummary);
-		return new CustomPageImpl<>(mappedPage.getContent(), mappedPage.getPageable(), mappedPage.getTotalElements());
+		return toSummaryPage(productRepository.findAll(spec, pageable));
 	}
 
 	@Transactional(readOnly = true)
-	public Page<ProductSummaryDTO> searchAdmin(String searchTerm, Category category, TargetAudience targetAudience,
-			Long collectionId, BigDecimal minPrice, BigDecimal maxPrice, Boolean isFeatured, Pageable pageable) {
+	public Page<ProductSummaryDTO> searchAdmin(ProductSearchFilter filter, Pageable pageable) {
+		return toSummaryPage(productRepository.findAll(Specification.where(matches(filter)), pageable));
+	}
 
-		Specification<Product> spec = Specification.where(ProductSpecification.search(searchTerm))
-				.and(ProductSpecification.hasCategory(category))
-				.and(ProductSpecification.hasTargetAudience(targetAudience))
-				.and(ProductSpecification.hasCollectionId(collectionId))
-				.and(ProductSpecification.priceBetween(minPrice, maxPrice))
-				.and(ProductSpecification.isFeatured(isFeatured));
+	/**
+	 * Os dois metodos de busca aplicam os mesmos filtros. O que os diferencia e so
+	 * o que o admin enxerga a mais: produtos inativos e removidos.
+	 */
+	private Specification<Product> matches(ProductSearchFilter filter) {
+		return Specification.where(ProductSpecification.search(filter.searchTerm()))
+				.and(ProductSpecification.hasCategory(filter.category()))
+				.and(ProductSpecification.hasTargetAudience(filter.targetAudience()))
+				.and(ProductSpecification.hasCollectionId(filter.collectionId()))
+				.and(ProductSpecification.priceBetween(filter.minPrice(), filter.maxPrice()))
+				.and(ProductSpecification.isFeatured(filter.isFeatured()))
+				.and(ProductSpecification.isOnSale(filter.onSale()));
+	}
 
-		Page<Product> page = productRepository.findAll(spec, pageable);
-
+	private Page<ProductSummaryDTO> toSummaryPage(Page<Product> page) {
 		if (page.hasContent()) {
 			productRepository.fetchColorsForProducts(page.getContent());
 		}
@@ -317,7 +324,7 @@ public class ProductService {
 	}
 
 	/**
-	 * A regra tambem existe como CHECK constraint na migration V10. Aqui ela vale
+	 * A regra tambem existe como CHECK constraint na migration V3. Aqui ela vale
 	 * pela mensagem: sem esta validacao o erro chegaria ao admin como violacao de
 	 * integridade, sem dizer qual campo esta errado.
 	 */

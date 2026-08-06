@@ -357,6 +357,12 @@
                                         {
                                             "key": "sort",
                                             "value": "createdAt,desc"
+                                        },
+                                        {
+                                            "key": "onSale",
+                                            "value": "true",
+                                            "disabled": true,
+                                            "description": "true = so produtos em promocao; false = so sem promocao; omitido = todos"
                                         }
                                     ]
                                 }
@@ -630,13 +636,52 @@
                                         {
                                             "key": "size",
                                             "value": "10"
+                                        },
+                                        {
+                                            "key": "onSale",
+                                            "value": "true",
+                                            "disabled": true,
+                                            "description": "true = so produtos em promocao; false = so sem promocao; omitido = todos"
                                         }
                                     ]
                                 }
                             }
                         },
                         {
-                            "name": "2. Get By Slug",
+                            "name": "2. Search On Sale",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/catalog/products?onSale=true&page=0&size=10",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "catalog",
+                                        "products"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "onSale",
+                                            "value": "true",
+                                            "description": "Monta a pagina de promocoes. Nao filtre no client: a lista e paginada."
+                                        },
+                                        {
+                                            "key": "page",
+                                            "value": "0"
+                                        },
+                                        {
+                                            "key": "size",
+                                            "value": "10"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "3. Get By Slug",
                             "request": {
                                 "method": "GET",
                                 "url": {
@@ -656,7 +701,7 @@
                             }
                         },
                         {
-                            "name": "3. Get By Id",
+                            "name": "4. Get By Id",
                             "request": {
                                 "method": "GET",
                                 "url": {
@@ -675,7 +720,7 @@
                             }
                         },
                         {
-                            "name": "4. Categories",
+                            "name": "5. Categories",
                             "request": {
                                 "method": "GET",
                                 "url": {

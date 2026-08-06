@@ -36,6 +36,7 @@ CREATE TABLE order_items (
     color VARCHAR(255),
     image_url VARCHAR(255),
     price_at_purchase DECIMAL(10,2) NOT NULL,
+    list_price_at_purchase DECIMAL(10,2) NOT NULL,
     quantity INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

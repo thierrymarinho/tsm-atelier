@@ -4,6 +4,7 @@ CREATE TABLE products (
     slug VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
+    promotional_price DECIMAL(10, 2),
     collection_id BIGINT,
     category VARCHAR(50) NOT NULL,
     target_audience VARCHAR(50) NOT NULL,
@@ -12,7 +13,9 @@ CREATE TABLE products (
     deleted_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_product_collection FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE SET NULL
+    CONSTRAINT fk_product_collection FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE SET NULL,
+    CONSTRAINT ck_products_promotional_price
+        CHECK (promotional_price IS NULL OR (promotional_price > 0 AND promotional_price < price))
 );
 
 CREATE TABLE product_fabric_compositions (
@@ -61,5 +64,8 @@ CREATE TABLE product_skus (
 CREATE UNIQUE INDEX idx_sku_code_active ON product_skus (sku_code) WHERE deleted_at IS NULL;
 
 CREATE INDEX idx_products_collection_id ON products (collection_id);
+
+CREATE INDEX idx_products_effective_price ON products (COALESCE(promotional_price, price));
+
 CREATE INDEX idx_product_colors_product_id ON product_colors (product_id);
 CREATE INDEX idx_product_skus_color_id ON product_skus (product_color_id);

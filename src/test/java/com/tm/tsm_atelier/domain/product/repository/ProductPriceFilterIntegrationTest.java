@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * O filtro roda contra o banco de verdade porque o que está sendo verificado é
- * a tradução do COALESCE para SQL, não a lógica Java. A migration V10 cria um
+ * a tradução do COALESCE para SQL, não a lógica Java. A migration V3 cria um
  * índice funcional sobre a mesma expressão — se uma mudar sem a outra, a busca
  * continua correta mas passa a varrer a tabela.
  */

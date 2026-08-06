@@ -142,7 +142,6 @@ public class AuthService {
 		user.setEmailVerified(true);
 		userRepository.save(user);
 
-		// Remove o token de verificação após uso
 		redisTemplate.delete("emailVerification:" + token);
 
 		return generateAndSaveTokens(user);

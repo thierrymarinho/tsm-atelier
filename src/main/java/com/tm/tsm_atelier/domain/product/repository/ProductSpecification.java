@@ -24,6 +24,20 @@ public class ProductSpecification {
 		return (root, query, cb) -> isFeatured == null ? null : cb.equal(root.get("featured"), isFeatured);
 	}
 
+	/**
+	 * "Em promoção" é promotionalPrice preenchido, e nada mais. Deliberadamente
+	 * separado de isFeatured: destaque é curadoria editorial do admin, promoção é
+	 * preço. Unir os dois faria despromover um produto tirá-lo da home.
+	 */
+	public static Specification<Product> isOnSale(Boolean onSale) {
+		return (root, query, cb) -> {
+			if (onSale == null) {
+				return null;
+			}
+			return onSale ? cb.isNotNull(root.get("promotionalPrice")) : cb.isNull(root.get("promotionalPrice"));
+		};
+	}
+
 	public static Specification<Product> hasCategory(Category category) {
 		return (root, query, cb) -> category == null ? null : cb.equal(root.get("category"), category);
 	}
@@ -44,9 +58,9 @@ public class ProductSpecification {
 	 * uma busca "até R$ 100" — some da vitrine justamente quando está mais barato.
 	 *
 	 * <p>
-	 * O COALESCE espelha a migration V10, que criou um índice funcional sobre a
-	 * mesma expressão. Mudar um sem o outro faz toda busca por faixa de preço
-	 * varrer a tabela.
+	 * O COALESCE espelha a migration V3, que cria um índice funcional sobre a mesma
+	 * expressão. Mudar um sem o outro faz toda busca por faixa de preço varrer a
+	 * tabela.
 	 */
 	public static Specification<Product> priceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
 		return (root, query, cb) -> {

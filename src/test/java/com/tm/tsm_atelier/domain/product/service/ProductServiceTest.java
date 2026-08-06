@@ -150,7 +150,7 @@ class ProductServiceTest {
 	@Test
 	@DisplayName("Should reject a promotional price that is not lower than the regular price")
 	void shouldRejectPromotionalPriceNotLowerThanPrice() {
-		// A mesma regra existe como CHECK constraint na migration V10. Aqui ela vale
+		// A mesma regra existe como CHECK constraint na migration V3. Aqui ela vale
 		// pela mensagem: sem esta validacao o admin receberia uma violacao de
 		// integridade do banco, sem saber qual campo corrigir.
 		ProductRequestDTO request = aProductRequest().withPrice(new java.math.BigDecimal("100.00"))

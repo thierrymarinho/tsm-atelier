@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 public record CollectionRequestDTO(
 		@NotBlank(message = "Collection name is required") @Size(max = 255, message = "Collection name cannot exceed 255 characters") String name,
 
-		boolean active, String description,
+		boolean active, @Size(max = 5000, message = "Description cannot exceed 5000 characters") String description,
 		@Size(max = 255, message = "Hero image URL cannot exceed 255 characters") String heroImageUrl,
 		@Size(max = 255, message = "Portrait image URL cannot exceed 255 characters") String portraitImageUrl,
 		@Size(max = 255, message = "Square image URL cannot exceed 255 characters") String squareImageUrl,

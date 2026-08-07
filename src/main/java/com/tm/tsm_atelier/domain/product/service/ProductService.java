@@ -376,10 +376,35 @@ public class ProductService {
 		if (compositions == null || compositions.isEmpty()) {
 			return;
 		}
+
+		validateNoDuplicateMaterials(compositions);
+
 		int totalPercentage = compositions.stream().mapToInt(FabricCompositionRequestDTO::percentage).sum();
 		if (totalPercentage != 100) {
 			throw new IllegalArgumentException(
 					"Total fabric composition percentage must be exactly 100%, but was " + totalPercentage + "%");
+		}
+	}
+
+	/**
+	 * A tabela product_fabric_compositions tem chave primaria (product_id,
+	 * material), mas a colecao e uma List — nada deduplica antes do insert. Dois
+	 * "Algodao 50%" somam 100% e passavam pela validacao de percentual, para
+	 * quebrar no banco e voltar como 409 "A data conflict occurred", que nao diz
+	 * qual material esta repetido.
+	 *
+	 * <p>
+	 * Trocar a colecao para Set resolveria o erro e criaria outro: o segundo
+	 * material sumiria em silencio e o produto seria salvo com 50% de composicao.
+	 */
+	private void validateNoDuplicateMaterials(List<FabricCompositionRequestDTO> compositions) {
+		Set<String> seen = new LinkedHashSet<>();
+		List<String> duplicates = compositions.stream().map(FabricCompositionRequestDTO::material)
+				.filter(material -> !seen.add(material)).distinct().toList();
+
+		if (!duplicates.isEmpty()) {
+			throw new IllegalArgumentException(
+					"Fabric composition cannot repeat the same material: " + String.join(", ", duplicates));
 		}
 	}
 

@@ -10,7 +10,7 @@ INSERT INTO products (id, name, slug, description, price, promotional_price, cat
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (1, 'Viscose', 90), (1, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (1, 1, 'Principal', '#221713', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/CAMISA_VESTIDO_capa_zphawr.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/CAMISA_VESTIDO_3_gvl2ty.jpg');
+    (1, 1, 'Marrom Escuro', '#221713', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/CAMISA_VESTIDO_capa_zphawr.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/CAMISA_VESTIDO_3_gvl2ty.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (1, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/CAMISA_VESTIDO_hover_enmite.jpg');
 
@@ -26,7 +26,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (2, 'Viscose', 90), (2, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (2, 2, 'Principal', '#010100', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/VESTIDO_DRAPEADO_GOLA_ALTA_capa_rj3lpg.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675608/VESTIDO_DRAPEADO_GOLA_ALTA_hover_ipsrzx.webp');
+    (2, 2, 'Preto', '#010100', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/VESTIDO_DRAPEADO_GOLA_ALTA_capa_rj3lpg.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675608/VESTIDO_DRAPEADO_GOLA_ALTA_hover_ipsrzx.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (2, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/VESTIDO_DRAPEADO_GOLA_ALTA_3_dovada.webp');
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (2, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/VESTIDO_DRAPEADO_GOLA_ALTA_4_khy0b5.webp');
@@ -37,7 +37,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (9, 2, 'G', 'SKU-VESTIDO-DRAPEADO-GOLA-ALTA-2-DEFAULT-G', 8);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (3, 2, 'Variação 2', '#525158', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/VESTIDO_DRAPEADO_GOLA_ALTA_color2_foto1_ueua6w.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/VESTIDO_DRAPEADO_GOLA_ALTA_color2_foto2_tbumee.webp');
+    (3, 2, 'Cinza Chumbo', '#525158', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/VESTIDO_DRAPEADO_GOLA_ALTA_color2_foto1_ueua6w.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675607/VESTIDO_DRAPEADO_GOLA_ALTA_color2_foto2_tbumee.webp');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (10, 3, 'P', 'SKU-VESTIDO-DRAPEADO-GOLA-ALTA-2-COLOR2-P', 2);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (11, 3, 'M', 'SKU-VESTIDO-DRAPEADO-GOLA-ALTA-2-COLOR2-M', 11);
@@ -50,7 +50,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (3, 'Viscose', 90), (3, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (4, 3, 'Principal', '#111012', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675608/VESTIDO_FLUIDO_HALTER_COM_VOLUME_capa_ccvdsy.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675609/VESTIDO_FLUIDO_HALTER_COM_VOLUME_hover_hfp3ob.jpg');
+    (4, 3, 'Preto', '#111012', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675608/VESTIDO_FLUIDO_HALTER_COM_VOLUME_capa_ccvdsy.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675609/VESTIDO_FLUIDO_HALTER_COM_VOLUME_hover_hfp3ob.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (4, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675608/VESTIDO_FLUIDO_HALTER_COM_VOLUME_3_lxbrry.jpg');
 
@@ -65,7 +65,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (4, 'Viscose', 90), (4, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (5, 4, 'Principal', '#C61632', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675609/VESTIDO_LONGO_DRAPEADO_capa_ngpuvz.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675609/VESTIDO_LONGO_DRAPEADO_hover_gcazx1.jpg');
+    (5, 4, 'Vermelho', '#C61632', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675609/VESTIDO_LONGO_DRAPEADO_capa_ngpuvz.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675609/VESTIDO_LONGO_DRAPEADO_hover_gcazx1.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (18, 5, 'P', 'SKU-VESTIDO-LONGO-DRAPEADO-4-DEFAULT-P', 4);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (19, 5, 'M', 'SKU-VESTIDO-LONGO-DRAPEADO-4-DEFAULT-M', 13);
@@ -78,7 +78,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (5, 'Viscose', 90), (5, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (6, 5, 'Principal', '#311B1D', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675610/VESTIDO_MIDI_ACETINADO_capa_kov55o.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675610/VESTIDO_MIDI_ACETINADO_3_qyv8rg.jpg');
+    (6, 5, 'Vinho', '#311B1D', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675610/VESTIDO_MIDI_ACETINADO_capa_kov55o.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675610/VESTIDO_MIDI_ACETINADO_3_qyv8rg.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (6, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675611/VESTIDO_MIDI_ACETINADO_hover_qvejax.jpg');
 
@@ -88,7 +88,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (25, 6, 'G', 'SKU-VESTIDO-MIDI-ACETINADO-5-DEFAULT-G', 9);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (7, 5, 'Variação 2', '#464F87', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675610/VESTIDO_MIDI_ACETINADO_color2_foto1_esb2rf.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675610/VESTIDO_MIDI_ACETINADO_color2_foto2_f8kvbn.jpg');
+    (7, 5, 'Azul Índigo', '#464F87', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675610/VESTIDO_MIDI_ACETINADO_color2_foto1_esb2rf.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675610/VESTIDO_MIDI_ACETINADO_color2_foto2_f8kvbn.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (7, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675611/VESTIDO_MIDI_ACETINADO_color2_foto3_q3eb9j.jpg');
 
@@ -103,7 +103,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (6, 'Viscose', 90), (6, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (8, 6, 'Principal', '#D6CCCD', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675612/VESTIDO_MIDI_DE_POPELINA_COM_GOD%C3%8AS_capa_bohpxi.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675612/VESTIDO_MIDI_DE_POPELINA_COM_GOD%C3%8AS_hover_q79psr.webp');
+    (8, 6, 'Cinza Claro', '#D6CCCD', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675612/VESTIDO_MIDI_DE_POPELINA_COM_GOD%C3%8AS_capa_bohpxi.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675612/VESTIDO_MIDI_DE_POPELINA_COM_GOD%C3%8AS_hover_q79psr.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (8, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675612/VESTIDO_MIDI_DE_POPELINA_COM_GOD%C3%8AS_4_s6n5mh.webp');
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (8, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784675611/VESTIDO_MIDI_DE_POPELINA_COM_GOD%C3%8AS_3_jinmfp.webp');
@@ -122,7 +122,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (7, 'Algodão', 95), (7, 'Elastano', 5);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (10, 7, 'Principal', '#ECE9E9', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_capa_m8cgsq.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756129/CAMISA_ACTIVE_hover_if8jjp.webp');
+    (10, 7, 'Off-White', '#ECE9E9', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_capa_m8cgsq.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756129/CAMISA_ACTIVE_hover_if8jjp.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (10, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_3_o7zsbh.webp');
 
@@ -133,7 +133,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (39, 10, 'XG', 'SKU-CAMISA-ACTIVE-7-DEFAULT-XG', 4);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (11, 7, 'Variação 2', '#2C2A2D', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_color2_foto1_e3rvwt.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_color2_foto2_rnjcoe.webp');
+    (11, 7, 'Preto', '#2C2A2D', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_color2_foto1_e3rvwt.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_color2_foto2_rnjcoe.webp');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (40, 11, 'P', 'SKU-CAMISA-ACTIVE-7-COLOR2-P', 7);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (41, 11, 'M', 'SKU-CAMISA-ACTIVE-7-COLOR2-M', 14);
@@ -141,7 +141,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (43, 11, 'GG', 'SKU-CAMISA-ACTIVE-7-COLOR2-GG', 0);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (12, 7, 'Variação 3', '#C2D7E9', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_color3_foto1_xxjp9k.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756128/CAMISA_ACTIVE_color3_foto3_x1wl5g.webp');
+    (12, 7, 'Azul Claro', '#C2D7E9', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_color3_foto1_xxjp9k.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756128/CAMISA_ACTIVE_color3_foto3_x1wl5g.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (12, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756127/CAMISA_ACTIVE_color3_foto2_t0qme2.webp');
 
@@ -151,7 +151,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (47, 12, 'G', 'SKU-CAMISA-ACTIVE-7-COLOR3-G', 5);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (13, 7, 'Variação 4', '#413D36', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756128/CAMISA_ACTIVE_color4_foto1_pgut24.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756129/CAMISA_ACTIVE_color4_foto2_ekimhw.webp');
+    (13, 7, 'Grafite', '#413D36', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756128/CAMISA_ACTIVE_color4_foto1_pgut24.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756129/CAMISA_ACTIVE_color4_foto2_ekimhw.webp');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (48, 13, 'P', 'SKU-CAMISA-ACTIVE-7-COLOR4-P', 0);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (49, 13, 'M', 'SKU-CAMISA-ACTIVE-7-COLOR4-M', 8);
@@ -165,7 +165,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (8, 'Algodão', 95), (8, 'Elastano', 5);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (14, 8, 'Principal', '#635044', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756130/CAMISA_AMPLA_REGULAR_FIT_EFEITO_SUEDE_capa_wwfqbj.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756129/CAMISA_AMPLA_REGULAR_FIT_EFEITO_SUEDE_3_azb2ue.jpg');
+    (14, 8, 'Marrom', '#635044', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756130/CAMISA_AMPLA_REGULAR_FIT_EFEITO_SUEDE_capa_wwfqbj.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756129/CAMISA_AMPLA_REGULAR_FIT_EFEITO_SUEDE_3_azb2ue.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (14, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756129/CAMISA_AMPLA_REGULAR_FIT_EFEITO_SUEDE_3_azb2ue.jpg');
 
@@ -180,7 +180,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (9, 'Algodão', 95), (9, 'Elastano', 5);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (15, 9, 'Principal', '#C6D1DA', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756131/CAMISA_BOX_FIT_EM_JEANS_LEVE_capa_kpbq9q.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756131/CAMISA_BOX_FIT_EM_JEANS_LEVE_hover_jpguxd.jpg');
+    (15, 9, 'Azul Gelo', '#C6D1DA', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756131/CAMISA_BOX_FIT_EM_JEANS_LEVE_capa_kpbq9q.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756131/CAMISA_BOX_FIT_EM_JEANS_LEVE_hover_jpguxd.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (15, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784756130/CAMISA_BOX_FIT_EM_JEANS_LEVE_3_y1nwyu.jpg');
 
@@ -198,7 +198,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (10, 'Algodão', 80), (10, 'Poliéster', 20);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (16, 10, 'Principal', '#DBE1E5', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_capa_wu8uyf.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_hover_u3jqgp.webp');
+    (16, 10, 'Azul Gelo', '#DBE1E5', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_capa_wu8uyf.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_hover_u3jqgp.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (16, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_3_vnns9t.webp');
 
@@ -209,7 +209,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (66, 16, 'GG', 'SKU-CASACO-DE-MOLETOM-COM-ZIPER-10-DEFAULT-GG', 0);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (17, 10, 'Variação 2', '#453735', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color2_foto1_ig1vb4.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color2_foto2_ttmbit.webp');
+    (17, 10, 'Marrom Escuro', '#453735', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color2_foto1_ig1vb4.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color2_foto2_ttmbit.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (17, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color2_foto3_m3cumt.webp');
 
@@ -219,7 +219,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (70, 17, 'GG', 'SKU-CASACO-DE-MOLETOM-COM-ZIPER-10-COLOR2-GG', 5);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (18, 10, 'Variação 3', '#050707', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color3_foto1_qmc0lw.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color3_foto2_zonogd.webp');
+    (18, 10, 'Preto', '#050707', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831414/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color3_foto1_qmc0lw.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color3_foto2_zonogd.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (18, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/CASACO_DE_MOLETOM_COM_Z%C3%8DPER_color3_foto3_jsfo7o.webp');
 
@@ -234,7 +234,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (11, 'Poliéster', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (19, 11, 'Principal', '#3B2A29', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_capa_dvm1bd.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831417/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_hover_rbt1ka.webp');
+    (19, 11, 'Marrom Escuro', '#3B2A29', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_capa_dvm1bd.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831417/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_hover_rbt1ka.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (19, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_3_y3yiwk.webp');
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (19, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_4_hjpzm7.webp');
@@ -246,7 +246,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (79, 19, 'GG', 'SKU-JAQUETA-BOMBER-COM-PUNHOS-EM-CONTRASTE-11-DEFAULT-GG', 3);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (20, 11, 'Variação 2', '#1A1A19', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_color2_foto1_ulbw7c.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831416/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_color2_foto2_g1omp0.webp');
+    (20, 11, 'Preto', '#1A1A19', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831415/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_color2_foto1_ulbw7c.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831416/JAQUETA_BOMBER_COM_PUNHOS_EM_CONTRASTE_color2_foto2_g1omp0.webp');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (80, 20, 'P', 'SKU-JAQUETA-BOMBER-COM-PUNHOS-EM-CONTRASTE-11-COLOR2-P', 0);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (81, 20, 'M', 'SKU-JAQUETA-BOMBER-COM-PUNHOS-EM-CONTRASTE-11-COLOR2-M', 9);
@@ -259,7 +259,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (12, 'Poliamida', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (21, 12, 'Principal', '#1A1820', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831417/JAQUETA_CURTA_ACOLCHOADA_capa_ca8wvs.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_CURTA_ACOLCHOADA_hover_zgb6cx.webp');
+    (21, 12, 'Preto', '#1A1820', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831417/JAQUETA_CURTA_ACOLCHOADA_capa_ca8wvs.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_CURTA_ACOLCHOADA_hover_zgb6cx.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (21, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831417/JAQUETA_CURTA_ACOLCHOADA_3_aculcg.webp');
 
@@ -269,7 +269,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (87, 21, 'G', 'SKU-JAQUETA-CURTA-ACOLCHOADA-12-DEFAULT-G', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (22, 12, 'Variação 2', '#3B2C28', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831417/JAQUETA_CURTA_ACOLCHOADA_color2_foto1_re1nbl.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_CURTA_ACOLCHOADA_color2_foto2_yivjlz.webp');
+    (22, 12, 'Marrom Escuro', '#3B2C28', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831417/JAQUETA_CURTA_ACOLCHOADA_color2_foto1_re1nbl.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_CURTA_ACOLCHOADA_color2_foto2_yivjlz.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (22, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_CURTA_ACOLCHOADA_color2_foto3_jtkth8.webp');
 
@@ -284,7 +284,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (13, 'Poliuretano', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (23, 13, 'Principal', '#000000', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_DE_POLIURETANO_COM_BOLSOS_capa_zop5d6.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_DE_POLIURETANO_COM_BOLSOS_hover_siupa0.webp');
+    (23, 13, 'Preto', '#000000', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_DE_POLIURETANO_COM_BOLSOS_capa_zop5d6.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_DE_POLIURETANO_COM_BOLSOS_hover_siupa0.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (23, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/JAQUETA_DE_POLIURETANO_COM_BOLSOS_3_ilifv8.webp');
 
@@ -300,7 +300,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (14, 'Algodão', 65), (14, 'Poliéster', 35);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (24, 14, 'Principal', '#C7B29E', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831419/TRENCH_CURTO_CRUZADO_capa_eauecu.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831420/TRENCH_CURTO_CRUZADO_hover_cafs0v.webp');
+    (24, 14, 'Bege', '#C7B29E', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831419/TRENCH_CURTO_CRUZADO_capa_eauecu.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831420/TRENCH_CURTO_CRUZADO_hover_cafs0v.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (24, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/TRENCH_CURTO_CRUZADO_3_wdvj2c.webp');
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (24, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831418/TRENCH_CURTO_CRUZADO_4_cuvudf.webp');
@@ -317,7 +317,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (15, 'Couro', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES
-    (25, 15, 'Principal', '#C7B29E', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831419/TRENCH_CURTO_CRUZADO_DE_COURO_capa_ob8lw1.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831420/TRENCH_CURTO_CRUZADO_DE_COURO_hover_bokyrw.webp');
+    (25, 15, 'Bege', '#C7B29E', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831419/TRENCH_CURTO_CRUZADO_DE_COURO_capa_ob8lw1.webp', 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831420/TRENCH_CURTO_CRUZADO_DE_COURO_hover_bokyrw.webp');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (25, 'https://res.cloudinary.com/apgaq55g/image/upload/v1784831419/TRENCH_CURTO_CRUZADO_DE_COURO_3_odsvhe.webp');
 
@@ -448,7 +448,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (22, 'Viscose', 90), (22, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(32, 22, 'Variante 2', '#D3D2D4', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457869/CAMISA_DE_POPELINA_COM_ALAMARES_capa_ei9p3z.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457869/CAMISA_DE_POPELINA_COM_ALAMARES_hover_mkvoes.jpg');
+(32, 22, 'Cinza Claro', '#D3D2D4', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457869/CAMISA_DE_POPELINA_COM_ALAMARES_capa_ei9p3z.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457869/CAMISA_DE_POPELINA_COM_ALAMARES_hover_mkvoes.jpg');
 
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (132, 32, 'PP', 'SKU-CAMISA-DE-POPELINA-COM-ALAMARES-22-PP-COLOR2', 16);
@@ -457,7 +457,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (135, 32, 'G', 'SKU-CAMISA-DE-POPELINA-COM-ALAMARES-22-G-COLOR2', 2);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(33, 22, 'Estampa Principal', '#879BB6', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457869/CAMISA_DE_POPELINA_COM_ALAMARES_COLOR2_FOTO1_ev3oqf.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457869/CAMISA_DE_POPELINA_COM_ALAMARES_COLOR2_FOTO2_g5sgb0.jpg');
+(33, 22, 'Azul Acinzentado', '#879BB6', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457869/CAMISA_DE_POPELINA_COM_ALAMARES_COLOR2_FOTO1_ev3oqf.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457869/CAMISA_DE_POPELINA_COM_ALAMARES_COLOR2_FOTO2_g5sgb0.jpg');
 
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (136, 33, 'PP', 'SKU-CAMISA-DE-POPELINA-COM-ALAMARES-22-PP', 10);
@@ -472,7 +472,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (23, 'Viscose', 90), (23, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(34, 23, 'Estampa Principal', '#FEFEFF', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457870/COLETE_COM_BOT%C3%95ES_E_LINHO_capa_uz18wv.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457870/COLETE_COM_BOT%C3%95ES_E_LINHO_hover_uzxbzu.jpg');
+(34, 23, 'Branco', '#FEFEFF', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457870/COLETE_COM_BOT%C3%95ES_E_LINHO_capa_uz18wv.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457870/COLETE_COM_BOT%C3%95ES_E_LINHO_hover_uzxbzu.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (34, 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457870/COLETE_COM_BOT%C3%95ES_E_LINHO_3_pc3wgq.jpg');
 
@@ -488,7 +488,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (24, 'Viscose', 90), (24, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(35, 24, 'Estampa Principal', '#14151F', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457872/TOP_CURTO_BORDADO_FLORES_capa_jwuxcz.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457873/TOP_CURTO_BORDADO_FLORES_hover_uyo0qj.jpg');
+(35, 24, 'Azul Meia-Noite', '#14151F', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457872/TOP_CURTO_BORDADO_FLORES_capa_jwuxcz.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457873/TOP_CURTO_BORDADO_FLORES_hover_uyo0qj.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (35, 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457871/TOP_CURTO_BORDADO_FLORES_3_isymw1.jpg');
 
@@ -503,7 +503,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (25, 'Viscose', 90), (25, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(36, 25, 'Variante 2', '#0D0F14', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457873/TOP_DE_MALHA_HALTER_capa_rcrrnj.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457873/TOP_DE_MALHA_HALTER_capa_rcrrnj.jpg');
+(36, 25, 'Preto', '#0D0F14', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457873/TOP_DE_MALHA_HALTER_capa_rcrrnj.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457873/TOP_DE_MALHA_HALTER_capa_rcrrnj.jpg');
 
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (150, 36, 'PP', 'SKU-TOP-DE-MALHA-HALTER-25-PP-COLOR2', 5);
@@ -511,7 +511,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (152, 36, 'G', 'SKU-TOP-DE-MALHA-HALTER-25-G-COLOR2', 2);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(37, 25, 'Variante 3', '#05121E', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457873/TOP_DE_MALHA_HALTER_COLOR2_FOTO1_yf02k4.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457874/TOP_DE_MALHA_HALTER_COLOR2_FOTO2_n2hpa8.jpg');
+(37, 25, 'Azul Meia-Noite', '#05121E', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457873/TOP_DE_MALHA_HALTER_COLOR2_FOTO1_yf02k4.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457874/TOP_DE_MALHA_HALTER_COLOR2_FOTO2_n2hpa8.jpg');
 
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (153, 37, 'PP', 'SKU-TOP-DE-MALHA-HALTER-25-PP-COLOR3', 3);
@@ -520,7 +520,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (156, 37, 'GG', 'SKU-TOP-DE-MALHA-HALTER-25-GG-COLOR3', 18);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(38, 25, 'Variante 4', '#382321', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457875/TOP_DE_MALHA_HALTER_COLOR3_FOTO1_pxwzma.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457875/TOP_DE_MALHA_HALTER_COLOR3_FOTO2_bo0jhd.jpg');
+(38, 25, 'Marrom Escuro', '#382321', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457875/TOP_DE_MALHA_HALTER_COLOR3_FOTO1_pxwzma.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457875/TOP_DE_MALHA_HALTER_COLOR3_FOTO2_bo0jhd.jpg');
 
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (157, 38, 'M', 'SKU-TOP-DE-MALHA-HALTER-25-M-COLOR4', 28);
@@ -528,7 +528,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (159, 38, 'GG', 'SKU-TOP-DE-MALHA-HALTER-25-GG-COLOR4', 30);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(39, 25, 'Estampa Principal', '#D0C2B3', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457876/TOP_DE_MALHA_HALTER_COLOR4_FOTO1_bjch0e.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457876/TOP_DE_MALHA_HALTER_COLOR4_FOTO2_a0z7w7.jpg');
+(39, 25, 'Bege', '#D0C2B3', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457876/TOP_DE_MALHA_HALTER_COLOR4_FOTO1_bjch0e.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457876/TOP_DE_MALHA_HALTER_COLOR4_FOTO2_a0z7w7.jpg');
 
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (160, 39, 'PP', 'SKU-TOP-DE-MALHA-HALTER-25-PP', 27);
@@ -543,7 +543,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (26, 'Viscose', 90), (26, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(40, 26, 'Estampa Principal', '#97C4E5', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457879/TOP_LISTRADO_COM_ALAMARES_capa_epxl31.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457880/TOP_LISTRADO_COM_ALAMARES_hover_ztsirm.jpg');
+(40, 26, 'Azul Claro', '#97C4E5', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457879/TOP_LISTRADO_COM_ALAMARES_capa_epxl31.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457880/TOP_LISTRADO_COM_ALAMARES_hover_ztsirm.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (40, 'https://res.cloudinary.com/apgaq55g/image/upload/v1785457879/TOP_LISTRADO_COM_ALAMARES_3_wewxla.jpg');
 
@@ -574,7 +574,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (169, 41, 'G', 'SKU-CASACO-COM-LA-27-G', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(42, 27, 'Bege', '#BC916C', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529288/CASACO_COM_L%C3%83_COLOR2_FOTO1_gbzrvt.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529289/CASACO_COM_L%C3%83_COLOR2_FOTO2_hbggnh.jpg');
+(42, 27, 'Caramelo', '#BC916C', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529288/CASACO_COM_L%C3%83_COLOR2_FOTO1_gbzrvt.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529289/CASACO_COM_L%C3%83_COLOR2_FOTO2_hbggnh.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (170, 42, 'P', 'SKU-CASACO-COM-LA-27-P-COLOR2', 10);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (171, 42, 'M', 'SKU-CASACO-COM-LA-27-M-COLOR2', 10);
@@ -586,7 +586,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (28, 'Poliéster', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(43, 28, 'Marrom', '#3A241E', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529291/CASACO_CURTO_DE_PELO_SINT%C3%89TICO_capa_sms0pa.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529291/CASACO_CURTO_DE_PELO_SINT%C3%89TICO_hover_xth7q4.jpg');
+(43, 28, 'Marrom Escuro', '#3A241E', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529291/CASACO_CURTO_DE_PELO_SINT%C3%89TICO_capa_sms0pa.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529291/CASACO_CURTO_DE_PELO_SINT%C3%89TICO_hover_xth7q4.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (173, 43, 'P', 'SKU-CASACO-CURTO-DE-PELO-SINTETICO-28-P', 10);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (174, 43, 'M', 'SKU-CASACO-CURTO-DE-PELO-SINTETICO-28-M', 10);
@@ -598,7 +598,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (29, 'Poliéster', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(44, 29, 'Preto', '#B3A897', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529291/CASACO_DE_PELO_SINT%C3%89TICO_capa_alkzdp.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529292/CASACO_DE_PELO_SINT%C3%89TICO_hover_ccdvyj.jpg');
+(44, 29, 'Bege', '#B3A897', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529291/CASACO_DE_PELO_SINT%C3%89TICO_capa_alkzdp.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529292/CASACO_DE_PELO_SINT%C3%89TICO_hover_ccdvyj.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (176, 44, 'P', 'SKU-CASACO-DE-PELO-SINTETICO-29-P', 10);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (177, 44, 'M', 'SKU-CASACO-DE-PELO-SINTETICO-29-M', 10);
@@ -610,14 +610,14 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (30, 'Poliéster', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(45, 30, 'Bege', '#222327', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529295/TRENCH_AMPLO_COM_CINTO_capa_phkkmn.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529296/TRENCH_AMPLO_COM_CINTO_hover_ccn2fw.jpg');
+(45, 30, 'Preto', '#222327', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529295/TRENCH_AMPLO_COM_CINTO_capa_phkkmn.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529296/TRENCH_AMPLO_COM_CINTO_hover_ccn2fw.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (179, 45, 'P', 'SKU-TRENCH-AMPLO-COM-CINTO-30-P', 10);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (180, 45, 'M', 'SKU-TRENCH-AMPLO-COM-CINTO-30-M', 10);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (181, 45, 'G', 'SKU-TRENCH-AMPLO-COM-CINTO-30-G', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(46, 30, 'Preto', '#C9AF94', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529295/TRENCH_AMPLO_COM_CINTO_COLOR2_FOTO1_fa9prb.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529295/TRENCH_AMPLO_COM_CINTO_COLOR2_FOTO2_pvwwxf.jpg');
+(46, 30, 'Bege', '#C9AF94', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529295/TRENCH_AMPLO_COM_CINTO_COLOR2_FOTO1_fa9prb.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785529295/TRENCH_AMPLO_COM_CINTO_COLOR2_FOTO2_pvwwxf.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (182, 46, 'P', 'SKU-TRENCH-AMPLO-COM-CINTO-30-P-COLOR2', 10);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (183, 46, 'M', 'SKU-TRENCH-AMPLO-COM-CINTO-30-M-COLOR2', 10);
@@ -641,7 +641,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (31, 'Viscose', 90), (31, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(47, 31, 'Estampa Principal', '#CECEC1', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531865/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_capa_tlln8a.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531866/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_hover_pnuisn.jpg');
+(47, 31, 'Bege Claro', '#CECEC1', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531865/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_capa_tlln8a.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531866/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_hover_pnuisn.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (47, 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531865/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_3_kti8us.jpg');
 
@@ -651,7 +651,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (188, 47, 'G', 'SKU-TOP-DE-GASA-COM-ALCAS-BORDADAS-31-G', 6);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(48, 31, 'Variante 2', '#25110A', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531865/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_COLOR2_FOTO1_dlznze.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531865/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_COLOR2_FOTO2_kdfsid.jpg');
+(48, 31, 'Marrom Escuro', '#25110A', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531865/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_COLOR2_FOTO1_dlznze.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531865/TOP_DE_GASA_COM_AL%C3%87AS_BORDADAS_COLOR2_FOTO2_kdfsid.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (189, 48, 'PP', 'SKU-TOP-DE-GASA-COM-ALCAS-BORDADAS-31-PP-COLOR2', 32);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (190, 48, 'P', 'SKU-TOP-DE-GASA-COM-ALCAS-BORDADAS-31-P-COLOR2', 5);
@@ -665,7 +665,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (32, 'Viscose', 90), (32, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(49, 32, 'Estampa Principal', '#825F48', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531870/TOP_HALTER_ACETINADO_COM_ESTAMPA_ANIMAL_capa_ufusil.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531870/TOP_HALTER_ACETINADO_COM_ESTAMPA_ANIMAL_hover_alkbla.jpg');
+(49, 32, 'Marrom', '#825F48', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531870/TOP_HALTER_ACETINADO_COM_ESTAMPA_ANIMAL_capa_ufusil.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531870/TOP_HALTER_ACETINADO_COM_ESTAMPA_ANIMAL_hover_alkbla.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (49, 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531869/TOP_HALTER_ACETINADO_COM_ESTAMPA_ANIMAL_3_ezpgwl.jpg');
 
@@ -680,7 +680,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (33, 'Viscose', 90), (33, 'Elastano', 10);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(50, 33, 'Estampa Principal', '#CBBA9B', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531874/TOP_HALTER_PLUMETI_capa_ktjmgu.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531878/TOP_HALTER_PLUMETI_hover_cgytcj.jpg');
+(50, 33, 'Bege', '#CBBA9B', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531874/TOP_HALTER_PLUMETI_capa_ktjmgu.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531878/TOP_HALTER_PLUMETI_hover_cgytcj.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (50, 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531871/TOP_HALTER_PLUMETI_3_nmzvbu.jpg');
 
@@ -690,7 +690,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (201, 50, 'GG', 'SKU-TOP-HALTER-PLUMETI-33-GG', 16);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(51, 33, 'Variante 2', '#292929', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531874/TOP_HALTER_PLUMETI_COLOR2_FOTO1_qthfcd.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531875/TOP_HALTER_PLUMETI_COLOR2_FOTO2_px110a.jpg');
+(51, 33, 'Grafite', '#292929', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531874/TOP_HALTER_PLUMETI_COLOR2_FOTO1_qthfcd.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531875/TOP_HALTER_PLUMETI_COLOR2_FOTO2_px110a.jpg');
 
 INSERT INTO product_gallery_images (product_color_id, image_url) VALUES (51, 'https://res.cloudinary.com/apgaq55g/image/upload/v1785531876/TOP_HALTER_PLUMETI_COLOR2_FOTO3_tgmgwh.jpg');
 
@@ -716,7 +716,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (34, 'Lã', 70), (34, 'Poliéster', 30);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(52, 34, 'Azul Marinho', '#312C29', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540547/BLAZER_DE_TERNO_COM_EFEITO_LAVADO_capa_nsc1t9.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540547/BLAZER_DE_TERNO_COM_EFEITO_LAVADO_hover_lmcqug.jpg');
+(52, 34, 'Grafite', '#312C29', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540547/BLAZER_DE_TERNO_COM_EFEITO_LAVADO_capa_nsc1t9.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540547/BLAZER_DE_TERNO_COM_EFEITO_LAVADO_hover_lmcqug.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (206, 52, 'P', 'SKU-BLAZER-DE-TERNO-COM-EFEITO-LAVADO-34-P', 35);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (207, 52, 'M', 'SKU-BLAZER-DE-TERNO-COM-EFEITO-LAVADO-34-M', 21);
@@ -729,7 +729,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (35, 'Lã', 70), (35, 'Poliéster', 30);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(53, 35, 'Azul Marinho', '#3F3E3A', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540545/BLAZER_DE_TERNO_COM_ESTRUTURA_ESPIGA_COM_L%C3%83_capa_s867el.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540544/BLAZER_DE_TERNO_COM_ESTRUTURA_ESPIGA_COM_L%C3%83_hover_adrdwq.jpg');
+(53, 35, 'Grafite', '#3F3E3A', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540545/BLAZER_DE_TERNO_COM_ESTRUTURA_ESPIGA_COM_L%C3%83_capa_s867el.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540544/BLAZER_DE_TERNO_COM_ESTRUTURA_ESPIGA_COM_L%C3%83_hover_adrdwq.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (210, 53, 'P', 'SKU-BLAZER-DE-TERNO-COM-ESTRUTURA-ESPIGA-COM-LA-35-P', 25);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (211, 53, 'M', 'SKU-BLAZER-DE-TERNO-COM-ESTRUTURA-ESPIGA-COM-LA-35-M', 17);
@@ -742,7 +742,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (36, 'Lã', 70), (36, 'Poliéster', 30);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(54, 36, 'Azul Marinho', '#34363F', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540542/BLAZER_DE_TERNO_COM_L%C3%83_capa_sychgm.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540539/BLAZER_DE_TERNO_COM_L%C3%83_hover_kp6vv6.jpg');
+(54, 36, 'Azul Chumbo', '#34363F', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540542/BLAZER_DE_TERNO_COM_L%C3%83_capa_sychgm.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540539/BLAZER_DE_TERNO_COM_L%C3%83_hover_kp6vv6.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (214, 54, 'P', 'SKU-BLAZER-DE-TERNO-COM-LA-36-P', 22);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (215, 54, 'M', 'SKU-BLAZER-DE-TERNO-COM-LA-36-M', 22);
@@ -751,7 +751,7 @@ INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (218, 54, 'XG', 'SKU-BLAZER-DE-TERNO-COM-LA-36-XG', 24);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(55, 36, 'Cinza Grafite', '#493F40', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540541/BLAZER_DE_TERNO_COM_L%C3%83_COLOR2_FOTO1_b1hf61.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540540/BLAZER_DE_TERNO_COM_L%C3%83_COLOR2_FOTO2_gnzir5.jpg');
+(55, 36, 'Cinza Escuro', '#493F40', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540541/BLAZER_DE_TERNO_COM_L%C3%83_COLOR2_FOTO1_b1hf61.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540540/BLAZER_DE_TERNO_COM_L%C3%83_COLOR2_FOTO2_gnzir5.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (219, 55, 'P', 'SKU-BLAZER-DE-TERNO-COM-LA-36-P-COLOR2', 15);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (220, 55, 'G', 'SKU-BLAZER-DE-TERNO-COM-LA-36-G-COLOR2', 30);
@@ -763,7 +763,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (37, 'Lã', 70), (37, 'Poliéster', 30);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(56, 37, 'Azul Marinho', '#575854', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540538/BLAZER_REGULAR_FIT_ESTRUTURADO_capa_tcfc6a.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540538/BLAZER_REGULAR_FIT_ESTRUTURADO_hover_koivzf.jpg');
+(56, 37, 'Cinza Escuro', '#575854', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540538/BLAZER_REGULAR_FIT_ESTRUTURADO_capa_tcfc6a.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785540538/BLAZER_REGULAR_FIT_ESTRUTURADO_hover_koivzf.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (222, 56, 'P', 'SKU-BLAZER-REGULAR-FIT-ESTRUTURADO-37-P', 27);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (223, 56, 'M', 'SKU-BLAZER-REGULAR-FIT-ESTRUTURADO-37-M', 29);
@@ -867,7 +867,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (41, 'Algodão', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(64, 41, 'Branco', '#0656A5', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587369/CAMISETA_LAVADA_HENRI_MATISSE_capa_knx96m.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587369/CAMISETA_LAVADA_HENRI_MATISSE_hover_jvffwr.jpg');
+(64, 41, 'Azul Royal', '#0656A5', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587369/CAMISETA_LAVADA_HENRI_MATISSE_capa_knx96m.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587369/CAMISETA_LAVADA_HENRI_MATISSE_hover_jvffwr.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (251, 64, 'PP', 'SKU-CAMISETA-LAVADA-HENRI-MATISSE-41-PP', 9);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (252, 64, 'M', 'SKU-CAMISETA-LAVADA-HENRI-MATISSE-41-M', 6);
@@ -879,14 +879,14 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (42, 'Algodão', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(65, 42, 'Branco', '#9FB4D0', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587369/CAMISETA_LISTRADA_DE_ALGOD%C3%83O_E_LINHO_capa_lnhd2g.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587372/CAMISETA_LISTRADA_DE_ALGOD%C3%83O_E_LINHO_hover_kczv6m.jpg');
+(65, 42, 'Azul Claro', '#9FB4D0', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587369/CAMISETA_LISTRADA_DE_ALGOD%C3%83O_E_LINHO_capa_lnhd2g.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587372/CAMISETA_LISTRADA_DE_ALGOD%C3%83O_E_LINHO_hover_kczv6m.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (254, 65, 'P', 'SKU-CAMISETA-LISTRADA-DE-ALGODAO-E-LINHO-42-P', 9);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (255, 65, 'G', 'SKU-CAMISETA-LISTRADA-DE-ALGODAO-E-LINHO-42-G', 9);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (256, 65, 'GG', 'SKU-CAMISETA-LISTRADA-DE-ALGODAO-E-LINHO-42-GG', 26);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(66, 42, 'Preto', '#F55284', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587369/CAMISETA_LISTRADA_DE_ALGOD%C3%83O_E_LINHO_color2_foto1_ands1p.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587372/CAMISETA_LISTRADA_DE_ALGOD%C3%83O_E_LINHO_color2_foto2_t3o7fl.jpg');
+(66, 42, 'Rosa Pink', '#F55284', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587369/CAMISETA_LISTRADA_DE_ALGOD%C3%83O_E_LINHO_color2_foto1_ands1p.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785587372/CAMISETA_LISTRADA_DE_ALGOD%C3%83O_E_LINHO_color2_foto2_t3o7fl.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (257, 66, 'PP', 'SKU-CAMISETA-LISTRADA-DE-ALGODAO-E-LINHO-42-PP-COLOR2', 14);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (258, 66, 'P', 'SKU-CAMISETA-LISTRADA-DE-ALGODAO-E-LINHO-42-P-COLOR2', 22);
@@ -937,7 +937,7 @@ INSERT INTO products (id, name, slug, description, price, category, target_audie
 INSERT INTO product_fabric_compositions (product_id, material, percentage) VALUES (44, 'Algodão', 100);
 
 INSERT INTO product_colors (id, product_id, color_name, color_hex, cover_image_url, hover_image_url) VALUES 
-(70, 44, 'Branco', '#346155', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785588156/CAMISETA_ESTONADA_REGULAR_FIT_capa_puny28.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785588157/CAMISETA_ESTONADA_REGULAR_FIT_hover_r1valp.jpg');
+(70, 44, 'Verde Petróleo', '#346155', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785588156/CAMISETA_ESTONADA_REGULAR_FIT_capa_puny28.jpg', 'https://res.cloudinary.com/apgaq55g/image/upload/v1785588157/CAMISETA_ESTONADA_REGULAR_FIT_hover_r1valp.jpg');
 
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (270, 70, 'P', 'SKU-CAMISETA-ESTONADA-REGULAR-FIT-44-P', 19);
 INSERT INTO product_skus (id, product_color_id, size, sku_code, stock_quantity) VALUES (271, 70, 'M', 'SKU-CAMISETA-ESTONADA-REGULAR-FIT-44-M', 31);

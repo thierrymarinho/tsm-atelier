@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -107,7 +108,7 @@ public class AuthService {
 
 	@Transactional(readOnly = true)
 	public AuthResponseDTO login(LoginRequestDTO request, String clientIp) {
-		rateLimitService.checkAccountLockout(request.email(), clientIp);
+		rateLimitService.checkAccountLockout(request.email());
 
 		try {
 			authenticationManager
@@ -117,7 +118,7 @@ public class AuthService {
 			throw e;
 		}
 
-		rateLimitService.resetFailedAttempts(request.email(), clientIp);
+		rateLimitService.resetFailedAttempts(request.email());
 
 		User user = userRepository.findByEmail(request.email())
 				.orElseThrow(() -> new UserNotFoundException("User not found."));
@@ -258,15 +259,26 @@ public class AuthService {
 			return;
 		}
 
-		String hashedToken = hashToken(refreshToken);
-		String email = redisTemplate.opsForValue().getAndDelete("rt:valid:" + hashedToken);
+		// Nada aqui pode derrubar o logout. Estas linhas estavam desprotegidas, e o
+		// controller so limpa os cookies depois que este metodo retorna: uma falha do
+		// Redis fazia o logout devolver 500 sem apagar cookie nenhum, ou seja, o
+		// usuario clicava em sair e continuava dentro.
+		try {
+			String hashedToken = hashToken(refreshToken);
+			String email = redisTemplate.opsForValue().getAndDelete("rt:valid:" + hashedToken);
 
-		// Um logout dentro da janela de graca precisa mata-la tambem, senao o token
-		// que acabou de ser invalidado ainda renderia uma sessao nova.
-		redisTemplate.delete("rt:grace:" + hashedToken);
+			// Um logout dentro da janela de graca precisa mata-la tambem, senao o token
+			// que acabou de ser invalidado ainda renderia uma sessao nova.
+			redisTemplate.delete("rt:grace:" + hashedToken);
 
-		if (email != null) {
-			redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
+			if (email != null) {
+				redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
+			}
+		} catch (DataAccessException e) {
+			// Em warn, e nao em debug: o refresh token continua valido por ate sete
+			// dias, e o usuario acredita ter saido. E a falha mais grave que este
+			// metodo pode esconder.
+			log.warn("Could not invalidate the refresh token during logout; it stays valid until it expires", e);
 		}
 	}
 

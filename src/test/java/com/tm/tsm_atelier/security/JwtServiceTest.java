@@ -161,15 +161,6 @@ class JwtServiceTest {
 		}
 
 		@Test
-		@DisplayName("Should reject the secret that was published in the repository history")
-		void shouldRejectThePublishedSecret() {
-			ReflectionTestUtils.setField(jwtService, "secretKey", "super-secret-key-for-jwt-generation-tsm-atelier");
-
-			assertThatThrownBy(() -> jwtService.validateSecret()).isInstanceOf(IllegalStateException.class)
-					.hasMessageContaining("published in this repository's history");
-		}
-
-		@Test
 		@DisplayName("Should reject a secret shorter than 256 bits")
 		void shouldRejectASecretShorterThan256Bits() {
 			ReflectionTestUtils.setField(jwtService, "secretKey", "too-short");

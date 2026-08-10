@@ -6,7 +6,6 @@ import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
-import java.util.Set;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,16 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtService {
 
-	/** HS256 exige 256 bits. Abaixo disso a chave é fraca por definição. */
 	private static final int MIN_SECRET_BYTES = 32;
-
-	/**
-	 * Valores que já circularam publicamente e não podem voltar a assinar nada.
-	 * Este estava versionado no application.yaml e continua no histórico do git —
-	 * trocar a variável de ambiente não o apaga de lá, então ele fica barrado para
-	 * sempre.
-	 */
-	private static final Set<String> COMPROMISED_SECRETS = Set.of("super-secret-key-for-jwt-generation-tsm-atelier");
 
 	@Value("${jwt.secret}")
 	private String secretKey;
@@ -33,20 +23,10 @@ public class JwtService {
 	@Value("${jwt.access-token-expiration}")
 	private long jwtExpiration;
 
-	/**
-	 * Validado na subida, e não no primeiro uso: uma chave fraca só estouraria na
-	 * primeira emissão de token, ou seja, em produção, no primeiro login. Falhar
-	 * aqui transforma isso em erro de deploy.
-	 */
 	@PostConstruct
 	void validateSecret() {
 		if (secretKey == null || secretKey.isBlank()) {
 			throw new IllegalStateException("JWT_SECRET is required and must not be blank.");
-		}
-
-		if (COMPROMISED_SECRETS.contains(secretKey)) {
-			throw new IllegalStateException(
-					"JWT_SECRET is set to a value published in this repository's history. Rotate it.");
 		}
 
 		if (secretKey.getBytes(StandardCharsets.UTF_8).length < MIN_SECRET_BYTES) {

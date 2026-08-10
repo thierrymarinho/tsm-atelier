@@ -3,6 +3,8 @@ package com.tm.tsm_atelier.domain.auth.controller;
 import static com.tm.tsm_atelier.common.builders.AuthResponseDTOBuilder.anAuthResponseDTO;
 import static com.tm.tsm_atelier.common.builders.LoginRequestBuilder.aLoginRequest;
 import static com.tm.tsm_atelier.common.builders.RegisterRequestBuilder.aRegisterRequest;
+import static com.tm.tsm_atelier.security.SecurityConstants.ACCESS_TOKEN_COOKIE;
+import static com.tm.tsm_atelier.security.SecurityConstants.REFRESH_TOKEN_COOKIE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -99,7 +101,8 @@ class AuthControllerTest {
 			// Act & Assert
 			performRegister(request).andExpect(status().isCreated())
 					.andExpect(jsonPath("$.message").value(mockResponse.message()))
-					.andExpect(cookie().doesNotExist("access_token")).andExpect(cookie().doesNotExist("refresh_token"));
+					.andExpect(cookie().doesNotExist(ACCESS_TOKEN_COOKIE))
+					.andExpect(cookie().doesNotExist(REFRESH_TOKEN_COOKIE));
 
 			verify(authService).register(any(RegisterRequestDTO.class));
 		}
@@ -176,10 +179,10 @@ class AuthControllerTest {
 
 			when(authService.login(any(LoginRequestDTO.class), anyString())).thenReturn(mockTokens);
 			// Act & Assert
-			performLogin(request).andExpect(status().isOk()).andExpect(cookie().exists("access_token"))
-					.andExpect(cookie().value("access_token", mockTokens.accessToken()))
-					.andExpect(cookie().exists("refresh_token"))
-					.andExpect(cookie().value("refresh_token", mockTokens.refreshToken()))
+			performLogin(request).andExpect(status().isOk()).andExpect(cookie().exists(ACCESS_TOKEN_COOKIE))
+					.andExpect(cookie().value(ACCESS_TOKEN_COOKIE, mockTokens.accessToken()))
+					.andExpect(cookie().exists(REFRESH_TOKEN_COOKIE))
+					.andExpect(cookie().value(REFRESH_TOKEN_COOKIE, mockTokens.refreshToken()))
 					.andExpect(jsonPath("$.email").value(mockTokens.email()))
 					.andExpect(jsonPath("$.name").value(mockTokens.name()));
 
@@ -212,13 +215,14 @@ class AuthControllerTest {
 			when(authService.login(any(LoginRequestDTO.class), anyString())).thenReturn(mockTokens);
 
 			// Act & Assert
-			performLogin(request).andExpect(status().isOk()).andExpect(cookie().exists("access_token"))
-					.andExpect(cookie().value("access_token", mockTokens.accessToken()))
-					.andExpect(cookie().httpOnly("access_token", true)).andExpect(cookie().secure("access_token", true))
-					.andExpect(cookie().exists("refresh_token"))
-					.andExpect(cookie().value("refresh_token", mockTokens.refreshToken()))
-					.andExpect(cookie().httpOnly("refresh_token", true))
-					.andExpect(cookie().secure("refresh_token", true));
+			performLogin(request).andExpect(status().isOk()).andExpect(cookie().exists(ACCESS_TOKEN_COOKIE))
+					.andExpect(cookie().value(ACCESS_TOKEN_COOKIE, mockTokens.accessToken()))
+					.andExpect(cookie().httpOnly(ACCESS_TOKEN_COOKIE, true))
+					.andExpect(cookie().secure(ACCESS_TOKEN_COOKIE, true))
+					.andExpect(cookie().exists(REFRESH_TOKEN_COOKIE))
+					.andExpect(cookie().value(REFRESH_TOKEN_COOKIE, mockTokens.refreshToken()))
+					.andExpect(cookie().httpOnly(REFRESH_TOKEN_COOKIE, true))
+					.andExpect(cookie().secure(REFRESH_TOKEN_COOKIE, true));
 		}
 
 		@Test
@@ -231,7 +235,33 @@ class AuthControllerTest {
 			when(authService.login(any(LoginRequestDTO.class), anyString())).thenReturn(mockTokens);
 
 			// Act & Assert
-			performLogin(request).andExpect(status().isOk()).andExpect(cookie().path("refresh_token", "/api/v1/auth"));
+			performLogin(request).andExpect(status().isOk())
+					.andExpect(cookie().path(REFRESH_TOKEN_COOKIE, "/api/v1/auth"));
+		}
+
+		/**
+		 * Os nomes ficam literais aqui de propósito. Trocá-los é decisão deliberada —
+		 * derruba a sessão de todo mundo e obriga o front a acompanhar — e um teste
+		 * escrito sobre a mesma constante que a produção usa não acusaria nada.
+		 *
+		 * <p>
+		 * O prefixo __Host- é regra imposta pelo browser, não convenção: ele exige
+		 * Secure e Path=/ e recusa o cookie inteiro se faltar qualquer um. O refresh
+		 * fica com __Secure- porque seu caminho é restrito, o que __Host- proibiria.
+		 */
+		@Test
+		@DisplayName("Should name the cookies with the prefixes their attributes entitle them to")
+		void shouldNameCookiesWithTheirPrefixes() throws Exception {
+			LoginRequestDTO request = aLoginRequest().build();
+			AuthResponseDTO mockTokens = anAuthResponseDTO().build();
+
+			when(authService.login(any(LoginRequestDTO.class), anyString())).thenReturn(mockTokens);
+
+			performLogin(request).andExpect(status().isOk()).andExpect(cookie().exists("__Host-access_token"))
+					.andExpect(cookie().path("__Host-access_token", "/"))
+					.andExpect(cookie().secure("__Host-access_token", true))
+					.andExpect(cookie().exists("__Secure-refresh_token"))
+					.andExpect(cookie().secure("__Secure-refresh_token", true));
 		}
 	}
 
@@ -251,27 +281,37 @@ class AuthControllerTest {
 
 			// Act & Assert
 			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())
-					.cookie(new jakarta.servlet.http.Cookie("refresh_token", validToken))).andExpect(status().isOk())
-					.andExpect(cookie().exists("access_token")).andExpect(cookie().value("access_token", "new-access"))
-					.andExpect(cookie().exists("refresh_token"))
-					.andExpect(cookie().value("refresh_token", "new-refresh"))
+					.cookie(new jakarta.servlet.http.Cookie(REFRESH_TOKEN_COOKIE, validToken)))
+					.andExpect(status().isOk()).andExpect(cookie().exists(ACCESS_TOKEN_COOKIE))
+					.andExpect(cookie().value(ACCESS_TOKEN_COOKIE, "new-access"))
+					.andExpect(cookie().exists(REFRESH_TOKEN_COOKIE))
+					.andExpect(cookie().value(REFRESH_TOKEN_COOKIE, "new-refresh"))
 					.andExpect(jsonPath("$.email").value(newTokens.email()))
 					.andExpect(jsonPath("$.name").value(newTokens.name()));
 
 			verify(authService).refresh(validToken);
 		}
 
+		/**
+		 * O 401 por ausência de token não pode mexer em cookie. /refresh é isento de
+		 * CSRF, então um POST top-level partido de um site hostil cai exatamente aqui —
+		 * o SameSite impede o cookie de acompanhar — e os Set-Cookie de limpeza que
+		 * este ramo emitia eram aplicados pelo browser, deslogando a vítima à
+		 * distância. Ausência de credencial não é motivo para descartar credencial.
+		 */
 		@Test
-		@DisplayName("Should return 401 when there is no refresh token cookie")
-		void shouldReturn401WhenNoRefreshTokenCookie() throws Exception {
+		@DisplayName("Should return 401 without touching the cookies when no refresh token was provided")
+		void shouldReturn401WithoutClearingCookiesWhenNoRefreshTokenCookie() throws Exception {
 			// Act & Assert
-			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())).andExpect(status().isUnauthorized());
+			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())).andExpect(status().isUnauthorized())
+					.andExpect(cookie().doesNotExist(ACCESS_TOKEN_COOKIE))
+					.andExpect(cookie().doesNotExist(REFRESH_TOKEN_COOKIE));
 
 			verify(authService, never()).refresh(anyString());
 		}
 
 		@Test
-		@DisplayName("Should return 401 when the refresh token is invalid")
+		@DisplayName("Should return 401 and clear the cookies when the refresh token is invalid")
 		void shouldReturn401WhenRefreshTokenIsInvalid() throws Exception {
 			// Arrange
 			String invalidToken = "invalid-refresh-token";
@@ -280,9 +320,12 @@ class AuthControllerTest {
 					.thenThrow(new com.tm.tsm_atelier.common.exception.custom.InvalidTokenException("Invalid token"));
 
 			// Act & Assert
+			// Aqui a limpeza é o comportamento certo: o token foi apresentado e
+			// recusado, e sem isso o browser seguiria mandando o token morto.
 			mockMvc.perform(post(BASE_URL + "/refresh").with(csrf())
-					.cookie(new jakarta.servlet.http.Cookie("refresh_token", invalidToken)))
-					.andExpect(status().isUnauthorized());
+					.cookie(new jakarta.servlet.http.Cookie(REFRESH_TOKEN_COOKIE, invalidToken)))
+					.andExpect(status().isUnauthorized()).andExpect(cookie().maxAge(ACCESS_TOKEN_COOKIE, 0))
+					.andExpect(cookie().maxAge(REFRESH_TOKEN_COOKIE, 0));
 
 			verify(authService).refresh(invalidToken);
 		}
@@ -312,7 +355,7 @@ class AuthControllerTest {
 							.email("user@example.com").password("x").role(Role.CUSTOMER).emailVerified(true).build()));
 
 			// Act & Assert
-			mockMvc.perform(get(BASE_URL + "/me").cookie(new jakarta.servlet.http.Cookie("access_token", token)))
+			mockMvc.perform(get(BASE_URL + "/me").cookie(new jakarta.servlet.http.Cookie(ACCESS_TOKEN_COOKIE, token)))
 					.andExpect(status().isOk()).andExpect(jsonPath("$.firstName").value("Maria"))
 					.andExpect(jsonPath("$.lastName").value("Silva")).andExpect(jsonPath("$.name").value("Maria Silva"))
 					.andExpect(jsonPath("$.email").value("user@example.com"))
@@ -366,8 +409,9 @@ class AuthControllerTest {
 
 			// Act & Assert
 			mockMvc.perform(post(BASE_URL + "/logout").with(csrf())
-					.cookie(new jakarta.servlet.http.Cookie("refresh_token", token))).andExpect(status().isOk())
-					.andExpect(cookie().value("access_token", "")).andExpect(cookie().value("refresh_token", ""));
+					.cookie(new jakarta.servlet.http.Cookie(REFRESH_TOKEN_COOKIE, token))).andExpect(status().isOk())
+					.andExpect(cookie().value(ACCESS_TOKEN_COOKIE, ""))
+					.andExpect(cookie().value(REFRESH_TOKEN_COOKIE, ""));
 
 			verify(authService).logout(null, token);
 		}
@@ -377,7 +421,8 @@ class AuthControllerTest {
 		void shouldSetMaxAgeZeroOnCookies() throws Exception {
 			// Act & Assert
 			mockMvc.perform(post(BASE_URL + "/logout").with(csrf())).andExpect(status().isOk())
-					.andExpect(cookie().maxAge("access_token", 0)).andExpect(cookie().maxAge("refresh_token", 0));
+					.andExpect(cookie().maxAge(ACCESS_TOKEN_COOKIE, 0))
+					.andExpect(cookie().maxAge(REFRESH_TOKEN_COOKIE, 0));
 
 			verify(authService).logout(null, null);
 		}
@@ -397,10 +442,10 @@ class AuthControllerTest {
 			when(authService.verifyEmail(token)).thenReturn(mockTokens);
 
 			// Act & Assert
-			performVerifyEmail(token).andExpect(status().isOk()).andExpect(cookie().exists("access_token"))
-					.andExpect(cookie().value("access_token", mockTokens.accessToken()))
-					.andExpect(cookie().exists("refresh_token"))
-					.andExpect(cookie().value("refresh_token", mockTokens.refreshToken()));
+			performVerifyEmail(token).andExpect(status().isOk()).andExpect(cookie().exists(ACCESS_TOKEN_COOKIE))
+					.andExpect(cookie().value(ACCESS_TOKEN_COOKIE, mockTokens.accessToken()))
+					.andExpect(cookie().exists(REFRESH_TOKEN_COOKIE))
+					.andExpect(cookie().value(REFRESH_TOKEN_COOKIE, mockTokens.refreshToken()));
 
 			verify(authService).verifyEmail(token);
 		}

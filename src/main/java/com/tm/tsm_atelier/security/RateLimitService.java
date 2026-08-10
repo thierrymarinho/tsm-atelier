@@ -26,9 +26,6 @@ public class RateLimitService {
 		}
 
 		if (hits != null && hits > maxRequests) {
-			// Só a primeira requisição barrada é registrada. Logar todas deixaria o
-			// atacante escolher quantas linhas escrever no nosso log, enterrando o
-			// resto — a informação útil é que o limite estourou, não cada repetição.
 			if (hits == maxRequests + 1L) {
 				log.warn("Rate limit exceeded for action '{}' from IP {}", action, ip);
 			}
@@ -36,8 +33,8 @@ public class RateLimitService {
 		}
 	}
 
-	public void checkAccountLockout(String email, String ip) {
-		String key = lockoutKey(email, ip);
+	public void checkAccountLockout(String email) {
+		String key = lockoutKey(email);
 		String value = redisTemplate.opsForValue().get(key);
 		if (value != null && Integer.parseInt(value) >= 5) {
 			Long expire = redisTemplate.getExpire(key);
@@ -48,7 +45,7 @@ public class RateLimitService {
 	}
 
 	public void recordFailedAttempt(String email, String ip, int maxAttempts, Duration lockDuration) {
-		String key = lockoutKey(email, ip);
+		String key = lockoutKey(email);
 		Long attempts = redisTemplate.opsForValue().increment(key);
 
 		if (attempts != null) {
@@ -57,10 +54,6 @@ public class RateLimitService {
 			} else if (attempts >= maxAttempts) {
 				redisTemplate.expire(key, lockDuration);
 
-				// Registrado só no momento em que a trava fecha: as tentativas
-				// seguintes param antes disso, em checkAccountLockout. Sem esta linha,
-				// um chamado de "não consigo entrar" é indistinguível de um ataque de
-				// força bruta em andamento.
 				log.warn("Account lockout triggered for {} from IP {} after {} failed attempts", email, ip, attempts);
 
 				throw new AccountLockedException("Your account has been locked for " + lockDuration.toMinutes()
@@ -69,12 +62,11 @@ public class RateLimitService {
 		}
 	}
 
-	public void resetFailedAttempts(String email, String ip) {
-		String key = lockoutKey(email, ip);
-		redisTemplate.delete(key);
+	public void resetFailedAttempts(String email) {
+		redisTemplate.delete(lockoutKey(email));
 	}
 
-	private String lockoutKey(String email, String ip) {
-		return "rl:lockout:" + email + ":" + (ip == null ? "unknown" : ip);
+	private String lockoutKey(String email) {
+		return "rl:lockout:" + email;
 	}
 }

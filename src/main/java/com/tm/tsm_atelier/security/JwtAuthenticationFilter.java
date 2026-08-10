@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.jspecify.annotations.NonNull;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,34 +29,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response,
+	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
 			@NonNull FilterChain filterChain) throws ServletException, IOException {
 
-		// O cookie httpOnly é a única entrada aceita. Havia um fallback para
-		// Authorization: Bearer, removido de propósito — ele era uma segunda porta
-		// para a mesma credencial, e fora do modelo de ameaça em que o resto do
-		// fluxo foi desenhado: o SameSite do cookie não cobre um header, e um token
-		// que vaze em log, URL ou proxy vira sessão utilizável por essa via.
-		String jwt = null;
+		String jwt = extractAccessToken(request);
 
-		if (request.getCookies() != null) {
-			for (Cookie cookie : request.getCookies()) {
-				if ("access_token".equals(cookie.getName())) {
-					jwt = cookie.getValue();
-					break;
-				}
-			}
-		}
-
-		// No cookie found, proceed to next filter (Spring will block protected routes)
 		if (jwt == null) {
-			filterChain.doFilter(request, response);
-			return;
-		}
-
-		// Um token revogado no logout continua tecnicamente válido — assinatura boa,
-		// dentro da validade. Só o denylist sabe que ele não vale mais.
-		if (accessTokenDenylist.isRevoked(jwt)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -63,27 +42,54 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		try {
 			String userEmail = jwtService.extractUsername(jwt);
 
-			if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-				// A role vem de userDetails.getAuthorities(), ou seja, do banco — nunca
-				// do claim do token. É o que faz um admin rebaixado perder o acesso na
-				// requisição seguinte, em vez de só quando o token expira. Havia aqui um
-				// extractRole(jwt) atribuído e nunca usado; foi removido para ninguém
-				// achar que a role do token serve para autorizar.
-				if (jwtService.isTokenValid(jwt, userEmail)) {
-					UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+			if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null
+					&& jwtService.isTokenValid(jwt, userEmail) && !isRevoked(jwt)) {
 
-					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-							null, userDetails.getAuthorities());
+				UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-					SecurityContextHolder.getContext().setAuthentication(authToken);
-				}
+				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
+						null, userDetails.getAuthorities());
+
+				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}
 		} catch (Exception e) {
-			// Invalid or expired token — proceed without authentication
 			logger.debug("Invalid JWT token: " + e.getMessage());
 		}
 
 		filterChain.doFilter(request, response);
+	}
+
+	/**
+	 * Falha aberto de proposito. O denylist so cobre logout voluntario, entao
+	 * indisponibilidade dele significa que um token descartado sobrevive pelo que
+	 * resta da sua validade — no maximo alguns minutos. Falhar fechado custaria o
+	 * contrario: ninguem autentica, e o site inteiro cai por causa de uma
+	 * dependencia que existe apenas para revogar.
+	 *
+	 * Em warn, e nao em debug: o sistema esta rodando com uma garantia a menos, e
+	 * isso precisa aparecer em algum lugar.
+	 */
+	private boolean isRevoked(String jwt) {
+		try {
+			return accessTokenDenylist.isRevoked(jwt);
+		} catch (DataAccessException e) {
+			logger.warn("Denylist unavailable; accepting the token without checking for revocation", e);
+			return false;
+		}
+	}
+
+	private String extractAccessToken(HttpServletRequest request) {
+		if (request.getCookies() == null) {
+			return null;
+		}
+
+		for (Cookie cookie : request.getCookies()) {
+			if (SecurityConstants.ACCESS_TOKEN_COOKIE.equals(cookie.getName())) {
+				return cookie.getValue();
+			}
+		}
+
+		return null;
 	}
 }

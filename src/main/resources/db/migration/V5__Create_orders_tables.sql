@@ -34,9 +34,6 @@ CREATE TABLE order_items (
     sku_code VARCHAR(100) NOT NULL,
     size VARCHAR(50) NOT NULL,
     color VARCHAR(255),
-    -- Acompanha product_colors.cover_image_url, que e a origem do valor. Enquanto
-    -- esta coluna era menor que a de origem, uma URL de imagem longa passava no
-    -- cadastro do produto e derrubava o checkout desse produto no insert.
     image_url VARCHAR(500),
     price_at_purchase DECIMAL(10,2) NOT NULL,
     list_price_at_purchase DECIMAL(10,2) NOT NULL,

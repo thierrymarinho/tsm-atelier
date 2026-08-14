@@ -24,15 +24,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Servidor real, e nao MockMvc, pelo mesmo motivo de
- * {@link AuthorizationStatusCodeTest}: o que esta sendo testado e a cadeia de
- * filtros inteira, incluindo o cookie que o CsrfCookieFilter emite. Com
- * {@code .with(csrf())} do MockMvc o token e injetado por baixo do filtro, e o
- * teste passaria mesmo com a protecao desligada.
+ * AuthorizationStatusCodeTest: o que esta sendo testado e a cadeia de filtros
+ * inteira, incluindo o cookie que o CsrfCookieFilter emite. Com .with(csrf())
+ * do MockMvc o token e injetado por baixo do filtro, e o teste passaria mesmo
+ * com a protecao desligada.
  *
- * <p>
- * A distincao importa para o front porque o CSRF ausente devolve <strong>403,
- * nao 401</strong>: um interceptor que trate 403 como sessao expirada entra em
- * laco de renovacao e desloga um usuario cuja sessao estava perfeita.
+ * A distincao importa para o front porque o CSRF ausente devolve 403, nao 401:
+ * um interceptor que trate 403 como sessao expirada entra em laco de renovacao
+ * e desloga um usuario cuja sessao estava perfeita.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("CSRF enforcement on writes")

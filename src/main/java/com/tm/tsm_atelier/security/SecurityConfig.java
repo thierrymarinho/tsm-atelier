@@ -90,18 +90,6 @@ public class SecurityConfig {
 				.authorizeHttpRequests(req -> req.requestMatchers(SecurityConstants.PUBLIC_ROUTES).permitAll()
 						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated())
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-				// Aqui estava SessionCreationPolicy.STATELESS, e a politica era so
-				// declaratoria: o configurer registra o SessionManagementFilter mesmo sob
-				// STATELESS, e e ele que chamava CsrfAuthenticationStrategy a cada
-				// requisicao autenticada — apagando o cookie __Host-XSRF-TOKEN que a
-				// propria aplicacao exige na escrita seguinte.
-				//
-				// Desligar o configurer tira o filtro da cadeia. A ausencia de sessao
-				// passa a ser consequencia de nada cria-la — o JwtAuthenticationFilter
-				// escreve so no SecurityContextHolder, e nada chama saveContext —, e nao
-				// de uma politica declarada. Se um dia entrar form login ou algum fluxo
-				// que crie sessao, esta linha precisa voltar junto com uma solucao para a
-				// delecao do cookie.
 				.sessionManagement(AbstractHttpConfigurer::disable).authenticationProvider(authenticationProvider())
 				.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 				.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);

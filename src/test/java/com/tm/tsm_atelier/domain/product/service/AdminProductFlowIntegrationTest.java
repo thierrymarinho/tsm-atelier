@@ -31,12 +31,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Fluxo de edição do admin contra banco de verdade.
  *
- * <p>
- * O {@code flush()} + {@code clear()} entre os passos não é cerimônia: é o que
- * faz o teste valer alguma coisa. Todos os defeitos cobertos aqui só aparecem
- * na <em>releitura</em> — enquanto tudo acontece no mesmo contexto de
- * persistência, a coleção em memória já reflete a alteração e o teste passaria
- * com ou sem a correção.
+ * O flush() + clear() entre os passos não é cerimônia: é o que faz o teste
+ * valer alguma coisa. Todos os defeitos cobertos aqui só aparecem na releitura
+ * — enquanto tudo acontece no mesmo contexto de persistência, a coleção em
+ * memória já reflete a alteração e o teste passaria com ou sem a correção.
  */
 @SpringBootTest
 @Transactional
@@ -63,7 +61,7 @@ class AdminProductFlowIntegrationTest {
 
 	/**
 	 * A garantia que sustenta o snapshot do pedido: no checkout o código é copiado
-	 * para dentro do {@code OrderItem}, e se uma edição do cadastro o reescrevesse,
+	 * para dentro do OrderItem, e se uma edição do cadastro o reescrevesse,
 	 * catálogo e histórico passariam a discordar sobre a mesma peça. É por isso que
 	 * o código é opaco — se ele carregasse o nome do produto, este teste seria
 	 * impossível de satisfazer sem mentir.
@@ -138,10 +136,9 @@ class AdminProductFlowIntegrationTest {
 	/**
 	 * O round-trip puro: carregar o produto e devolvê-lo sem alterar nada tem que
 	 * passar. Parece trivial e é o teste que pega o BUG-01 — a cor removida voltava
-	 * no GET sem SKU nenhum, e o {@code @NotEmpty} do request recusava com 422 um
+	 * no GET sem SKU nenhum, e o @NotEmpty do request recusava com 422 um
 	 * salvamento que não mudava coisa alguma.
 	 *
-	 * <p>
 	 * Vale como regressão de contrato mais ampla: qualquer campo que o GET devolva
 	 * e o PUT não aceite de volta quebra aqui.
 	 */
@@ -170,11 +167,10 @@ class AdminProductFlowIntegrationTest {
 	 * aberto, clientes compram, e o salvamento devolvia ao estoque as unidades
 	 * vendidas nesse intervalo.
 	 *
-	 * <p>
 	 * A defesa anterior era recusar o salvamento com 409 — correta, e cara: uma
 	 * correção de descrição morria por causa de uma venda que não tinha nada a ver
 	 * com ela. Com o estoque fora deste payload a corrida deixa de existir, e o
-	 * mesmo cenário agora passa <em>sem</em> desfazer a venda.
+	 * mesmo cenário agora passa sem desfazer a venda.
 	 */
 	@Test
 	@DisplayName("An edit saved while the product was selling goes through, and the sale stands")
@@ -294,10 +290,9 @@ class AdminProductFlowIntegrationTest {
 
 	/**
 	 * Reconstrói o payload do PUT a partir do que o GET devolveu, que é exatamente
-	 * o que o formulário do admin faz. O {@code mutation} representa a edição do
-	 * usuário sobre a lista de cores.
+	 * o que o formulário do admin faz. O mutation representa a edição do usuário
+	 * sobre a lista de cores.
 	 *
-	 * <p>
 	 * O estoque é deixado de fora de propósito: SKU existente não o aceita mais, e
 	 * é assim que o front precisa montar o payload.
 	 */

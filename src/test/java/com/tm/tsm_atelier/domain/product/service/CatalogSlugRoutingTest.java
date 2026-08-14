@@ -30,9 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
  * A rota por slug carregava o produto por um id arrancado do último segmento do
  * texto. Como o gerador monta o slug a partir do nome, e só acrescenta número
  * quando há colisão, nada criado pela API era alcançável — e o que colidia era
- * alcançável <em>errado</em>.
+ * alcançável errado.
  *
- * <p>
  * Precisa de banco: o que está sendo testado é a relação entre o slug que o
  * serviço grava e o que a consulta encontra, e um mock de repositório
  * concordaria com qualquer uma das duas versões.
@@ -67,8 +66,8 @@ class CatalogSlugRoutingTest {
 
 	/**
 	 * O caso que servia conteúdo errado. O segundo produto de nome colidente recebe
-	 * o sufixo {@code -2}, indistinguível de um id — e a rota antiga entregava o
-	 * produto de id 2, com 301.
+	 * o sufixo -2, indistinguível de um id — e a rota antiga entregava o produto de
+	 * id 2, com 301.
 	 */
 	@Test
 	@DisplayName("Two products with colliding names each resolve to themselves")
@@ -134,10 +133,9 @@ class CatalogSlugRoutingTest {
 	}
 
 	/**
-	 * Produto e coleção já dividiram o cache {@code catalog_slug}, desambiguados
-	 * por um prefixo na chave. Hoje cada um tem o seu, porque a colisão de chave
-	 * nunca foi o problema — ver
-	 * {@link #aCollectionSurvivesARoundTripThroughItsCache()}.
+	 * Produto e coleção já dividiram o cache catalog_slug, desambiguados por um
+	 * prefixo na chave. Hoje cada um tem o seu, porque a colisão de chave nunca foi
+	 * o problema — ver aCollectionSurvivesARoundTripThroughItsCache().
 	 */
 	@Test
 	@DisplayName("A product and a collection sharing a slug do not collide in the cache")
@@ -153,30 +151,26 @@ class CatalogSlugRoutingTest {
 	}
 
 	/**
-	 * O teste acima passava com o cache da coleção <em>completamente quebrado</em>,
-	 * e é por isso que este existe.
+	 * O teste acima passava com o cache da coleção completamente quebrado, e é por
+	 * isso que este existe.
 	 *
-	 * <p>
 	 * O defeito era o serviço apontar para um cache cujo serializer é
-	 * {@code ProductResponseDTO}: a coleção era gravada sem reclamar e toda leitura
+	 * ProductResponseDTO: a coleção era gravada sem reclamar e toda leitura
 	 * quebrava ao forçar aquele JSON para dentro do tipo errado. Como o
-	 * {@code CacheErrorHandler} trata falha de leitura como cache frio, a resposta
+	 * CacheErrorHandler trata falha de leitura como cache frio, a resposta
 	 * continuava correta — vinda do banco, sempre, com um WARN por requisição.
 	 *
-	 * <p>
-	 * O que este caso prende é <strong>para qual cache o serviço escreve</strong>,
-	 * e é a metade que importa: um teste que apenas gravasse um
-	 * {@code CollectionResponseDTO} em {@code catalog_slug_collection} e o lesse de
-	 * volta passaria com o serviço ainda apontando para o cache errado. Essa outra
-	 * metade — a serialização em si — está em
-	 * {@code CatalogCacheSerializationTest#collectionDetailRoundTrips()}, ao lado
+	 * O que este caso prende é para qual cache o serviço escreve, e é a metade que
+	 * importa: um teste que apenas gravasse um CollectionResponseDTO em
+	 * catalog_slug_collection e o lesse de volta passaria com o serviço ainda
+	 * apontando para o cache errado. Essa outra metade — a serialização em si —
+	 * está em CatalogCacheSerializationTest#collectionDetailRoundTrips(), ao lado
 	 * dos três caches vizinhos.
 	 *
-	 * <p>
 	 * A asserção é sobre o conteúdo do cache, e não sobre a resposta do serviço: a
-	 * resposta estava certa o tempo todo. Lê-se direto do {@link CacheManager}
-	 * porque é o caminho que não passa pelo tratador que engolia o erro — uma
-	 * leitura com o serializer errado estoura aqui em vez de virar silêncio.
+	 * resposta estava certa o tempo todo. Lê-se direto do CacheManager porque é o
+	 * caminho que não passa pelo tratador que engolia o erro — uma leitura com o
+	 * serializer errado estoura aqui em vez de virar silêncio.
 	 */
 	@Test
 	@DisplayName("The collection lookup caches into the collection cache")

@@ -16,9 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * O seed do V9 escreve direto na tabela, e esse caminho não passa pelo
- * {@code ProductService} — nenhuma das duas regras de cuidado é imposta pelo
- * banco, porque o eixo não é coluna. Estes testes são o que resta no lugar
- * delas, e valem para qualquer seed futuro, não só para o de hoje.
+ * ProductService — nenhuma das duas regras de cuidado é imposta pelo banco,
+ * porque o eixo não é coluna. Estes testes são o que resta no lugar delas, e
+ * valem para qualquer seed futuro, não só para o de hoje.
  */
 @SpringBootTest
 @Transactional
@@ -41,9 +41,9 @@ class CareInstructionSeedTest {
 	}
 
 	/**
-	 * O {@code JOIN} do seed é por fibra dominante: um produto de um material sem
-	 * regra correspondente simplesmente não entra, e a falta de etiqueta só
-	 * apareceria na vitrine. Aqui ela quebra a build.
+	 * O JOIN do seed é por fibra dominante: um produto de um material sem regra
+	 * correspondente simplesmente não entra, e a falta de etiqueta só apareceria na
+	 * vitrine. Aqui ela quebra a build.
 	 */
 	@Test
 	@DisplayName("Every seeded product got a care label")

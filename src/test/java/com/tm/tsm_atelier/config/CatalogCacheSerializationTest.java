@@ -64,16 +64,14 @@ class CatalogCacheSerializationTest {
 
 	/**
 	 * A coleção tem cache próprio, e não uma chave prefixada dentro de
-	 * {@code catalog_slug}, porque um cache do Redis tem <strong>um</strong>
-	 * serializer de valor por nome. Enquanto os dois dividiram o mesmo cache, o
-	 * serializer era o do produto: a coleção era gravada sem reclamar e toda
-	 * leitura quebrava ao forçar aquele JSON para dentro de
-	 * {@code ProductResponseDTO}.
+	 * catalog_slug, porque um cache do Redis tem um serializer de valor por nome.
+	 * Enquanto os dois dividiram o mesmo cache, o serializer era o do produto: a
+	 * coleção era gravada sem reclamar e toda leitura quebrava ao forçar aquele
+	 * JSON para dentro de ProductResponseDTO.
 	 *
-	 * <p>
 	 * Este caso cobre a metade de serialização, como os três vizinhos. Que o
-	 * serviço escreva <em>neste</em> cache e não no outro é a outra metade, e vive
-	 * em {@code CatalogSlugRoutingTest} — nenhuma das duas pega o defeito sozinha.
+	 * serviço escreva neste cache e não no outro é a outra metade, e vive em
+	 * CatalogSlugRoutingTest — nenhuma das duas pega o defeito sozinha.
 	 */
 	@Test
 	@DisplayName("Collection detail comes back from Redis as a collection, not as a product")

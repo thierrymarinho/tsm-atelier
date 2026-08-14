@@ -7,22 +7,21 @@ import org.springframework.data.web.config.PageableHandlerMethodArgumentResolver
 /**
  * Teto de itens por página, para todas as rotas paginadas.
  *
- * <p>
- * O default do Spring é 2000. Numa rota pública isso é uma página de catálogo
- * inteira por requisição — e como a chave do cache {@code catalog_products}
- * inclui o {@code Pageable}, cada tamanho distinto pedido vira uma entrada nova
- * no Redis. O teto fecha os dois lados de uma vez.
  *
- * <p>
- * <strong>Isto não é a propriedade
- * {@code spring.data.web.pageable.max-page-size} de propósito.</strong> Aquela
- * propriedade só é lida por {@code SpringDataWebAutoConfiguration}, que recua
- * quando a aplicação declara {@code @EnableSpringDataWebSupport} — o que ela
- * faz, para serializar {@code Page} via DTO. Escrita no
- * {@code application.yaml}, a propriedade carrega sem erro e não faz
- * absolutamente nada; foi verificado que {@code ?size=150} continuava
- * devolvendo 150 itens com ela no arquivo. {@code @EnableSpringDataWebSupport}
- * consome este customizer, e é por ele que o limite passa a valer.
+ * O default do Spring é 2000. Numa rota pública isso é uma página de catálogo
+ * inteira por requisição — e como a chave do cache catalog_products inclui o
+ * Pageable, cada tamanho distinto pedido vira uma entrada nova no Redis. O teto
+ * fecha os dois lados de uma vez.
+ *
+ *
+ * Isto não é a propriedade spring.data.web.pageable.max-page-size de propósito.
+ * Aquela propriedade só é lida por SpringDataWebAutoConfiguration, que recua
+ * quando a aplicação declara @EnableSpringDataWebSupport — o que ela faz, para
+ * serializar Page via DTO. Escrita no application.yaml, a propriedade carrega
+ * sem erro e não faz absolutamente nada; foi verificado que ?size=150
+ * continuava devolvendo 150 itens com ela no
+ * arquivo. @EnableSpringDataWebSupport consome este customizer, e é por ele que
+ * o limite passa a valer.
  */
 @Configuration
 public class WebPaginationConfig {

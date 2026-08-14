@@ -12,13 +12,6 @@ import org.hibernate.annotations.SQLRestriction;
 @Entity
 @Table(name = "product_colors")
 @SQLDelete(sql = "UPDATE product_colors SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
-// Mesma razão do @SQLRestriction em ProductSKU, e a ausência dele aqui quebrava
-// o formulário de edição do admin: remover uma cor no PUT marcava deleted_at,
-// mas
-// a leitura seguinte trazia a cor de volta — e sem os SKUs, que o
-// @SQLRestriction
-// deles já escondia. O @NotEmpty de ProductColorRequestDTO.skus então recusava
-// todo salvamento posterior com 422, numa cor que o admin achava ter apagado.
 @SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter

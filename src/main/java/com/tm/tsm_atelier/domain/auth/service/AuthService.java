@@ -90,15 +90,15 @@ public class AuthService {
 
 		userRepository.save(user);
 
-		// Gera token de verificação e persiste no Redis com TTL de 24h
 		String verificationToken = UUID.randomUUID().toString();
 		redisTemplate.opsForValue().set("emailVerification:" + verificationToken, request.email(),
 				Duration.ofMillis(emailVerificationExpiration));
 
-		// Monta o link que o frontend irá consumir para chamar a API
+		// O link aponta para uma rota do front, não para a API: é a tela dele que lê
+		// o token da URL e chama POST /auth/verify-email.
 		String verificationLink = appBaseUrl + "/verify-email?token=" + verificationToken;
 
-		// Disparo assíncrono — não bloqueia o retorno do register
+		// Assíncrono no adapter: o registro responde sem esperar o provedor de e-mail.
 		emailPort.sendVerificationEmail(request.email(), request.firstName(), verificationLink);
 
 		return registrationAccepted();

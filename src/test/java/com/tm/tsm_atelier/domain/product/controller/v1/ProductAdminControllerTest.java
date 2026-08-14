@@ -99,7 +99,6 @@ class ProductAdminControllerTest {
 		 * ser lido. Num formulario de cadastro isso e um beco sem saida: o admin nao
 		 * descobre nem que campo errou, nem que existe uma lista fechada.
 		 *
-		 * <p>
 		 * O indice no nome do campo importa: numa composicao de tres materiais, saber
 		 * que "algum material e invalido" nao diz qual linha corrigir.
 		 */

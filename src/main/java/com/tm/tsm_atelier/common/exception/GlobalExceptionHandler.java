@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import org.jspecify.annotations.NonNull;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import tools.jackson.core.JacksonException.Reference;
 import tools.jackson.databind.exc.InvalidFormatException;
@@ -30,8 +32,8 @@ import tools.jackson.databind.exc.InvalidFormatException;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@Override
-	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(@NonNull MethodArgumentNotValidException ex,
+			@NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
 
 		logger.warn("Validation failed for request: " + ex.getMessage());
 
@@ -55,14 +57,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	 * til, recebe 400, e nada na resposta indica que existe uma lista fechada nem
 	 * quais sao os valores dela.
 	 *
-	 * <p>
+	 *
 	 * O caminho nomeia o campo inteiro, incluindo o indice
-	 * ({@code fabricCompositions[0].material}), porque numa composicao de tres
-	 * materiais saber apenas que "algum material e invalido" nao ajuda.
+	 * (fabricCompositions[0].material), porque numa composicao de tres materiais
+	 * saber apenas que "algum material e invalido" nao ajuda.
 	 */
 	@Override
-	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
-			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+	protected ResponseEntity<Object> handleHttpMessageNotReadable(@NonNull HttpMessageNotReadableException ex,
+			@NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
 
 		if (ex.getCause() instanceof InvalidFormatException cause && cause.getTargetType() != null
 				&& cause.getTargetType().isEnum()) {
@@ -180,19 +182,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return problem;
 	}
 
+	/**
+	 * CONTENT_TOO_LARGE, e não PAYLOAD_TOO_LARGE: a RFC 9110 renomeou o 413 e o
+	 * Spring depreciou a constante antiga. O número na resposta é o mesmo, mas as
+	 * duas não são a mesma constante do enum, e HttpStatus.valueOf(413) já devolve
+	 * a nova — comparar por identidade com a antiga daria falso.
+	 */
 	@Override
-	protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
-			org.springframework.web.multipart.MaxUploadSizeExceededException ex, HttpHeaders headers,
-			HttpStatusCode status, WebRequest request) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,
+	protected ResponseEntity<Object> handleMaxUploadSizeExceededException(@NonNull MaxUploadSizeExceededException ex,
+			@NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONTENT_TOO_LARGE,
 				"O arquivo excede o limite de tamanho permitido de 5MB.");
 		problem.setTitle("Payload Too Large");
-		return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(problem);
+		return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE).body(problem);
 	}
 
 	@ExceptionHandler(AddressLimitExceededException.class)
 	public ProblemDetail handleAddressLimitExceeded(AddressLimitExceededException ex) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+		// UNPROCESSABLE_CONTENT, e não UNPROCESSABLE_ENTITY: a RFC 9110 renomeou o
+		// 422 e a constante antiga está depreciada. Mesmo número na resposta.
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
 		problem.setTitle("Address limit exceeded");
 		return problem;
 	}
@@ -231,11 +240,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	 * de servidor para o que na verdade é erro do cliente, e enchendo o log de
 	 * ERROR com stack traces de situações rotineiras.
 	 *
-	 * <p>
-	 * O tipo capturado era {@link IllegalArgumentException}, o que também engolia
-	 * IAE vindo de dentro do framework: um erro de programação era devolvido ao
-	 * cliente como 400 e nunca aparecia como falha. Agora só as exceções de domínio
-	 * chegam aqui, e o resto volta a cair no handler genérico, que loga.
+	 *
+	 * O tipo capturado era IllegalArgumentException, o que também engolia IAE vindo
+	 * de dentro do framework: um erro de programação era devolvido ao cliente como
+	 * 400 e nunca aparecia como falha. Agora só as exceções de domínio chegam aqui,
+	 * e o resto volta a cair no handler genérico, que loga.
 	 */
 	@ExceptionHandler(BusinessRuleException.class)
 	public ProblemDetail handleBusinessRule(BusinessRuleException ex) {
@@ -290,7 +299,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ProblemDetail handleGenericException(Exception ex) {
-		// Log the actual error for the developer, generic message for the frontend
 		logger.error("Unexpected error: ", ex);
 
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,

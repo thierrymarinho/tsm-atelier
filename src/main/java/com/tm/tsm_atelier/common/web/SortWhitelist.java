@@ -7,16 +7,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 /**
- * Restringe a ordenação de um {@link Pageable} aos campos que o endpoint
- * realmente oferece.
+ * Restringe a ordenação de um Pageable aos campos que o endpoint realmente
+ * oferece.
  *
- * <p>
- * {@code @PageableDefault} define o padrão, não um limite: o cliente
- * sobrescreve pela query string, e o Spring Data resolve caminhos aninhados.
- * Sem esta validação, {@code ?sort=user.password,asc} era aceito — ordenar por
- * um campo não revela o valor diretamente, mas é um vetor conhecido de
- * inferência sobre dado sensível, e uma propriedade inexistente virava
- * {@code PropertyReferenceException} e saía como 500.
+ *
+ * @PageableDefault define o padrão, não um limite: o cliente sobrescreve pela
+ *                  query string, e o Spring Data resolve caminhos aninhados.
+ *                  Sem esta validação, ?sort=user.password,asc era aceito —
+ *                  ordenar por um campo não revela o valor diretamente, mas é
+ *                  um vetor conhecido de inferência sobre dado sensível, e uma
+ *                  propriedade inexistente virava PropertyReferenceException e
+ *                  saía como 500.
  */
 public final class SortWhitelist {
 

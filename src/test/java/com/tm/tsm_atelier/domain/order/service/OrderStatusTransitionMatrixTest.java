@@ -37,7 +37,6 @@ import org.springframework.context.ApplicationEventPublisher;
 /**
  * A matriz inteira, e nao alguns casos escolhidos a mao.
  *
- * <p>
  * Um mapa de transicoes e a classe de codigo onde a omissao nao se parece com
  * erro nenhum: esquecer um par proibido nao quebra compilacao, nao quebra teste
  * e so aparece quando alguem reabre um pedido cancelado em producao. Aqui os

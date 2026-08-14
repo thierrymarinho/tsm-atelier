@@ -193,10 +193,6 @@ public class OrderService {
 			if (item.getSku() == null) {
 				continue;
 			}
-			// O @SQLRestriction do ProductSKU esconde SKUs removidos do catálogo, e
-			// a versão anterior usava ifPresent: cancelar um pedido antigo de um
-			// produto já retirado perdia as unidades sem nenhum rastro, e o método
-			// seguia como se tivesse devolvido tudo.
 			skuRepository.findByIdWithPessimisticLock(item.getSku().getId()).ifPresentOrElse(
 					sku -> sku.setStockQuantity(sku.getStockQuantity() + item.getQuantity()),
 					() -> log.warn("SKU {} ({}) is no longer in the catalog; {} units from order {} were not restored",
@@ -246,29 +242,8 @@ public class OrderService {
 		return orderRepository.findByUserId(user.getId(), pageable).map(order -> toResponseDTO(order, null));
 	}
 
-	/**
-	 * A rota do cliente, e só dela. Um ADMIN chegando aqui recebe 403 — o que
-	 * parece uma perda de acesso e não é: ele tem
-	 * {@link #getAdminOrderDetails(Long)}, que devolve mais informação, e não
-	 * menos.
-	 *
-	 * <p>
-	 * Antes o ADMIN passava por esta checagem e recebia {@code OrderResponseDTO}
-	 * com o {@code clientSecret} anulado em tempo de execução por um parâmetro
-	 * booleano. Funcionava, e era uma garantia que dependia de alguém lembrar de
-	 * passar {@code false} — enquanto o campo existisse no record, todo mapeamento
-	 * novo nascia com o vazamento por padrão. Agora a separação é estrutural: o
-	 * caminho do admin usa um tipo que não tem o componente.
-	 *
-	 * <p>
-	 * De quebra, esta era a única autorização por regra de negócio do projeto. O
-	 * resto é posicional, decidido no SecurityConfig pelo prefixo da rota, e agora
-	 * isto também é.
-	 */
 	@Transactional(readOnly = true)
 	public OrderResponseDTO getOrderDetails(Long id, User user) {
-		// Um único pedido pode usar fetch join com segurança — não há paginação
-		// envolvida, então o Hibernate resolve tudo em uma consulta.
 		Order order = orderRepository.findByIdWithItems(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
@@ -287,8 +262,6 @@ public class OrderService {
 
 	@Transactional(readOnly = true)
 	public Page<AdminOrderResponseDTO> getAllOrders(OrderSearchFilter filter, Pageable pageable) {
-		// Intervalo invertido devolveria uma lista vazia sem erro, e o operador
-		// concluiria que não há pedidos no período.
 		if (filter.createdFrom() != null && filter.createdTo() != null
 				&& filter.createdFrom().isAfter(filter.createdTo())) {
 			throw new BusinessRuleException(
@@ -318,17 +291,12 @@ public class OrderService {
 			throw new InvalidStatusTransitionException(previousStatus, newStatus);
 		}
 
-		// Cancelar precisa devolver o estoque reservado. A versão anterior apenas
-		// trocava o status, então todo cancelamento feito pelo admin vazava o
-		// estoque daquele pedido para sempre.
 		if (newStatus == OrderStatus.CANCELLED) {
 			restoreStock(order);
 		}
 
 		order.setStatus(newStatus);
 
-		// A tabela orders guarda só o estado final: sem este registro, quem moveu o
-		// pedido — e devolveu estoque ao cancelá-lo — não aparece em lugar nenhum.
 		auditService.recordChange(AuditedEntity.ORDER, id, AuditAction.STATUS_CHANGED, previousStatus, newStatus);
 
 		return toAdminResponseDTO(order);
@@ -336,8 +304,8 @@ public class OrderService {
 
 	/**
 	 * Este mapeamento serve exclusivamente o dono do pedido, e por isso pode
-	 * carregar o {@code clientSecret} sem condicional nenhuma: quem chega aqui já
-	 * passou pela checagem de posse.
+	 * carregar o clientSecret sem condicional nenhuma: quem chega aqui já passou
+	 * pela checagem de posse.
 	 */
 	private OrderResponseDTO toResponseDTO(Order order, String clientSecret) {
 		String resolvedClientSecret = clientSecret != null

@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Estoque tem ciclo de vida próprio, e não o do cadastro do produto.
  *
- * <p>
  * Enquanto a única porta era o PUT de produto, ajustar um número exigia
  * carregar e reenviar a árvore inteira — todas as cores, todos os SKUs — e
  * qualquer venda ocorrida com o formulário aberto derrubava o salvamento com
@@ -33,14 +32,12 @@ public class StockService {
 
 	/**
 	 * O lock pessimista é o mesmo do checkout, e não é redundante com o delta: sem
-	 * ele, dois {@code +5} lidos ao mesmo tempo gravam 15 onde deveriam gravar 20 —
-	 * o endpoint criado para resolver concorrência a reintroduziria.
+	 * ele, dois +5 lidos ao mesmo tempo gravam 15 onde deveriam gravar 20 — o
+	 * endpoint criado para resolver concorrência a reintroduziria.
 	 *
-	 * <p>
-	 * O @CacheEvict também não é cerimônia: a resposta de {@code findBySlug} é
-	 * cacheada e carrega {@code stockQuantity} dentro de cada SKU, então mudar o
-	 * estoque sem invalidar deixa a página do produto anunciando disponibilidade
-	 * que já não existe.
+	 * O @CacheEvict também não é cerimônia: a resposta de findBySlug é cacheada e
+	 * carrega stockQuantity dentro de cada SKU, então mudar o estoque sem invalidar
+	 * deixa a página do produto anunciando disponibilidade que já não existe.
 	 */
 	@Transactional
 	@CacheEvict(value = {CacheNames.CATALOG_PRODUCTS, CacheNames.CATALOG_SLUG}, allEntries = true)

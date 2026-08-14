@@ -13,14 +13,13 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
- * A autorizacao do admin e inteiramente <strong>posicional</strong>: uma unica
- * regra no SecurityConfig exige ROLE_ADMIN de tudo sob {@code /api/v1/admin/},
- * e nao ha {@code @PreAuthorize} em metodo nenhum. Isso funciona bem enquanto
- * for respeitado e falha em silencio quando nao for — um controller de admin
- * criado fora do prefixo fica acessivel a qualquer usuario logado, sem erro,
- * sem aviso e sem teste vermelho.
+ * A autorizacao do admin e inteiramente posicional: uma unica regra no
+ * SecurityConfig exige ROLE_ADMIN de tudo sob /api/v1/admin/, e nao
+ * ha @PreAuthorize em metodo nenhum. Isso funciona bem enquanto for respeitado
+ * e falha em silencio quando nao for — um controller de admin criado fora do
+ * prefixo fica acessivel a qualquer usuario logado, sem erro, sem aviso e sem
+ * teste vermelho.
  *
- * <p>
  * Por isso este inventario. Ele nao julga se a rota esta no lugar certo, porque
  * o codigo nao tem como saber a intencao; ele obriga a decisao a aparecer no
  * diff. Rota nova quebra o teste, e quem atualizar a lista precisa olhar para o
@@ -63,9 +62,8 @@ class RouteInventoryTest {
 
 	/**
 	 * O lado que realmente pega o erro. Se um controller de admin nascer em
-	 * {@code /api/v1/reports}, ele nao vai aparecer na lista de admin — vai
-	 * aparecer aqui, como rota nova exigindo apenas sessao, e a falha diz
-	 * exatamente isso.
+	 * /api/v1/reports, ele nao vai aparecer na lista de admin — vai aparecer aqui,
+	 * como rota nova exigindo apenas sessao, e a falha diz exatamente isso.
 	 */
 	@Test
 	@DisplayName("No route appears outside the prefix without the decision being made explicitly")
@@ -78,8 +76,8 @@ class RouteInventoryTest {
 
 	/**
 	 * Rotas da propria aplicacao, sem os endpoints do container e do actuator. O
-	 * {@code distinct} agrupa os varios metodos HTTP de um mesmo caminho: o que
-	 * interessa aqui e o path, que e o que a regra de seguranca enxerga.
+	 * distinct agrupa os varios metodos HTTP de um mesmo caminho: o que interessa
+	 * aqui e o path, que e o que a regra de seguranca enxerga.
 	 */
 	private List<String> mappedRoutes() {
 		return handlerMapping.getHandlerMethods().keySet().stream().map(RequestMappingInfo::getPathPatternsCondition)

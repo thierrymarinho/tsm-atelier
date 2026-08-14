@@ -24,11 +24,6 @@ public class ProductSpecification {
 		return (root, query, cb) -> isFeatured == null ? null : cb.equal(root.get("featured"), isFeatured);
 	}
 
-	/**
-	 * "Em promoção" é promotionalPrice preenchido, e nada mais. Deliberadamente
-	 * separado de isFeatured: destaque é curadoria editorial do admin, promoção é
-	 * preço. Unir os dois faria despromover um produto tirá-lo da home.
-	 */
 	public static Specification<Product> isOnSale(Boolean onSale) {
 		return (root, query, cb) -> {
 			if (onSale == null) {
@@ -52,16 +47,6 @@ public class ProductSpecification {
 				cb) -> collectionId == null ? null : cb.equal(root.get("collection").get("id"), collectionId);
 	}
 
-	/**
-	 * A faixa é aplicada sobre o preço que o cliente realmente paga. Filtrando por
-	 * "price", um produto de tabela R$ 200 em promoção por R$ 90 ficaria fora de
-	 * uma busca "até R$ 100" — some da vitrine justamente quando está mais barato.
-	 *
-	 * <p>
-	 * O COALESCE espelha a migration V3, que cria um índice funcional sobre a mesma
-	 * expressão. Mudar um sem o outro faz toda busca por faixa de preço varrer a
-	 * tabela.
-	 */
 	public static Specification<Product> priceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
 		return (root, query, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();

@@ -14,22 +14,6 @@ public final class OrderSpecification {
 		return (root, query, cb) -> status == null ? null : cb.equal(root.get("status"), status);
 	}
 
-	/**
-	 * A caixa única do painel. Um termo numérico casa com o id do pedido —
-	 * exatamente, e não como texto: o operador que digita "12" quer o pedido 12, e
-	 * não os pedidos 12, 112, 120 e 212.
-	 *
-	 * <p>
-	 * Fora isso, casa com e-mail e nome do comprador. A navegação por
-	 * {@code root.get("user")} produz um inner join, o que é correto aqui porque
-	 * todo pedido tem dono.
-	 *
-	 * <p>
-	 * Um termo numérico <em>também</em> tenta o e-mail e o nome, e não só o id:
-	 * "2024" é um id plausível e um pedaço de e-mail plausível, e devolver zero
-	 * resultados por causa dessa ambiguidade seria pior do que devolver os dois
-	 * conjuntos.
-	 */
 	public static Specification<Order> search(String searchTerm) {
 		return (root, query, cb) -> {
 			if (searchTerm == null || searchTerm.isBlank()) {
@@ -55,11 +39,6 @@ public final class OrderSpecification {
 				cb) -> from == null ? null : cb.greaterThanOrEqualTo(root.get("createdAt"), from.atStartOfDay());
 	}
 
-	/**
-	 * O dia final entra inteiro. Comparar com {@code to.atStartOfDay()} deixaria de
-	 * fora tudo o que aconteceu depois da meia-noite do último dia — ou seja, o dia
-	 * inteiro que o operador acabou de pedir.
-	 */
 	public static Specification<Order> createdTo(LocalDate to) {
 		return (root, query,
 				cb) -> to == null ? null : cb.lessThan(root.get("createdAt"), to.plusDays(1).atStartOfDay());

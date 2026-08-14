@@ -39,11 +39,6 @@ public class Order extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	// Guards against concurrent status updates (e.g. the Stripe webhook marking an
-	// order PAID while the expiration scheduler is cancelling it).
-	@Version
-	private Long version;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
@@ -58,6 +53,9 @@ public class Order extends BaseEntity {
 	private String paymentIntentId;
 
 	private String paymentClientSecret;
+
+	@Version
+	private Long version;
 
 	@Embedded
 	private ShippingAddress shippingAddress;

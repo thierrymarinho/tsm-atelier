@@ -13,17 +13,6 @@ import org.springframework.data.repository.query.Param;
 public interface ProductSKURepository extends JpaRepository<ProductSKU, Long> {
 	Optional<ProductSKU> findBySkuCode(String skuCode);
 
-	/**
-	 * O próximo número de {@code sku_code}. A sequência é criada no V3, e o formato
-	 * montado em {@code ProductService.generateSkuCode}.
-	 *
-	 * <p>
-	 * Aqui morava um trio de checagens — {@code findExistingSkuCodes},
-	 * {@code existsBySkuCode} e {@code existsBySkuCodeAndIdNot} — que existia
-	 * porque o admin digitava o código. Com ele saindo daqui, "esse código já está
-	 * em uso" deixou de ser uma pergunta que a aplicação precisa fazer: a sequência
-	 * nunca repete um número.
-	 */
 	@Query(value = "SELECT nextval('sku_code_seq')", nativeQuery = true)
 	Long nextSkuCodeNumber();
 
@@ -31,17 +20,6 @@ public interface ProductSKURepository extends JpaRepository<ProductSKU, Long> {
 	@Query("SELECT s FROM ProductSKU s WHERE s.id = :id")
 	Optional<ProductSKU> findByIdWithPessimisticLock(@Param("id") Long id);
 
-	/**
-	 * Nativa por necessidade: a restauração precisa alcançar linhas que o
-	 * {@code @SQLRestriction} esconde de toda consulta de entidade.
-	 *
-	 * <p>
-	 * O filtro por {@code deleted_at = :deletedAt} é o que separa "removido junto
-	 * com o produto" de "removido antes, de propósito". ProductService.delete usa
-	 * um único timestamp para produto, cores e SKUs, então restaurar por igualdade
-	 * de instante devolve só o que a exclusão do produto levou — uma cor que o
-	 * admin tinha apagado semanas antes continua apagada.
-	 */
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query(value = """
 			UPDATE product_skus SET deleted_at = NULL
@@ -50,16 +28,6 @@ public interface ProductSKURepository extends JpaRepository<ProductSKU, Long> {
 			""", nativeQuery = true)
 	int restoreSkusOfProduct(@Param("productId") Long productId, @Param("deletedAt") java.time.LocalDateTime deletedAt);
 
-	/**
-	 * Códigos que impediriam a restauração porque um SKU vivo já os ocupa. Sem esta
-	 * checagem o UPDATE quebraria no índice parcial e voltaria como 409 genérico,
-	 * sem dizer qual código está em conflito.
-	 *
-	 * <p>
-	 * Desde que o código passou a sair da sequência, isto é rede e não caminho:
-	 * dois SKUs só carregam o mesmo código se alguém tiver escrito na tabela por
-	 * fora — o seed do V9 faz exatamente isso.
-	 */
 	@Query(value = """
 			SELECT s.sku_code FROM product_skus s
 			JOIN product_colors c ON c.id = s.product_color_id
@@ -71,16 +39,6 @@ public interface ProductSKURepository extends JpaRepository<ProductSKU, Long> {
 	List<String> findSkuCodesBlockingRestore(@Param("productId") Long productId,
 			@Param("deletedAt") java.time.LocalDateTime deletedAt);
 
-	/**
-	 * O alerta de estoque baixo do dashboard. Só produtos <strong>ativos e não
-	 * removidos</strong> entram: o alerta existe para avisar que a loja está
-	 * prestes a perder venda, e um produto fora da vitrine não perde venda nenhuma.
-	 * Deixá-lo na lista transformaria o painel num inventário de rascunhos.
-	 *
-	 * <p>
-	 * SKU e cor removidos já ficam de fora pelo {@code @SQLRestriction} das
-	 * entidades; {@code Product} não tem a anotação, por isso o filtro explícito.
-	 */
 	@Query("""
 			SELECT s FROM ProductSKU s
 			JOIN s.productColor c JOIN c.product p

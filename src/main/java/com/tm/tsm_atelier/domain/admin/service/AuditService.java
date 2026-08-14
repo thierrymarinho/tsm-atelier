@@ -24,26 +24,23 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Escreve e lê o rastro de alterações do painel.
  *
- * <p>
- * <strong>O ator não é parâmetro.</strong> Ele sai do contexto de segurança,
- * dentro deste serviço — foi para isto que {@code AuditUtils} foi extraído. Se
- * cada chamador passasse o seu, bastaria um esquecer para a linha registrar a
- * ação errada em nome de ninguém, e nada no compilador apontaria isso.
+ * O ator não é parâmetro. Ele sai do contexto de segurança, dentro deste
+ * serviço — foi para isto que AuditUtils foi extraído. Se cada chamador
+ * passasse o seu, bastaria um esquecer para a linha registrar a ação errada em
+ * nome de ninguém, e nada no compilador apontaria isso.
  *
- * <p>
- * <strong>{@code MANDATORY} na classe, e não {@code REQUIRES_NEW}.</strong> A
- * linha de auditoria precisa compartilhar o destino da alteração que ela
- * descreve. Numa transação própria, um rollback do serviço chamador deixaria
- * registrado um cancelamento que não aconteceu — e o registro é a única coisa
- * que este código produz, então uma mentira aqui é pior do que a ausência. A
- * contrapartida é aceita de propósito: se a gravação do rastro falhar, a
- * alteração cai junto, porque mudança administrativa sem registro é exatamente
- * o que esta tabela existe para impedir.
+ * MANDATORY na classe, e não REQUIRES_NEW. A linha de auditoria precisa
+ * compartilhar o destino da alteração que ela descreve. Numa transação própria,
+ * um rollback do serviço chamador deixaria registrado um cancelamento que não
+ * aconteceu — e o registro é a única coisa que este código produz, então uma
+ * mentira aqui é pior do que a ausência. A contrapartida é aceita de propósito:
+ * se a gravação do rastro falhar, a alteração cai junto, porque mudança
+ * administrativa sem registro é exatamente o que esta tabela existe para
+ * impedir.
  *
- * <p>
- * Como efeito colateral útil, {@code MANDATORY} recusa qualquer chamada feita
- * fora de uma transação: um serviço novo que esqueça o {@code @Transactional}
- * falha na hora, em vez de gravar auditoria que não acompanha nada.
+ * Como efeito colateral útil, MANDATORY recusa qualquer chamada feita fora de
+ * uma transação: um serviço novo que esqueça o @Transactional falha na hora, em
+ * vez de gravar auditoria que não acompanha nada.
  */
 @Service
 @RequiredArgsConstructor
@@ -81,9 +78,8 @@ public class AuditService {
 
 	/**
 	 * O único evento que preenche todas as colunas, e por isso tem método próprio
-	 * em vez de uma chamada de sete argumentos no {@code StockService}.
+	 * em vez de uma chamada de sete argumentos no StockService.
 	 *
-	 * <p>
 	 * O código do SKU vai junto porque a linha precisa continuar legível sozinha: o
 	 * SKU pode ser removido depois, e um histórico que só faz sentido enquanto o
 	 * registro existe não serve para investigar o que aconteceu com ele.
@@ -121,10 +117,10 @@ public class AuditService {
 	}
 
 	/**
-	 * {@code null} continua {@code null} em vez de virar a string "null": a coluna
-	 * é anulável e a diferença entre "não se aplica" e o texto de quatro letras
-	 * some para sempre depois de gravada. É o caso real de retirar uma promoção,
-	 * onde o valor novo é ausência de preço.
+	 * null continua null em vez de virar a string "null": a coluna é anulável e a
+	 * diferença entre "não se aplica" e o texto de quatro letras some para sempre
+	 * depois de gravada. É o caso real de retirar uma promoção, onde o valor novo é
+	 * ausência de preço.
 	 */
 	private String asText(Object value) {
 		return value == null ? null : String.valueOf(value);

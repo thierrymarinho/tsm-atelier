@@ -11,18 +11,17 @@ import java.util.Map;
  * certo.
  *
  * @param ordersByStatus
- *            contagem por status, com <strong>todos</strong> os status
- *            presentes. Um status ausente do mapa obrigaria a interface a
- *            tratar "sem pedidos" e "chave que não veio" como o mesmo caso.
+ *            contagem por status, com todos os status presentes. Um status
+ *            ausente do mapa obrigaria a interface a tratar "sem pedidos" e
+ *            "chave que não veio" como o mesmo caso.
  * @param lowStockCount
- *            total de SKUs abaixo do limiar; {@code lowStock} traz só uma
- *            página, então a tela consegue dizer "20 de 47" em vez de insinuar
- *            que são 20.
+ *            total de SKUs abaixo do limiar; lowStock traz só uma página, então
+ *            a tela consegue dizer "20 de 47" em vez de insinuar que são 20.
  * @param lowStockPageSize
- *            quantas linhas cabem numa página de {@code lowStock}. Vai na
- *            resposta para o cliente calcular o número de páginas sem repetir
- *            uma constante do servidor — repetida, ela viraria uma paginação
- *            silenciosamente errada no dia em que o tamanho mudasse aqui.
+ *            quantas linhas cabem numa página de lowStock. Vai na resposta para
+ *            o cliente calcular o número de páginas sem repetir uma constante
+ *            do servidor — repetida, ela viraria uma paginação silenciosamente
+ *            errada no dia em que o tamanho mudasse aqui.
  * @param lowStockPage
  *            índice da página devolvida, base 0. Ecoado para a tela conseguir
  *            se reencontrar depois de um recarregamento.

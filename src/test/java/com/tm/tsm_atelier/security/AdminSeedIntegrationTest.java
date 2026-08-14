@@ -16,14 +16,13 @@ import org.springframework.test.context.TestPropertySource;
 
 /**
  * O primeiro admin vem de migration, e é a única conta capaz de abrir o painel:
- * o registro público cria sempre {@code CUSTOMER} e não existe rota para
- * promover ninguém.
+ * o registro público cria sempre CUSTOMER e não existe rota para promover
+ * ninguém.
  *
- * <p>
  * Isso torna a semente uma dependência silenciosa do encoder. Trocar
- * {@code BCryptPasswordEncoder} por outro algoritmo, ou mudar a força, não
- * quebra compilação e não quebra teste nenhum — quebra o login, em produção, da
- * única conta que consegue consertar qualquer coisa.
+ * BCryptPasswordEncoder por outro algoritmo, ou mudar a força, não quebra
+ * compilação e não quebra teste nenhum — quebra o login, em produção, da única
+ * conta que consegue consertar qualquer coisa.
  */
 @SpringBootTest
 @TestPropertySource(properties = "app.scheduler.order-expiration.enabled=false")
@@ -42,10 +41,10 @@ class AdminSeedIntegrationTest {
 	private PasswordEncoder passwordEncoder;
 
 	/**
-	 * O hash que o Flyway vai substituir em {@code V10}, e não o que está gravado
-	 * no banco. A distinção importa: trocar a senha no primeiro acesso é o
-	 * comportamento esperado de quem receber esta conta, e um teste lendo a linha
-	 * gravada passaria a falhar exatamente quando alguém fizesse a coisa certa.
+	 * O hash que o Flyway vai substituir em V10, e não o que está gravado no banco.
+	 * A distinção importa: trocar a senha no primeiro acesso é o comportamento
+	 * esperado de quem receber esta conta, e um teste lendo a linha gravada
+	 * passaria a falhar exatamente quando alguém fizesse a coisa certa.
 	 */
 	@Value("${spring.flyway.placeholders.admin_password_hash}")
 	private String configuredHash;

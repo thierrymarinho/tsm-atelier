@@ -24,34 +24,28 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 /**
  * O servidor não pode destruir a credencial que ele mesmo exige.
  *
- * <p>
- * <strong>O defeito.</strong> Sob {@code SessionCreationPolicy.STATELESS} o
- * Spring Security ainda registra o {@code SessionManagementFilter}, e ele
- * chamava {@code CsrfAuthenticationStrategy} em toda requisição autenticada —
- * que começa por {@code saveToken(null, ...)}, ou seja, um {@code Set-Cookie}
- * de deleção do {@code __Host-XSRF-TOKEN}. O {@code CsrfCookieFilter} existe
- * para materializar o token novo, mas estava registrado quatro posições antes
- * do filtro que apagava, então a deleção vinha por último e vencia.
+ * O defeito. Sob SessionCreationPolicy.STATELESS o Spring Security ainda
+ * registra o SessionManagementFilter, e ele chamava CsrfAuthenticationStrategy
+ * em toda requisição autenticada — que começa por saveToken(null, ...), ou
+ * seja, um Set-Cookie de deleção do __Host-XSRF-TOKEN. O CsrfCookieFilter
+ * existe para materializar o token novo, mas estava registrado quatro posições
+ * antes do filtro que apagava, então a deleção vinha por último e vencia.
  *
- * <p>
- * <strong>Por que este teste, e não o óbvio.</strong> O sintoma relatado era
- * "escritas alternam entre funcionar e falhar", e a leitura natural seria
- * afirmar que N escritas seguidas passam. Só que esse teste <em>passava mesmo
- * com o defeito</em>: o {@code CookieCsrfTokenRepository} não tem estado — o
- * cookie <em>é</em> o armazenamento —, então apagar o cookie não invalida o
- * valor, e um cliente que segure o token em memória nunca vê 403. Quem quebrava
- * era o cliente que relê o cookie e o encontra vazio.
+ * Por que este teste, e não o óbvio. O sintoma relatado era "escritas alternam
+ * entre funcionar e falhar", e a leitura natural seria afirmar que N escritas
+ * seguidas passam. Só que esse teste passava mesmo com o defeito: o
+ * CookieCsrfTokenRepository não tem estado — o cookie é o armazenamento —,
+ * então apagar o cookie não invalida o valor, e um cliente que segure o token
+ * em memória nunca vê 403. Quem quebrava era o cliente que relê o cookie e o
+ * encontra vazio.
  *
- * <p>
- * A asserção que realmente pega o defeito é a ausência do {@code Set-Cookie} de
+ * A asserção que realmente pega o defeito é a ausência do Set-Cookie de
  * deleção. O caso das seis escritas fica assim mesmo, porque é o sintoma que
  * alguém vai procurar aqui quando isto reaparecer — mas com o comentário
  * dizendo que sozinho ele não prova nada.
  *
- * <p>
- * Servidor real, e não MockMvc, pelo mesmo motivo de
- * {@link CsrfEnforcementTest}: o que está sob teste é a ordem da cadeia de
- * filtros, que o MockMvc não reproduz.
+ * Servidor real, e não MockMvc, pelo mesmo motivo de CsrfEnforcementTest: o que
+ * está sob teste é a ordem da cadeia de filtros, que o MockMvc não reproduz.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("CSRF token lifecycle")
@@ -132,7 +126,6 @@ class CsrfTokenLifecycleTest {
 	 * nenhuma leitura entre as escritas, e reenviando o que o servidor mandou por
 	 * último.
 	 *
-	 * <p>
 	 * Sozinho ele não prova a correção — passa mesmo com o defeito, porque o
 	 * repositório é sem estado. O que ele acrescenta é a segunda asserção: o token
 	 * em vigor tem que continuar o mesmo do começo. Uma correção que apenas
@@ -156,10 +149,9 @@ class CsrfTokenLifecycleTest {
 
 	/**
 	 * A proteção não pode ter ido embora junto com o defeito. O caso do header
-	 * ausente está em {@link CsrfEnforcementTest}, sobre seis rotas; o que falta é
-	 * o par desencontrado, que é o que um ataque de fato produz — o navegador manda
-	 * o cookie da vítima, e o atacante não consegue ler o valor para montar o
-	 * header.
+	 * ausente está em CsrfEnforcementTest, sobre seis rotas; o que falta é o par
+	 * desencontrado, que é o que um ataque de fato produz — o navegador manda o
+	 * cookie da vítima, e o atacante não consegue ler o valor para montar o header.
 	 */
 	@Test
 	@DisplayName("Should still refuse a write whose header does not match the cookie")
@@ -178,16 +170,14 @@ class CsrfTokenLifecycleTest {
 
 	/**
 	 * A contrapartida da correção. Desligar o configurer de sessão tirou o
-	 * {@code SessionManagementFilter} da cadeia, mas levou junto a declaração
-	 * {@code STATELESS}: a ausência de sessão passou a ser consequência de nada
-	 * criá-la, e não de uma política escrita.
+	 * SessionManagementFilter da cadeia, mas levou junto a declaração STATELESS: a
+	 * ausência de sessão passou a ser consequência de nada criá-la, e não de uma
+	 * política escrita.
 	 *
-	 * <p>
-	 * Isso é verdade hoje porque o {@code JwtAuthenticationFilter} escreve só no
-	 * {@code SecurityContextHolder} e ninguém chama {@code saveContext}. É
-	 * exatamente o tipo de premissa que um {@code formLogin}, um {@code rememberMe}
-	 * ou um filtro novo derrubam sem aviso — e a primeira evidência seria um
-	 * {@code JSESSIONID} aparecendo em produção.
+	 * Isso é verdade hoje porque o JwtAuthenticationFilter escreve só no
+	 * SecurityContextHolder e ninguém chama saveContext. É exatamente o tipo de
+	 * premissa que um formLogin, um rememberMe ou um filtro novo derrubam sem aviso
+	 * — e a primeira evidência seria um JSESSIONID aparecendo em produção.
 	 */
 	@Test
 	@DisplayName("Should never create an http session")
@@ -205,15 +195,14 @@ class CsrfTokenLifecycleTest {
 
 	// ---------------------------------------------------------------- helpers
 
-	/** O {@code Set-Cookie} de deleção: valor vazio e Expires em 1970. */
+	/** O Set-Cookie de deleção: valor vazio e Expires em 1970. */
 	private List<String> deletionsIn(HttpResponse<String> response) {
 		return response.headers().allValues("set-cookie").stream()
 				.filter(cookie -> cookie.startsWith(SecurityConstants.CSRF_COOKIE + "=;")).toList();
 	}
 
 	/**
-	 * O token novo que a resposta emitiu, ou {@code null} se ela não mexeu no
-	 * cookie.
+	 * O token novo que a resposta emitiu, ou null se ela não mexeu no cookie.
 	 */
 	private String issuedTokenIn(HttpResponse<String> response) {
 		return response.headers().allValues("set-cookie").stream()

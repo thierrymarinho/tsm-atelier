@@ -19,11 +19,6 @@ import lombok.Setter;
 @Builder
 public class FabricComposition {
 
-	/**
-	 * {@code STRING} e não {@code ORDINAL}: a coluna é metade da chave primária da
-	 * tabela, e com ordinal reordenar as constantes do {@link Material}
-	 * reescreveria a composição de todo o catálogo em silêncio.
-	 */
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 30)
 	private Material material;

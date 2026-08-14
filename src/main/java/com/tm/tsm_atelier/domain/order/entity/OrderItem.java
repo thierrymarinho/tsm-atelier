@@ -47,21 +47,11 @@ public class OrderItem extends BaseEntity {
 
 	private String color;
 
-	/**
-	 * Copiado de ProductColor.coverImageUrl, que tem length 500. O default do
-	 * Hibernate seria 255, menor que a origem — e o insert do pedido falharia com
-	 * uma URL longa.
-	 */
 	@Column(length = 500)
 	private String imageUrl;
 
-	/** O que foi efetivamente cobrado — promocional, quando havia promocao. */
 	private BigDecimal priceAtPurchase;
 
-	/**
-	 * O preco de tabela no momento da compra. Sem ele o desconto sumiria do
-	 * historico: o pedido saberia quanto custou, mas nao que houve promocao.
-	 */
 	@Column(name = "list_price_at_purchase", nullable = false)
 	private BigDecimal listPriceAtPurchase;
 

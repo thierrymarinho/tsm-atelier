@@ -28,7 +28,6 @@ public class CollectionCatalogController {
 		return ResponseEntity.ok(collectionService.findById(id));
 	}
 
-	/** Pelo mesmo motivo do produto — ver {@code ProductCatalogController}. */
 	@GetMapping("/slug/{slug}")
 	public ResponseEntity<CollectionResponseDTO> findBySlug(@PathVariable String slug) {
 		return ResponseEntity.ok(collectionService.findBySlug(slug));

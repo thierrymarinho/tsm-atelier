@@ -1,7 +1,7 @@
 package com.tm.tsm_atelier.domain.product.controller.v1;
 
+import static com.tm.tsm_atelier.common.builders.AdminProductResponseDTOBuilder.anAdminProductResponse;
 import static com.tm.tsm_atelier.common.builders.ProductRequestDTOBuilder.aProductRequest;
-import static com.tm.tsm_atelier.common.builders.ProductResponseDTOBuilder.aProductResponse;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -9,8 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.tm.tsm_atelier.domain.product.dto.AdminProductResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductRequestDTO;
-import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
 import com.tm.tsm_atelier.domain.product.service.ProductService;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import com.tm.tsm_atelier.security.JwtService;
@@ -59,7 +59,8 @@ class ProductAdminControllerTest {
 		void shouldReturn201WhenProductIsCreatedSuccessfully() throws Exception {
 			// Arrange
 			ProductRequestDTO requestDTO = aProductRequest().build();
-			ProductResponseDTO responseDTO = aProductResponse().withId(1L).withName(requestDTO.name()).build();
+			AdminProductResponseDTO responseDTO = anAdminProductResponse().withId(1L).withName(requestDTO.name())
+					.build();
 
 			when(productService.create(any(ProductRequestDTO.class))).thenReturn(responseDTO);
 
@@ -90,6 +91,31 @@ class ProductAdminControllerTest {
 					.andExpect(jsonPath("$.fields.colors").value("Product must have at least one color"));
 
 			verify(productService, never()).create(any(ProductRequestDTO.class));
+		}
+
+		/**
+		 * Um material fora do enum falha na desserializacao, antes de qualquer
+		 * validacao — e a resposta herdada do Spring diria apenas que o corpo nao pode
+		 * ser lido. Num formulario de cadastro isso e um beco sem saida: o admin nao
+		 * descobre nem que campo errou, nem que existe uma lista fechada.
+		 *
+		 * <p>
+		 * O indice no nome do campo importa: numa composicao de tres materiais, saber
+		 * que "algum material e invalido" nao diz qual linha corrigir.
+		 */
+		@Test
+		@DisplayName("Should name the field and list the options when the material is not in the enum")
+		void shouldExplainAnUnknownMaterial() throws Exception {
+			String body = objectMapper.writeValueAsString(aProductRequest().build()).replace("\"COTTON\"",
+					"\"Algodao\"");
+
+			mockMvc.perform(post(BASE_URL).with(user("admin").roles("ADMIN")).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.field").value("fabricCompositions[0].material"))
+					.andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("Algodao")))
+					.andExpect(jsonPath("$.allowedValues").value(org.hamcrest.Matchers.hasItem("COTTON")));
+
+			verify(productService, never()).create(any());
 		}
 
 		@Test

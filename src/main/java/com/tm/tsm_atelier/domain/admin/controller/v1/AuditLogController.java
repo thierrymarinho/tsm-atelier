@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuditLogController {
 
 	/**
-	 * {@code details} e os valores antes/depois ficam de fora de propósito: ordenar
-	 * por texto livre não significa nada, e a lista é cronológica por natureza.
+	 * details e os valores antes/depois ficam de fora de propósito: ordenar por
+	 * texto livre não significa nada, e a lista é cronológica por natureza.
 	 */
 	private static final Set<String> SORTABLE_FIELDS = Set.of("id", "createdAt", "actor", "action", "entityType");
 

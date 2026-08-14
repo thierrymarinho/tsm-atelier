@@ -45,21 +45,18 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Contra banco de verdade, e pelos serviços reais em vez do
- * {@code AuditService} direto.
+ * Contra banco de verdade, e pelos serviços reais em vez do AuditService
+ * direto.
  *
- * <p>
  * O que precisa ser garantido aqui não é que o serviço de auditoria saiba
  * gravar uma linha — isso é uma chamada de repositório. É que cada alteração
- * administrativa <em>chegue</em> a ele. Um teste com mock provaria que o mock
- * foi chamado onde eu lembrei de chamá-lo, que é exatamente a parte que não
- * precisa de prova.
+ * administrativa chegue a ele. Um teste com mock provaria que o mock foi
+ * chamado onde eu lembrei de chamá-lo, que é exatamente a parte que não precisa
+ * de prova.
  *
- * <p>
- * Todas as asserções filtram por {@code entityId}, e nenhuma conta linhas do
- * banco inteiro: a base de desenvolvimento tem histórico real, e um
- * {@code containsExactly} sobre a tabela toda falharia sem que houvesse defeito
- * nenhum.
+ * Todas as asserções filtram por entityId, e nenhuma conta linhas do banco
+ * inteiro: a base de desenvolvimento tem histórico real, e um containsExactly
+ * sobre a tabela toda falharia sem que houvesse defeito nenhum.
  */
 @SpringBootTest
 @Transactional
@@ -111,8 +108,8 @@ class AuditTrailIntegrationTest {
 	}
 
 	/**
-	 * {@code deleted_at} responde quando o produto saiu do ar e nunca quem o tirou.
-	 * Esta é a lacuna mais concreta que a tabela fecha.
+	 * deleted_at responde quando o produto saiu do ar e nunca quem o tirou. Esta é
+	 * a lacuna mais concreta que a tabela fecha.
 	 */
 	@Test
 	@DisplayName("Should record who deleted and who restored a product")
@@ -173,8 +170,8 @@ class AuditTrailIntegrationTest {
 
 	/**
 	 * O ajuste de estoque é o único evento com motivo declarado pelo operador, e é
-	 * ele que torna a tabela consultável para além do "quem": sem o {@code reason},
-	 * não há como somar quanto se perdeu em DAMAGE no mês.
+	 * ele que torna a tabela consultável para além do "quem": sem o reason, não há
+	 * como somar quanto se perdeu em DAMAGE no mês.
 	 */
 	@Test
 	@DisplayName("Should record a stock adjustment with its reason and both quantities")
@@ -277,14 +274,13 @@ class AuditTrailIntegrationTest {
 	// -------------------------------------------------------------- garantia
 
 	/**
-	 * A propagação {@code MANDATORY} é o que amarra a linha de auditoria à
-	 * alteração que ela descreve: numa transação própria, um rollback do serviço
-	 * chamador deixaria registrado um cancelamento que nunca aconteceu.
+	 * A propagação MANDATORY é o que amarra a linha de auditoria à alteração que
+	 * ela descreve: numa transação própria, um rollback do serviço chamador
+	 * deixaria registrado um cancelamento que nunca aconteceu.
 	 *
-	 * <p>
-	 * {@code NOT_SUPPORTED} suspende a transação do teste, que é a única forma de
-	 * chegar aqui sem uma — e a exceção é o que impede um serviço novo de gravar
-	 * auditoria solta por ter esquecido o {@code @Transactional}.
+	 * NOT_SUPPORTED suspende a transação do teste, que é a única forma de chegar
+	 * aqui sem uma — e a exceção é o que impede um serviço novo de gravar auditoria
+	 * solta por ter esquecido o @Transactional.
 	 */
 	@Test
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -325,8 +321,8 @@ class AuditTrailIntegrationTest {
 	}
 
 	/**
-	 * Reconstrói o request a partir da resposta, com {@code stockQuantity} nulo nos
-	 * SKUs existentes — o formulário de produto recusa estoque desde a MEL-01, e
+	 * Reconstrói o request a partir da resposta, com stockQuantity nulo nos SKUs
+	 * existentes — o formulário de produto recusa estoque desde a MEL-01, e
 	 * reenviá-lo aqui faria o teste falhar por um motivo que não é o dele.
 	 */
 	private ProductRequestDTO withPromotionalPrice(AdminProductResponseDTO product, BigDecimal promotionalPrice) {

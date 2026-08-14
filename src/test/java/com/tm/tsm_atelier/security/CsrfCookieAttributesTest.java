@@ -17,7 +17,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
  * configuracao: quem decide se ele e enviado, se trafega em claro e se o
  * JavaScript consegue le-lo e o browser, a partir dai.
  *
- * <p>
  * Precisa de servidor real porque o que se verifica e o header Set-Cookie
  * montado na resposta HTTP.
  */
@@ -55,7 +54,6 @@ class CsrfCookieAttributesTest {
 	 * recusa o cookie inteiro e o double-submit para de funcionar em silencio: o
 	 * front nao encontra o token, e toda escrita passa a responder 403.
 	 *
-	 * <p>
 	 * A ausencia de Domain e o que da a garantia que importa aqui. Com ela, nenhuma
 	 * outra origem consegue sobrescrever este cookie — e um atacante que pudesse
 	 * escolher o valor mandaria o header correspondente e passaria pela

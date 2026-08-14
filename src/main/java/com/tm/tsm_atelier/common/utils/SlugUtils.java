@@ -6,7 +6,6 @@ import java.util.Locale;
 public final class SlugUtils {
 
 	private SlugUtils() {
-		// Utility class
 	}
 
 	public static String generateSlug(String name) {

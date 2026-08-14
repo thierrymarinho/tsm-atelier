@@ -29,7 +29,6 @@ import org.springframework.test.web.servlet.MockMvc;
  * no campo. O @NotNull sozinho valida a lista, nao os itens dentro dela — e o
  * item invalido seguia ate o service.
  *
- * <p>
  * Estes testes existem porque a falha era silenciosa das duas pontas: nao havia
  * erro de compilacao, e a requisicao respondia 200 ou 500 conforme o dado. Cada
  * caso abaixo falha se o @Valid for removido.

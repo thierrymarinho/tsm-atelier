@@ -22,11 +22,10 @@ public class OrderQueryController {
 	/**
 	 * O que o cliente pode ordenar nos proprios pedidos. Sem esta lista o Spring
 	 * Data resolvia caminho aninhado a partir da query string, e
-	 * {@code ?sort=user.password} era aceito com 200: ordenar por um campo nao
-	 * revela o valor, mas e vetor conhecido de inferencia sobre dado sensivel — o
-	 * mesmo que o javadoc de {@link SortWhitelist} descreve e que as rotas de admin
-	 * ja barravam. Esta, que recebe input de usuario comum, era a que estava
-	 * aberta.
+	 * ?sort=user.password era aceito com 200: ordenar por um campo nao revela o
+	 * valor, mas e vetor conhecido de inferencia sobre dado sensivel — o mesmo que
+	 * o javadoc de SortWhitelist descreve e que as rotas de admin ja barravam.
+	 * Esta, que recebe input de usuario comum, era a que estava aberta.
 	 */
 	private static final Set<String> SORTABLE_FIELDS = Set.of("createdAt", "totalAmount", "status");
 

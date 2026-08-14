@@ -46,7 +46,7 @@ public class AddressService {
 
 		boolean isDefault = request.isDefault();
 		if (addressCount == 0) {
-			isDefault = true; // First address is always default
+			isDefault = true; // O primeiro endereço é sempre o padrão
 		} else if (isDefault) {
 			clearCurrentDefault(user.getId());
 		}

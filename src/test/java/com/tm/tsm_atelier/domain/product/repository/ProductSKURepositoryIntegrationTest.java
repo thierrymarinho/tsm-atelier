@@ -15,11 +15,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Estes testes falavam com três consultas do repositório que existiam para
- * validar o {@code skuCode} vindo da request. O código passou a ser gerado, as
- * três saíram, e o que elas mediam por procuração — o que o
- * {@code @SQLRestriction} esconde e o que {@code idx_sku_code_active} reserva —
- * é medido aqui direto na fonte.
+ * Mede direto na fonte as duas garantias que o repositório depende: o que a
+ * anotação SQLRestriction esconde das consultas de entidade, e o que o índice
+ * parcial idx_sku_code_active reserva.
+ *
+ * Antes isso era medido por procuração, através de três consultas que existiam
+ * para validar o skuCode vindo da request. Elas saíram quando o código passou a
+ * ser gerado.
  */
 @SpringBootTest
 @Transactional
@@ -49,10 +51,10 @@ class ProductSKURepositoryIntegrationTest {
 	}
 
 	/**
-	 * O índice é parcial ({@code WHERE deleted_at IS NULL}), então a remoção
-	 * devolve o código ao banco. Ninguém mais o reutiliza pela API — a sequência
-	 * nunca repete um número —, mas é este comportamento que a restauração precisa
-	 * enxergar para saber que um cadastro posterior pode ter tomado o lugar.
+	 * O índice é parcial (WHERE deleted_at IS NULL), então a remoção devolve o
+	 * código ao banco. Ninguém mais o reutiliza pela API — a sequência nunca repete
+	 * um número —, mas é este comportamento que a restauração precisa enxergar para
+	 * saber que um cadastro posterior pode ter tomado o lugar.
 	 */
 	@Test
 	@DisplayName("A soft-deleted SKU frees its code in the partial index")

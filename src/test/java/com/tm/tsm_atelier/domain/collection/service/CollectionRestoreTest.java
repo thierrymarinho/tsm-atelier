@@ -20,9 +20,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * A restauração de coleção precisa de banco: o {@code @SQLRestriction} da
- * entidade some com a linha em toda consulta JPQL, então o que está sendo
- * testado é justamente o caminho nativo que enxerga em volta dele.
+ * A restauração de coleção precisa de banco: o @SQLRestriction da entidade some
+ * com a linha em toda consulta JPQL, então o que está sendo testado é
+ * justamente o caminho nativo que enxerga em volta dele.
  */
 @SpringBootTest
 @Transactional
@@ -73,10 +73,10 @@ class CollectionRestoreTest {
 	}
 
 	/**
-	 * {@code uk_collection_name_audience} é uma constraint <strong>total</strong>,
-	 * então a coleção removida continua ocupando o nome. A validação, sendo JPQL,
-	 * não a enxergava: o insert passava por ela, quebrava no banco e voltava como
-	 * 409 "A data conflict occurred" apontando um registro invisível.
+	 * uk_collection_name_audience é uma constraint total, então a coleção removida
+	 * continua ocupando o nome. A validação, sendo JPQL, não a enxergava: o insert
+	 * passava por ela, quebrava no banco e voltava como 409 "A data conflict
+	 * occurred" apontando um registro invisível.
 	 */
 	@Test
 	@DisplayName("Should explain that a deleted collection is holding the name, and how to get it back")
@@ -118,13 +118,12 @@ class CollectionRestoreTest {
 	 * aberta mais tempo porque o índice é parcial, o que dá a impressão de já estar
 	 * resolvida.
 	 *
-	 * <p>
-	 * Enquanto {@code uk_one_home_main} filtrou só por {@code display_position},
-	 * sem olhar {@code deleted_at}, a coleção no lixo seguia ocupando o HOME_MAIN
-	 * do site inteiro — a exclusão lógica não limpa a posição. O
-	 * {@code invalidateExistingDisplayPositions} não podia rebaixá-la — é JPQL, não
-	 * a enxerga —, então o insert passava pelas checagens e morria no flush. É o
-	 * {@code AND deleted_at IS NULL} do V2 que este teste protege.
+	 * Enquanto uk_one_home_main filtrou só por display_position, sem olhar
+	 * deleted_at, a coleção no lixo seguia ocupando o HOME_MAIN do site inteiro — a
+	 * exclusão lógica não limpa a posição. O invalidateExistingDisplayPositions não
+	 * podia rebaixá-la — é JPQL, não a enxerga —, então o insert passava pelas
+	 * checagens e morria no flush. É o AND deleted_at IS NULL do V2 que este teste
+	 * protege.
 	 */
 	@Test
 	@DisplayName("Should let a new collection take a display position that only a deleted one still holds")

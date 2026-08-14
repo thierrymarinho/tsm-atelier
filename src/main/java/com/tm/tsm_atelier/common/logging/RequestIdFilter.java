@@ -18,7 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * stream único de log, o ERROR do GlobalExceptionHandler não tem como ser
  * ligado à requisição que o causou nem às linhas que vieram antes dele.
  *
- * <p>
  * O id também volta no header da resposta: quando alguém reporta um erro, o
  * valor que o frontend recebeu é o suficiente para achar o rastro completo.
  */

@@ -98,16 +98,6 @@ public class Product extends BaseEntity {
 		return getClass().hashCode();
 	}
 
-	/**
-	 * O preço que vale agora — o único que pode ser cobrado. Existe para haver um
-	 * lugar só onde essa decisão é tomada: o preço era lido direto em quatro pontos
-	 * (carrinho, checkout e os dois mapeamentos de catálogo), e bastava um deles
-	 * continuar lendo getPrice() para a loja anunciar um valor e cobrar outro.
-	 *
-	 * <p>
-	 * Regra: nenhum código de cobrança chama getPrice(). Esse getter passa a
-	 * significar "preço de tabela", usado só para exibir o valor riscado.
-	 */
 	public BigDecimal getEffectivePrice() {
 		return promotionalPrice != null ? promotionalPrice : price;
 	}

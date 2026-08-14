@@ -100,9 +100,9 @@ class AdminOrderSearchTest {
 	}
 
 	/**
-	 * O dia final entra inteiro. Com {@code createdAt < to.atStartOfDay()} um
-	 * pedido feito às 14h do último dia do intervalo ficaria de fora — e o operador
-	 * concluiria que ele não existe.
+	 * O dia final entra inteiro. Com createdAt < to.atStartOfDay() um pedido feito
+	 * às 14h do último dia do intervalo ficaria de fora — e o operador concluiria
+	 * que ele não existe.
 	 */
 	@Test
 	@DisplayName("Should include the whole of the last day in the range")

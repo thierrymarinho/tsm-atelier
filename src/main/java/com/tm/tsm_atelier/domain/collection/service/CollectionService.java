@@ -77,24 +77,6 @@ public class CollectionService {
 		return collectionMapper.toResponse(collection);
 	}
 
-	/**
-	 * Cache próprio, e não o {@code catalog_slug} do produto. Um cache do Redis tem
-	 * um serializer de valor por nome: enquanto os dois dividiram o mesmo cache, a
-	 * coleção era gravada e <strong>nunca lida de volta</strong> — o JSON dela era
-	 * forçado para dentro de {@code ProductResponseDTO} e quebrava. Um prefixo na
-	 * chave resolvia a colisão de nome, que não era o problema.
-	 *
-	 * <p>
-	 * A recíproca não vale, e por isso a invalidação é assimétrica: mexer numa
-	 * coleção invalida os dois caches, porque {@code ProductResponseDTO} carrega a
-	 * coleção dentro de si e um rename mudaria o payload do produto; mexer num
-	 * produto não toca este aqui, porque {@code CollectionResponseDTO} não sabe
-	 * nada sobre produtos.
-	 *
-	 * <p>
-	 * Derivada, e não nativa: o {@code @SQLRestriction} da entidade já esconde as
-	 * removidas, que é exatamente o que o catálogo público precisa.
-	 */
 	@Transactional(readOnly = true)
 	@Cacheable(value = CacheNames.CATALOG_SLUG_COLLECTION, key = "#slug")
 	public CollectionResponseDTO findBySlug(String slug) {
@@ -124,21 +106,8 @@ public class CollectionService {
 	}
 
 	/**
-	 * Excluir a coleção <strong>desassocia</strong> os produtos por padrão; passar
-	 * {@code cascadeProducts} exclui cada um deles junto.
-	 *
-	 * <p>
-	 * Antes o comportamento em cascata era o único, e não estava dito em lugar
-	 * nenhum: {@code DELETE /api/v1/admin/collections/{id}} apagava todo o catálogo
-	 * daquela coleção. Um admin reorganizando vitrine apagava a loja sem nenhum
-	 * aviso.
-	 *
-	 * <p>
-	 * O filtro por {@code getDeletedAt() == null} corrige a outra metade do
-	 * problema: {@code Product} não tem {@code @SQLRestriction}, então produtos já
-	 * removidos continuavam vindo na lista, {@code productService.delete} não os
-	 * encontrava e a exclusão inteira voltava como 404 "Product not found" — uma
-	 * coleção que já tivesse perdido um produto ficava impossível de excluir.
+	 * Excluir a coleção desassocia os produtos por padrão; passar cascadeProducts
+	 * exclui cada um deles junto.
 	 */
 	@Transactional
 	@CacheEvict(value = {CacheNames.CATALOG_COLLECTIONS, CacheNames.CATALOG_SLUG_COLLECTION, CacheNames.CATALOG_SLUG,
@@ -147,8 +116,6 @@ public class CollectionService {
 		Collection collection = collectionRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Collection", id));
 
-		// Cópia antes de iterar: os dois ramos abaixo mexem no vínculo entre produto
-		// e coleção, que é a origem desta própria lista.
 		List<Product> livingProducts = collection.getProducts().stream().filter(p -> p.getDeletedAt() == null).toList();
 
 		if (cascadeProducts) {
@@ -157,9 +124,6 @@ public class CollectionService {
 			livingProducts.forEach(product -> product.setCollection(null));
 		}
 
-		// O modo entra no registro porque as duas exclusões são irreversíveis de
-		// formas diferentes: desassociar perde o vínculo, e a restauração não o
-		// reconstrói; a cascata deixa cada produto com a sua própria rota de volta.
 		auditService.record(AuditedEntity.COLLECTION, id, AuditAction.DELETED,
 				livingProducts.size() + " products " + (cascadeProducts ? "deleted" : "detached"));
 
@@ -169,29 +133,19 @@ public class CollectionService {
 	}
 
 	/**
-	 * Desfaz um {@link #delete(Long, boolean)}. Sem isto a exclusão de coleção era
-	 * um caminho só de ida — e pior do que a de produto, porque o
-	 * {@code @SQLRestriction} de {@code Collection} some com o registro de toda
-	 * consulta: o admin nem via o item na lista para suspeitar que ele existia.
+	 * Restaura a coleção, e só ela.
 	 *
-	 * <p>
-	 * Nome e slug nunca entram em conflito aqui, e vale registrar o porquê: as duas
-	 * constraints são totais, então a coleção removida <strong>nunca
-	 * soltou</strong> nenhum dos dois — ninguém pôde ocupá-los no intervalo.
+	 * Ela volta inativa e com displayPosition NONE. Os índices parciais do V2
+	 * liberam a posição de destaque na exclusão — para que uma coleção no lixo não
+	 * bloqueie o HOME_MAIN do site inteiro — então outra pode tê-la ocupado no
+	 * intervalo, e devolvê-la ocupada quebraria no índice.
 	 *
-	 * <p>
-	 * A posição de destaque é o contrário. Os três índices parciais do V2 excluem
-	 * as removidas, justamente para que uma coleção no lixo não bloqueie o
-	 * HOME_MAIN de todo o site; a contrapartida é que a posição fica livre, e
-	 * alguém pode tê-la ocupado. Por isso a coleção volta com {@code NONE}, e não
-	 * com a posição que tinha.
+	 * Nome e slug são o contrário: as constraints são totais, a coleção removida
+	 * nunca os soltou, e por isso a restauração nunca falha por conflito deles.
 	 *
-	 * <p>
-	 * <strong>Os produtos não voltam junto, e não é omissão.</strong> Na exclusão
-	 * padrão eles foram desassociados — o vínculo deixou de existir, e não há o que
-	 * restaurar. Na exclusão em cascata eles foram removidos e continuam removidos:
-	 * cada um tem sua própria rota, com suas próprias checagens de código de SKU, e
-	 * encadear isso aqui produziria uma restauração que falha pela metade.
+	 * Os produtos não voltam junto. Na exclusão padrão eles foram desassociados e o
+	 * vínculo não existe mais; na exclusão em cascata cada um tem a própria rota,
+	 * com as próprias checagens de código de SKU.
 	 */
 	@Transactional
 	@CacheEvict(value = {CacheNames.CATALOG_COLLECTIONS, CacheNames.CATALOG_SLUG_COLLECTION, CacheNames.CATALOG_SLUG,
@@ -206,20 +160,10 @@ public class CollectionService {
 
 		collectionRepository.restoreCollection(id);
 
-		// Releitura obrigatória: o UPDATE nativo limpa o contexto de persistência.
 		Collection restored = collectionRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Collection", id));
 
-		// Volta inativa, como o produto: recuperar o cadastro e devolvê-lo à vitrine
-		// são duas decisões, e juntá-las faria um clique republicar uma coleção sem
-		// que ninguém conferisse que ela está vazia.
 		restored.setActive(false);
-
-		// A posição de destaque também não volta, pelo mesmo raciocínio levado até o
-		// fim — mas quem a zera é o próprio UPDATE de restoreCollection, e não uma
-		// linha aqui: limpar o deleted_at sozinho já devolveria a linha ao índice
-		// carregando a posição antiga, e o UPDATE morreria antes de chegar neste
-		// ponto. Ver o javadoc do método no repositório.
 
 		long orphanedProducts = restored.getProducts().stream().filter(p -> p.getDeletedAt() != null).count();
 		auditService.record(AuditedEntity.COLLECTION, id, AuditAction.RESTORED,
@@ -254,11 +198,6 @@ public class CollectionService {
 							request.name() + " for " + request.targetAudience());
 				});
 
-		// A checagem acima passa por cima das removidas — ela é JPQL, e o
-		// @SQLRestriction as esconde. Só que uk_collection_name_audience é total: o
-		// nome continua ocupado, e sem esta segunda checagem o insert quebrava no
-		// banco e voltava como 409 "A data conflict occurred", apontando um registro
-		// que não aparece em lugar nenhum da interface.
 		collectionRepository.findDeletedIdByNameAndTargetAudience(request.name(), request.targetAudience().name())
 				.filter(deletedId -> id == null || !deletedId.equals(id)).ifPresent(deletedId -> {
 					throw new EntityAlreadyExistsException("Collection",
@@ -277,10 +216,9 @@ public class CollectionService {
 	}
 
 	/**
-	 * Conta as removidas de propósito: {@code uk_collection_slug} é uma constraint
-	 * total, então uma coleção removida ainda ocupa o slug. Com o
-	 * {@code existsBySlug} derivado — que o {@code @SQLRestriction} filtra — este
-	 * laço devolvia um slug já ocupado e o insert quebrava no banco.
+	 * Conta as removidas de propósito: uk_collection_slug é uma constraint total,
+	 * então uma coleção removida ainda ocupa o slug. Com o existsBySlug derivado —
+	 * que o @SQLRestriction filtra
 	 */
 	private String generateUniqueSlug(String name) {
 		String baseSlug = generateSlug(name);

@@ -5,6 +5,8 @@ import com.stripe.model.Event;
 import com.stripe.net.Webhook;
 import com.tm.tsm_atelier.domain.order.service.OrderService;
 import jakarta.annotation.PostConstruct;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,12 +33,6 @@ public class StripeWebhookController {
 		this.orderService = orderService;
 	}
 
-	/**
-	 * A rota é pública e a assinatura é a única barreira dela. Com o segredo vazio
-	 * a verificação não falha — o HMAC é calculado com chave vazia e qualquer um
-	 * que soubesse disso poderia forjar um evento de pagamento aprovado. Por isso a
-	 * ausência derruba a aplicação em vez de virar um webhook que aceita tudo.
-	 */
 	@PostConstruct
 	void validateEndpointSecret() {
 		if (endpointSecret == null || endpointSecret.isBlank()) {
@@ -56,9 +52,6 @@ public class StripeWebhookController {
 		try {
 			event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
 		} catch (SignatureVerificationException e) {
-			// A assinatura recebida não entra no log: é dado de requisição de terceiro
-			// e não ajuda a diagnosticar nada — o que importa é que uma chamada não
-			// autenticada chegou ao webhook.
 			logger.warn("Rejected a Stripe webhook call with an invalid signature");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
 		} catch (Exception e) {
@@ -69,10 +62,6 @@ public class StripeWebhookController {
 		logger.info("Successfully verified Stripe Webhook event. Event ID: {}, Type: {}", event.getId(),
 				event.getType());
 
-		// Handle the event. Any failure below must surface as 5xx: Stripe only retries
-		// on server errors, and answering 200 for an event we did not process means a
-		// captured payment is silently lost (the order stays PENDING_PAYMENT and gets
-		// cancelled by the expiration scheduler).
 		try {
 			switch (event.getType()) {
 				case "payment_intent.succeeded" : {
@@ -110,13 +99,10 @@ public class StripeWebhookController {
 	}
 
 	private String extractObjectId(Event event, String payload) {
-		// Try strict deserialization first
 		if (event.getDataObjectDeserializer().getObject().isPresent()) {
 			return ((com.stripe.model.HasId) event.getDataObjectDeserializer().getObject().get()).getId();
 		}
-		// Fallback to regex if there's an API version mismatch between stripe-java and
-		// the webhook
-		java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"id\"\\s*:\\s*\"(pi_[^\"]+)\"").matcher(payload);
+		Matcher m = Pattern.compile("\"id\"\\s*:\\s*\"(pi_[^\"]+)\"").matcher(payload);
 		if (m.find()) {
 			return m.group(1);
 		}

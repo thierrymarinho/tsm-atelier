@@ -129,7 +129,7 @@ class DashboardServiceTest {
 	}
 
 	/**
-	 * As asserções são sobre o <em>total</em>, e não sobre a amostra: a base de
+	 * As asserções são sobre o total, e não sobre a amostra: a base de
 	 * desenvolvimento já tem mais de vinte SKUs com estoque baixo, então um SKU
 	 * novo legitimamente não aparece nas vinte primeiras linhas. A primeira versão
 	 * deste teste procurava o id na amostra e falhava por isso — sem que houvesse
@@ -218,9 +218,9 @@ class DashboardServiceTest {
 
 	/**
 	 * Que o campo exista não basta: ele só serve se for a mesma versão que
-	 * {@link StockService} exige para aceitar uma contagem. Um número plausível
-	 * porém de outra origem passaria em qualquer asserção de forma e falharia com
-	 * 409 na primeira contagem real.
+	 * StockService exige para aceitar uma contagem. Um número plausível porém de
+	 * outra origem passaria em qualquer asserção de forma e falharia com 409 na
+	 * primeira contagem real.
 	 */
 	@Test
 	@DisplayName("Should hand out a version the physical count is allowed to use")

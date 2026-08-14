@@ -77,12 +77,6 @@ public class ResendEmailAdapter implements EmailPort {
 		}
 	}
 
-	/**
-	 * Não diz "alguém tentou se cadastrar como você" de forma alarmista, e também
-	 * não esconde o ocorrido: quem recebe ou foi a própria pessoa que esqueceu que
-	 * tinha conta — o caso comum — ou precisa saber que o endereço dela foi
-	 * digitado em um cadastro.
-	 */
 	private String buildAccountAlreadyExistsEmailHtml(String firstName, String loginLink) {
 		return """
 				<!DOCTYPE html>

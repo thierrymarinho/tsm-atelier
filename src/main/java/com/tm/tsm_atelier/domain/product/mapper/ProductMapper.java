@@ -21,12 +21,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-/**
- * A estrategia de nulo e declarada de proposito, e nao herdada do default. Com
- * IGNORE, um promotionalPrice nulo vindo do request seria descartado e a
- * promocao ficaria impossivel de remover — o admin salvaria, receberia 200 e o
- * preco promocional continuaria la, sem erro nenhum.
- */
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
 public interface ProductMapper {
 
@@ -42,34 +36,19 @@ public interface ProductMapper {
 	@Mapping(target = "deletedAt", ignore = true)
 	@Mapping(target = "collection", ignore = true)
 	@Mapping(target = "colors", ignore = true)
+	@Mapping(target = "createdAt", ignore = true)
+	@Mapping(target = "updatedAt", ignore = true)
 	void updateEntityFromRequest(ProductRequestDTO request, @MappingTarget Product entity);
 
 	AdminProductResponseDTO toAdminResponse(Product entity);
 
-	/**
-	 * Explícito porque {@code label} não existe na entidade — ele vem do enum. Sem
-	 * este método o MapStruct falharia a compilação com "Unmapped target property",
-	 * que é o comportamento certo: o rótulo não é dado, é derivado.
-	 */
 	@Mapping(target = "label", source = "material.label")
 	FabricCompositionResponseDTO toFabricCompositionResponse(FabricComposition composition);
 
-	/** Pelo mesmo motivo do anterior: rótulo e eixo são derivados da constante. */
 	default CareInstructionResponseDTO toCareInstructionResponse(CareInstruction instruction) {
 		return CareInstructionResponseDTO.from(instruction);
 	}
 
-	/**
-	 * A resposta do catalogo e derivada da do admin, e a derivacao <em>e</em> o
-	 * filtro: cor e SKU removidos ficam para tras porque nao ha para onde
-	 * copia-los.
-	 *
-	 * <p>
-	 * O filtro em memoria continua necessario mesmo com o {@code @SQLRestriction}
-	 * das entidades: ele vale para o carregamento do banco, e nao para uma colecao
-	 * que ja esta no contexto de persistencia com o item marcado como removido
-	 * nesta mesma transacao.
-	 */
 	default ProductResponseDTO toCatalogResponse(Product entity) {
 		AdminProductResponseDTO full = toAdminResponse(entity);
 		if (full == null) {
@@ -124,7 +103,6 @@ public interface ProductMapper {
 				cover.colorsHex(), entity.isActive());
 	}
 
-	/** O que os dois cards extraem das cores, para nao duplicar a varredura. */
 	record Cover(String coverImageUrl, String hoverImageUrl, List<String> colorsHex) {
 	}
 

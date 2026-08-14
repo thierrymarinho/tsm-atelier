@@ -92,7 +92,6 @@ class AdminOrderViewTest {
 	 * na Stripe. A listagem do admin carregava o de todos os pedidos pendentes de
 	 * uma vez, e o painel não faz nada com ele.
 	 *
-	 * <p>
 	 * O record de admin simplesmente não tem o campo — a garantia é estrutural, não
 	 * uma checagem que alguém possa esquecer de repetir num mapeamento novo.
 	 */
@@ -107,7 +106,7 @@ class AdminOrderViewTest {
 	 * A rota do cliente virou exclusiva do dono, inclusive para o ADMIN. Antes ele
 	 * passava por aqui e recebia a resposta do cliente com o clientSecret anulado
 	 * por um parâmetro booleano — uma garantia que dependia de alguém lembrar de
-	 * passar {@code false}.
+	 * passar false.
 	 */
 	@Test
 	@DisplayName("Should refuse an admin on the customer route instead of stripping fields at runtime")

@@ -25,8 +25,6 @@ public class OrderConfirmationEmailListener {
 			emailPort.sendOrderConfirmationEmail(event.customerEmail(), event.customerFirstName(), event.orderId(),
 					event.totalAmount());
 		} catch (Exception e) {
-			// The payment is already confirmed and committed; a failed e-mail must not
-			// surface as a webhook error, which would trigger Stripe retries.
 			log.error("Failed to send order confirmation e-mail for order {}", event.orderId(), e);
 		}
 	}

@@ -18,12 +18,12 @@ import org.hibernate.annotations.Immutable;
 /**
  * Uma linha por alteração administrativa.
  *
- * <p>
- * Não estende {@code BaseEntity} de propósito. O {@code updated_at} de lá vem
- * com {@code @LastModifiedDate}, e uma data de última modificação num registro
- * de auditoria descreve exatamente o que não pode acontecer. Pelo mesmo motivo
- * a classe é {@code @Immutable} e não tem setters: alterar o passado precisa
- * ser impossível pelo caminho normal, e não apenas desaconselhado.
+ *
+ * Não estende BaseEntity de propósito. O updated_at de lá vem
+ * com @LastModifiedDate, e uma data de última modificação num registro de
+ * auditoria descreve exatamente o que não pode acontecer. Pelo mesmo motivo a
+ * classe é @Immutable e não tem setters: alterar o passado precisa ser
+ * impossível pelo caminho normal, e não apenas desaconselhado.
  */
 @Entity
 @Table(name = "admin_audit_log")
@@ -39,11 +39,10 @@ public class AdminAuditLog {
 	private Long id;
 
 	/**
-	 * O e-mail de quem estava autenticado, ou {@code "system"} quando a mudança
-	 * partiu de rotina automática. Guardado como texto, e não como FK para
-	 * {@code users}: o rastro precisa continuar legível depois que a conta for
-	 * removida, e uma FK faria a exclusão do usuário apagar ou travar a auditoria
-	 * dele.
+	 * O e-mail de quem estava autenticado, ou "system" quando a mudança partiu de
+	 * rotina automática. Guardado como texto, e não como FK para users: o rastro
+	 * precisa continuar legível depois que a conta for removida, e uma FK faria a
+	 * exclusão do usuário apagar ou travar a auditoria dele.
 	 */
 	@Column(nullable = false, length = 255)
 	private String actor;

@@ -12,12 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * O SKU aparece aqui como recurso próprio, e não aninhado sob o produto: o id é
- * único globalmente, então a rota aninhada só acrescentaria uma validação de
- * pertencimento sem nenhuma garantia nova — o acesso já é decidido por papel no
- * SecurityConfig, que cobre {@code /api/v1/admin/**}.
- */
 @RestController
 @RequestMapping("/api/v1/admin/skus")
 @RequiredArgsConstructor

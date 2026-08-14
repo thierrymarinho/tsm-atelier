@@ -13,9 +13,9 @@ public final class AuditLogSpecification {
 	}
 
 	/**
-	 * Comparação exata, e não {@code LIKE}: o id vem de um link da tela de edição,
-	 * nunca digitado, e casar por prefixo faria o histórico do produto 4 incluir o
-	 * do produto 42.
+	 * Comparação exata, e não LIKE: o id vem de um link da tela de edição, nunca
+	 * digitado, e casar por prefixo faria o histórico do produto 4 incluir o do
+	 * produto 42.
 	 */
 	public static Specification<AdminAuditLog> hasEntityId(String entityId) {
 		return (root, query,

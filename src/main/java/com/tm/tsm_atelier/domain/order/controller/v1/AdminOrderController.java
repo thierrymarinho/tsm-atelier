@@ -22,11 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/admin/orders")
 public class AdminOrderController {
 
-	/**
-	 * Sem esta lista, {@code ?sort=user.password} era aceito: o Spring Data resolve
-	 * caminhos aninhados e o @PageableDefault só define o padrão. Ordenar por campo
-	 * sensível é vetor de inferência, e uma propriedade inexistente virava 500.
-	 */
 	private static final Set<String> SORTABLE_FIELDS = Set.of("id", "status", "totalAmount", "createdAt", "updatedAt",
 			"expiresAt");
 

@@ -11,7 +11,6 @@ public final class AuditUtils {
 	 * não de negócio — a assinatura pública dos serviços não deveria mudar por
 	 * causa disso.
 	 *
-	 * <p>
 	 * Rastro, e não regra: nenhuma autorização depende deste valor, quem decide
 	 * isso é o SecurityConfig. Cai em "system" quando não há requisição autenticada
 	 * por trás, como no scheduler de expiração de pedidos.

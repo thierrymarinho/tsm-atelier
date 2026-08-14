@@ -4,7 +4,7 @@ import com.tm.tsm_atelier.domain.product.enums.CareAxis;
 import com.tm.tsm_atelier.domain.product.enums.CareInstruction;
 
 /**
- * A mesma separação de {@link FabricCompositionResponseDTO} entre constante e
+ * A mesma separação de FabricCompositionResponseDTO entre constante e
  * apresentação, com o eixo a mais: é o que permite à página do produto
  * apresentar a etiqueta agrupada — lavagem, secagem, passadoria — em vez de uma
  * lista solta, sem repetir o mapa de eixos no cliente.

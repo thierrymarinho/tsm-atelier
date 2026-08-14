@@ -30,11 +30,6 @@ public class DashboardService {
 	 */
 	private static final Set<OrderStatus> REVENUE_STATUSES = Set.of(OrderStatus.PAID, OrderStatus.SHIPPED,
 			OrderStatus.DELIVERED);
-
-	/**
-	 * A lista de estoque baixo é um alerta, e não um relatório: vinte linhas cabem
-	 * na tela e o total acompanha à parte, para a interface poder dizer "20 de 47".
-	 */
 	private static final int LOW_STOCK_SAMPLE_SIZE = 20;
 
 	private static final int MAX_LOW_STOCK_THRESHOLD = 1_000;
@@ -80,12 +75,6 @@ public class DashboardService {
 				LOW_STOCK_SAMPLE_SIZE, lowStockPage);
 	}
 
-	/**
-	 * Todos os status aparecem, inclusive os zerados. O agrupamento do banco só
-	 * devolve linhas que existem, e um mapa incompleto obrigaria a interface a
-	 * tratar "nenhum pedido cancelado" e "chave ausente" como o mesmo caso — que é
-	 * como um contador some da tela sem ninguém perceber.
-	 */
 	private Map<OrderStatus, Long> ordersByStatus() {
 		Map<OrderStatus, Long> counts = new EnumMap<>(OrderStatus.class);
 		for (OrderStatus status : OrderStatus.values()) {
@@ -99,12 +88,6 @@ public class DashboardService {
 		return counts;
 	}
 
-	/**
-	 * As janelas contam dias inteiros a partir da meia-noite: "últimos 7 dias" com
-	 * {@code now().minusDays(7)} produziria um número que muda de significado ao
-	 * longo do dia, e dois acessos à mesma tela mostrariam totais diferentes sem
-	 * nenhuma venda ter acontecido.
-	 */
 	private java.math.BigDecimal revenueSince(LocalDateTime since) {
 		return orderRepository.sumTotalAmountSince(REVENUE_STATUSES, since);
 	}

@@ -27,15 +27,15 @@ public class StripePaymentAdapter implements PaymentGatewayPort {
 	@Override
 	public PaymentIntentResult createPaymentIntent(Order order) {
 		try {
-			// Stripe requires amount in cents (e.g., R$ 10,00 -> 1000)
+			// A Stripe cobra em centavos: R$ 10,00 vira 1000.
 			long amountInCents = order.getTotalAmount().multiply(new BigDecimal("100")).longValue();
 
 			PaymentIntentCreateParams params = PaymentIntentCreateParams.builder().setAmount(amountInCents)
 					.setCurrency("brl").putMetadata("orderId", order.getId().toString())
 					.putMetadata("userId", order.getUser().getId().toString()).build();
 
-			// Keyed by order so a retry (ours or the SDK's) reuses the same PaymentIntent
-			// instead of creating a duplicate charge.
+			// Chaveado pelo pedido para que uma retentativa — nossa ou do SDK —
+			// reaproveite o mesmo PaymentIntent em vez de criar uma cobrança duplicada.
 			RequestOptions options = RequestOptions.builder()
 					.setIdempotencyKey("order-" + order.getId() + "-payment-intent").build();
 

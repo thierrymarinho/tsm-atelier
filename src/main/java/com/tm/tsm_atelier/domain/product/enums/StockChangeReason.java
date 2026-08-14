@@ -1,14 +1,5 @@
 package com.tm.tsm_atelier.domain.product.enums;
 
-/**
- * Por que o estoque mudou. O banco guarda apenas o valor final, então sem o
- * motivo viajando junto o log de ajuste registraria "de 10 para 7" sem dizer se
- * aquilo foi contagem, perda ou correção de cadastro — e é exatamente essa a
- * pergunta que se faz quando o número não bate.
- *
- * <p>
- * É também o campo que uma tabela de auditoria (MEL-05) herdaria sem reescrita.
- */
 public enum StockChangeReason {
 
 	/** Chegou mercadoria. */

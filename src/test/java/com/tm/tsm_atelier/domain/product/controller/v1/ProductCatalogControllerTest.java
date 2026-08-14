@@ -79,7 +79,7 @@ class ProductCatalogControllerTest {
 	/**
 	 * O 301 saiu junto: o slug é congelado na criação e o rename não o altera,
 	 * então não existe versão anterior para onde redirecionar. Enquanto existia,
-	 * qualquer texto terminado em {@code -1} era redirecionado para o produto 1 —
+	 * qualquer texto terminado em -1 era redirecionado para o produto 1 —
 	 * conteúdo errado servido com um status que o browser guarda para sempre.
 	 */
 	@Test

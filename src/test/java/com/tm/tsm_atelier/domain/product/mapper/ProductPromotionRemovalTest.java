@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
  * PUT é de substituição total e trata campo ausente como remoção, mesma
  * semântica já usada por collectionId.
  *
- * <p>
  * Isso depende inteiramente de o MapStruct estar em SET_TO_NULL. Trocar para
  * IGNORE é uma mudança de uma palavra, parece inofensiva e costuma ser feita
  * para "não apagar campos sem querer" — e tornaria a promoção impossível de

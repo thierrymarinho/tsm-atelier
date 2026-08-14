@@ -16,7 +16,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * origem, o cadastro aceita o valor e o checkout quebra depois — longe da
  * causa, e so para quem tentar comprar aquele produto.
  *
- * <p>
  * Foi exatamente o que aconteceu: order_items.image_url era VARCHAR(255)
  * recebendo product_colors.cover_image_url, que e VARCHAR(500). Nao disparava
  * porque as URLs do seed tem ~130 caracteres. Este teste fixa a invariante em

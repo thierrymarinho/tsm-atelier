@@ -8,13 +8,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.tm.tsm_atelier.common.exception.custom.BusinessRuleException;
+import com.tm.tsm_atelier.domain.admin.service.AuditService;
 import com.tm.tsm_atelier.domain.collection.entity.Collection;
 import com.tm.tsm_atelier.domain.collection.repository.CollectionRepository;
+import com.tm.tsm_atelier.domain.product.dto.AdminProductResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.FabricCompositionRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
 import com.tm.tsm_atelier.domain.product.entity.Product;
 import com.tm.tsm_atelier.domain.product.entity.ProductColor;
+import com.tm.tsm_atelier.domain.product.enums.CareAxis;
+import com.tm.tsm_atelier.domain.product.enums.CareInstruction;
+import com.tm.tsm_atelier.domain.product.enums.Material;
 import com.tm.tsm_atelier.domain.product.mapper.ProductMapper;
 import com.tm.tsm_atelier.domain.product.repository.ProductColorRepository;
 import com.tm.tsm_atelier.domain.product.repository.ProductRepository;
@@ -41,6 +47,9 @@ class ProductServiceTest {
 	@Mock
 	private ProductMapper productMapper;
 
+	@Mock
+	private AuditService auditService;
+
 	@InjectMocks
 	private ProductService productService;
 
@@ -52,8 +61,8 @@ class ProductServiceTest {
 		Product product = aProduct().build();
 		Collection collection = aCollection().build();
 		ProductColor savedColor = new ProductColor();
-		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Calça Jeans Skinny", "calca-jeans-skinny-1", null,
-				null, null, null, null, null, null, null, true, false, null, null);
+		AdminProductResponseDTO responseDTO = new AdminProductResponseDTO(1L, "Calça Jeans Skinny",
+				"calca-jeans-skinny-1", null, null, null, null, null, null, null, null, true, false, null, null);
 
 		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
 		when(collectionRepository.findById(requestDTO.collectionId())).thenReturn(Optional.of(collection));
@@ -61,7 +70,7 @@ class ProductServiceTest {
 		when(productMapper.toAdminResponse(any(Product.class))).thenReturn(responseDTO);
 
 		// Act
-		ProductResponseDTO result = productService.create(requestDTO);
+		AdminProductResponseDTO result = productService.create(requestDTO);
 
 		// Assert
 		assertThat(result).isNotNull();
@@ -98,15 +107,15 @@ class ProductServiceTest {
 		ProductRequestDTO requestDTO = aProductRequest().withCollectionId(null).build();
 		Product product = aProduct().build();
 		ProductColor savedColor = new ProductColor();
-		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Camiseta Básica", "camiseta-basica-1", null, null,
-				null, null, null, null, null, null, true, false, null, null);
+		AdminProductResponseDTO responseDTO = new AdminProductResponseDTO(1L, "Camiseta Básica", "camiseta-basica-1",
+				null, null, null, null, null, null, null, null, true, false, null, null);
 
 		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
 		when(productRepository.save(any(Product.class))).thenReturn(product);
 		when(productMapper.toAdminResponse(any(Product.class))).thenReturn(responseDTO);
 
 		// Act
-		ProductResponseDTO result = productService.create(requestDTO);
+		AdminProductResponseDTO result = productService.create(requestDTO);
 
 		// Assert
 		assertThat(result).isNotNull();
@@ -120,7 +129,7 @@ class ProductServiceTest {
 		// Arrange
 		Product product = aProduct().withId(1L).build();
 		ProductResponseDTO responseDTO = new ProductResponseDTO(1L, "Produto Encontrado", "produto-encontrado-1", null,
-				null, null, null, null, null, null, null, true, false, null, null);
+				null, null, null, null, null, null, null, true, false, null);
 
 		when(productRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(product));
 		when(productMapper.toCatalogResponse(product)).thenReturn(responseDTO);
@@ -157,7 +166,7 @@ class ProductServiceTest {
 		ProductRequestDTO request = aProductRequest().withPrice(new java.math.BigDecimal("100.00"))
 				.withPromotionalPrice(new java.math.BigDecimal("100.00")).build();
 
-		assertThatThrownBy(() -> productService.create(request)).isInstanceOf(IllegalArgumentException.class)
+		assertThatThrownBy(() -> productService.create(request)).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("must be lower than the regular price");
 
 		verify(productRepository, never()).save(any());
@@ -169,12 +178,14 @@ class ProductServiceTest {
 		// A PK (product_id, material) rejeitaria isso no banco, mas como um 409
 		// "A data conflict occurred" que nao diz qual material esta repetido. E os
 		// dois 50% somam 100%, entao a validacao de percentual deixava passar.
-		ProductRequestDTO request = aProductRequest().withFabricCompositions(java.util.List
-				.of(new FabricCompositionRequestDTO("Algodao", 50), new FabricCompositionRequestDTO("Algodao", 50)))
+		ProductRequestDTO request = aProductRequest()
+				.withFabricCompositions(java.util.List.of(new FabricCompositionRequestDTO(Material.COTTON, 50),
+						new FabricCompositionRequestDTO(Material.COTTON, 50)))
 				.build();
 
-		assertThatThrownBy(() -> productService.create(request)).isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("cannot repeat the same material").hasMessageContaining("Algodao");
+		assertThatThrownBy(() -> productService.create(request)).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("cannot repeat the same material")
+				.hasMessageContaining(Material.COTTON.getLabel());
 
 		verify(productRepository, never()).save(any());
 	}
@@ -182,9 +193,44 @@ class ProductServiceTest {
 	@Test
 	@DisplayName("Should accept a fabric composition with distinct materials")
 	void shouldAcceptDistinctFabricMaterials() {
-		ProductRequestDTO request = aProductRequest().withCollectionId(null).withFabricCompositions(java.util.List
-				.of(new FabricCompositionRequestDTO("Algodao", 60), new FabricCompositionRequestDTO("Elastano", 40)))
+		ProductRequestDTO request = aProductRequest().withCollectionId(null)
+				.withFabricCompositions(java.util.List.of(new FabricCompositionRequestDTO(Material.COTTON, 60),
+						new FabricCompositionRequestDTO(Material.ELASTANE, 40)))
 				.build();
+		Product product = aProduct().build();
+
+		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);
+		when(productRepository.save(any(Product.class))).thenReturn(product);
+
+		productService.create(request);
+
+		verify(productRepository).save(any(Product.class));
+	}
+
+	@Test
+	@DisplayName("Should reject care instructions that give two answers for the same axis")
+	void shouldRejectContradictoryCareInstructions() {
+		// O enum sozinho nao fecha isto: as duas constantes existem, e o Set nao as
+		// deduplica porque sao diferentes. O que a etiqueta nao pode e mandar nao
+		// lavar e lavar a mao na mesma peca.
+		ProductRequestDTO request = aProductRequest()
+				.withCareInstructions(java.util.List.of(CareInstruction.DO_NOT_WASH, CareInstruction.HAND_WASH))
+				.build();
+
+		assertThatThrownBy(() -> productService.create(request)).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("same axis").hasMessageContaining(CareAxis.WASH.getLabel())
+				.hasMessageContaining(CareInstruction.HAND_WASH.getLabel());
+
+		verify(productRepository, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("Should accept care instructions from different axes")
+	void shouldAcceptCareInstructionsFromDifferentAxes() {
+		// A contrapartida: secadora e secagem natural sao eixos separados, e uma
+		// etiqueta real diz as duas coisas ao mesmo tempo.
+		ProductRequestDTO request = aProductRequest().withCollectionId(null).withCareInstructions(java.util.List
+				.of(CareInstruction.HAND_WASH, CareInstruction.DO_NOT_TUMBLE_DRY, CareInstruction.DRY_FLAT)).build();
 		Product product = aProduct().build();
 
 		when(productMapper.toEntity(any(ProductRequestDTO.class))).thenReturn(product);

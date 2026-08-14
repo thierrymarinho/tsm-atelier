@@ -2,12 +2,14 @@ package com.tm.tsm_atelier.domain.product.entity;
 
 import com.tm.tsm_atelier.domain.collection.entity.Collection;
 import com.tm.tsm_atelier.domain.common.entity.BaseEntity;
+import com.tm.tsm_atelier.domain.product.enums.CareInstruction;
 import com.tm.tsm_atelier.domain.product.enums.Category;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.*;
@@ -47,8 +49,9 @@ public class Product extends BaseEntity {
 	@ElementCollection
 	@CollectionTable(name = "product_care_instructions", joinColumns = @JoinColumn(name = "product_id"))
 	@Column(name = "instruction")
+	@Enumerated(EnumType.STRING)
 	@Builder.Default
-	private Set<String> careInstructions = new java.util.LinkedHashSet<>();
+	private Set<CareInstruction> careInstructions = new LinkedHashSet<>();
 
 	@Column(nullable = false)
 	private BigDecimal price;

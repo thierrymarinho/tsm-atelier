@@ -1,10 +1,24 @@
 package com.tm.tsm_atelier.domain.product.mapper;
 
+import com.tm.tsm_atelier.domain.product.dto.AdminProductColorResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.AdminProductResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.AdminProductSummaryDTO;
+import com.tm.tsm_atelier.domain.product.dto.CareInstructionResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.FabricCompositionResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.ProductColorResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.ProductSKUResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO;
+import com.tm.tsm_atelier.domain.product.entity.FabricComposition;
 import com.tm.tsm_atelier.domain.product.entity.Product;
+import com.tm.tsm_atelier.domain.product.entity.ProductColor;
+import com.tm.tsm_atelier.domain.product.enums.CareInstruction;
+import java.util.ArrayList;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 /**
@@ -23,64 +37,106 @@ public interface ProductMapper {
 	@Mapping(target = "colors", ignore = true)
 	Product toEntity(ProductRequestDTO request);
 
-	ProductResponseDTO toAdminResponse(Product entity);
-
-	default ProductResponseDTO toCatalogResponse(Product entity) {
-		ProductResponseDTO fullResponse = toAdminResponse(entity);
-		if (fullResponse == null)
-			return null;
-
-		java.util.List<com.tm.tsm_atelier.domain.product.dto.ProductColorResponseDTO> activeColors = new java.util.ArrayList<>();
-		if (fullResponse.colors() != null) {
-			for (var color : fullResponse.colors()) {
-				if (color.deletedAt() == null) {
-					java.util.List<com.tm.tsm_atelier.domain.product.dto.ProductSKUResponseDTO> activeSkus = null;
-					if (color.skus() != null) {
-						activeSkus = color.skus().stream().filter(sku -> sku.deletedAt() == null).toList();
-					}
-					activeColors.add(new com.tm.tsm_atelier.domain.product.dto.ProductColorResponseDTO(color.id(),
-							color.colorName(), color.colorHex(), color.coverImageUrl(), color.hoverImageUrl(),
-							color.galleryImages(), activeSkus, color.deletedAt()));
-				}
-			}
-		}
-		return new ProductResponseDTO(fullResponse.id(), fullResponse.name(), fullResponse.slug(),
-				fullResponse.description(), fullResponse.fabricCompositions(), fullResponse.careInstructions(),
-				fullResponse.price(), fullResponse.promotionalPrice(), fullResponse.collection(),
-				fullResponse.category(), fullResponse.targetAudience(), fullResponse.active(), fullResponse.featured(),
-				activeColors, fullResponse.deletedAt());
-	}
-
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "slug", ignore = true)
 	@Mapping(target = "deletedAt", ignore = true)
 	@Mapping(target = "collection", ignore = true)
 	@Mapping(target = "colors", ignore = true)
-	void updateEntityFromRequest(ProductRequestDTO request, @org.mapstruct.MappingTarget Product entity);
+	void updateEntityFromRequest(ProductRequestDTO request, @MappingTarget Product entity);
 
-	default com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO toSummary(Product entity) {
-		if (entity == null) {
+	AdminProductResponseDTO toAdminResponse(Product entity);
+
+	/**
+	 * Explícito porque {@code label} não existe na entidade — ele vem do enum. Sem
+	 * este método o MapStruct falharia a compilação com "Unmapped target property",
+	 * que é o comportamento certo: o rótulo não é dado, é derivado.
+	 */
+	@Mapping(target = "label", source = "material.label")
+	FabricCompositionResponseDTO toFabricCompositionResponse(FabricComposition composition);
+
+	/** Pelo mesmo motivo do anterior: rótulo e eixo são derivados da constante. */
+	default CareInstructionResponseDTO toCareInstructionResponse(CareInstruction instruction) {
+		return CareInstructionResponseDTO.from(instruction);
+	}
+
+	/**
+	 * A resposta do catalogo e derivada da do admin, e a derivacao <em>e</em> o
+	 * filtro: cor e SKU removidos ficam para tras porque nao ha para onde
+	 * copia-los.
+	 *
+	 * <p>
+	 * O filtro em memoria continua necessario mesmo com o {@code @SQLRestriction}
+	 * das entidades: ele vale para o carregamento do banco, e nao para uma colecao
+	 * que ja esta no contexto de persistencia com o item marcado como removido
+	 * nesta mesma transacao.
+	 */
+	default ProductResponseDTO toCatalogResponse(Product entity) {
+		AdminProductResponseDTO full = toAdminResponse(entity);
+		if (full == null) {
 			return null;
 		}
 
-		String coverImage = null;
-		String hoverImage = null;
-		java.util.List<String> colorsHex = new java.util.ArrayList<>();
-
-		if (entity.getColors() != null && !entity.getColors().isEmpty()) {
-			com.tm.tsm_atelier.domain.product.entity.ProductColor firstColor = entity.getColors().iterator().next();
-			coverImage = firstColor.getCoverImageUrl();
-			hoverImage = firstColor.getHoverImageUrl();
-
-			for (com.tm.tsm_atelier.domain.product.entity.ProductColor color : entity.getColors()) {
-				if (color.getColorHex() != null) {
-					colorsHex.add(color.getColorHex());
+		List<ProductColorResponseDTO> activeColors = new ArrayList<>();
+		if (full.colors() != null) {
+			for (AdminProductColorResponseDTO color : full.colors()) {
+				if (color.deletedAt() == null) {
+					activeColors.add(toCatalogColor(color));
 				}
 			}
 		}
 
-		return new com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO(entity.getId(), entity.getName(),
-				entity.getSlug(), entity.getPrice(), entity.getPromotionalPrice(), entity.isFeatured(), coverImage,
-				hoverImage, colorsHex, entity.getDeletedAt(), entity.isActive());
+		return new ProductResponseDTO(full.id(), full.name(), full.slug(), full.description(),
+				full.fabricCompositions(), full.careInstructions(), full.price(), full.promotionalPrice(),
+				full.collection(), full.category(), full.targetAudience(), full.active(), full.featured(),
+				activeColors);
+	}
+
+	private ProductColorResponseDTO toCatalogColor(AdminProductColorResponseDTO color) {
+		List<ProductSKUResponseDTO> activeSkus = color.skus() == null
+				? null
+				: color.skus().stream().filter(sku -> sku.deletedAt() == null)
+						.map(sku -> new ProductSKUResponseDTO(sku.id(), sku.size(), sku.skuCode(), sku.stockQuantity()))
+						.toList();
+
+		return new ProductColorResponseDTO(color.id(), color.colorName(), color.colorHex(), color.coverImageUrl(),
+				color.hoverImageUrl(), color.galleryImages(), activeSkus);
+	}
+
+	default AdminProductSummaryDTO toAdminSummary(Product entity) {
+		if (entity == null) {
+			return null;
+		}
+
+		Cover cover = coverOf(entity);
+		return new AdminProductSummaryDTO(entity.getId(), entity.getName(), entity.getSlug(), entity.getPrice(),
+				entity.getPromotionalPrice(), entity.isFeatured(), cover.coverImageUrl(), cover.hoverImageUrl(),
+				cover.colorsHex(), entity.getDeletedAt(), entity.isActive());
+	}
+
+	default ProductSummaryDTO toSummary(Product entity) {
+		if (entity == null) {
+			return null;
+		}
+
+		Cover cover = coverOf(entity);
+		return new ProductSummaryDTO(entity.getId(), entity.getName(), entity.getSlug(), entity.getPrice(),
+				entity.getPromotionalPrice(), entity.isFeatured(), cover.coverImageUrl(), cover.hoverImageUrl(),
+				cover.colorsHex(), entity.isActive());
+	}
+
+	/** O que os dois cards extraem das cores, para nao duplicar a varredura. */
+	record Cover(String coverImageUrl, String hoverImageUrl, List<String> colorsHex) {
+	}
+
+	private Cover coverOf(Product entity) {
+		if (entity.getColors() == null || entity.getColors().isEmpty()) {
+			return new Cover(null, null, List.of());
+		}
+
+		ProductColor first = entity.getColors().iterator().next();
+		List<String> colorsHex = entity.getColors().stream().map(ProductColor::getColorHex).filter(hex -> hex != null)
+				.toList();
+
+		return new Cover(first.getCoverImageUrl(), first.getHoverImageUrl(), colorsHex);
 	}
 }

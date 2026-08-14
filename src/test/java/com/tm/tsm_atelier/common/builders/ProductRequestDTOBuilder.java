@@ -4,7 +4,9 @@ import com.tm.tsm_atelier.domain.product.dto.FabricCompositionRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductColorRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductRequestDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductSKURequestDTO;
+import com.tm.tsm_atelier.domain.product.enums.CareInstruction;
 import com.tm.tsm_atelier.domain.product.enums.Category;
+import com.tm.tsm_atelier.domain.product.enums.Material;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -14,9 +16,10 @@ public class ProductRequestDTOBuilder {
 
 	private String name = "Calça Jeans Skinny";
 	private String description = "Calça jeans premium";
-	private List<FabricCompositionRequestDTO> fabricCompositions = List
-			.of(new FabricCompositionRequestDTO("Algodão", 98), new FabricCompositionRequestDTO("Elastano", 2));
-	private List<String> careInstructions = new ArrayList<>(List.of("Lavar a frio"));
+	private List<FabricCompositionRequestDTO> fabricCompositions = List.of(
+			new FabricCompositionRequestDTO(Material.COTTON, 98),
+			new FabricCompositionRequestDTO(Material.ELASTANE, 2));
+	private List<CareInstruction> careInstructions = new ArrayList<>(List.of(CareInstruction.MACHINE_WASH_COLD));
 	private BigDecimal price = new BigDecimal("200.00");
 	private BigDecimal promotionalPrice = null;
 	private Long collectionId = 1L;
@@ -25,8 +28,8 @@ public class ProductRequestDTOBuilder {
 	private boolean active = true;
 	private boolean featured = false;
 	private List<ProductColorRequestDTO> colors = new ArrayList<>(List.of(new ProductColorRequestDTO(null, "Azul",
-			"#0000FF", "http://cover.jpg", "http://hover.jpg", new ArrayList<>(), List.of(new ProductSKURequestDTO(null,
-					com.tm.tsm_atelier.domain.product.enums.ProductSize.M, "SKU-38-BLUE", 10)))));
+			"#0000FF", "http://cover.jpg", "http://hover.jpg", new ArrayList<>(),
+			List.of(new ProductSKURequestDTO(null, com.tm.tsm_atelier.domain.product.enums.ProductSize.M, 10)))));
 
 	public static ProductRequestDTOBuilder aProductRequest() {
 		return new ProductRequestDTOBuilder();
@@ -44,6 +47,11 @@ public class ProductRequestDTOBuilder {
 
 	public ProductRequestDTOBuilder withFabricCompositions(List<FabricCompositionRequestDTO> fabricCompositions) {
 		this.fabricCompositions = fabricCompositions;
+		return this;
+	}
+
+	public ProductRequestDTOBuilder withCareInstructions(List<CareInstruction> careInstructions) {
+		this.careInstructions = careInstructions;
 		return this;
 	}
 

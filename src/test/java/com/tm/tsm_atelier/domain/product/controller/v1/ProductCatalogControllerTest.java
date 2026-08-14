@@ -2,11 +2,13 @@ package com.tm.tsm_atelier.domain.product.controller.v1;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
 import com.tm.tsm_atelier.domain.product.dto.ProductSearchFilter;
 import com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO;
 import com.tm.tsm_atelier.domain.product.enums.Category;
@@ -57,6 +59,39 @@ class ProductCatalogControllerTest {
 	private AccessTokenDenylist accessTokenDenylist;
 
 	private static final String BASE_URL = "/api/v1/catalog/products";
+
+	/**
+	 * A rota lia o último segmento do slug como id e buscava por ele. Um slug sem
+	 * número no fim — que é o que o gerador produz — morria no parse antes de
+	 * chegar ao serviço.
+	 */
+	@Test
+	@DisplayName("Should look a product up by the whole slug, not by an id carved out of it")
+	void shouldQueryByTheWholeSlug() throws Exception {
+		when(productService.findBySlug("blusa-elegante")).thenReturn(null);
+
+		mockMvc.perform(get(BASE_URL + "/slug/blusa-elegante")).andExpect(status().isOk());
+
+		verify(productService).findBySlug("blusa-elegante");
+		verify(productService, never()).findById(any());
+	}
+
+	/**
+	 * O 301 saiu junto: o slug é congelado na criação e o rename não o altera,
+	 * então não existe versão anterior para onde redirecionar. Enquanto existia,
+	 * qualquer texto terminado em {@code -1} era redirecionado para o produto 1 —
+	 * conteúdo errado servido com um status que o browser guarda para sempre.
+	 */
+	@Test
+	@DisplayName("Should not redirect a slug that ends in a number to the product with that id")
+	void shouldNotRedirectNumericLookingSlugs() throws Exception {
+		when(productService.findBySlug("qualquer-coisa-1"))
+				.thenThrow(new ResourceNotFoundException("Product", "qualquer-coisa-1"));
+
+		mockMvc.perform(get(BASE_URL + "/slug/qualquer-coisa-1")).andExpect(status().isNotFound());
+
+		verify(productService).findBySlug("qualquer-coisa-1");
+	}
 
 	@Test
 	@DisplayName("Should bind every query parameter into the search filter")

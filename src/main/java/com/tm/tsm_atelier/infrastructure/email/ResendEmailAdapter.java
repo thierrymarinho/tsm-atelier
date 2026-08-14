@@ -63,6 +63,48 @@ public class ResendEmailAdapter implements EmailPort {
 
 	@Override
 	@Async("emailTaskExecutor")
+	public void sendAccountAlreadyExistsEmail(String to, String firstName, String loginLink) {
+		String html = buildAccountAlreadyExistsEmailHtml(firstName, loginLink);
+
+		CreateEmailOptions options = CreateEmailOptions.builder().from(fromEmail).to(to)
+				.subject("Você já tem uma conta — TSM Atelier").html(html).build();
+
+		try {
+			resend.emails().send(options);
+			logger.info("Account-already-exists notice sent to {}", to);
+		} catch (ResendException e) {
+			logger.error("Failed to send account-already-exists notice to {}: {}", to, e.getMessage());
+		}
+	}
+
+	/**
+	 * Não diz "alguém tentou se cadastrar como você" de forma alarmista, e também
+	 * não esconde o ocorrido: quem recebe ou foi a própria pessoa que esqueceu que
+	 * tinha conta — o caso comum — ou precisa saber que o endereço dela foi
+	 * digitado em um cadastro.
+	 */
+	private String buildAccountAlreadyExistsEmailHtml(String firstName, String loginLink) {
+		return """
+				<!DOCTYPE html>
+				<html>
+				  <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+				    <h2>Olá, %s!</h2>
+				    <p>Recebemos um cadastro na TSM Atelier com este endereço de e-mail, mas você já tem uma conta conosco.</p>
+				    <p>Se foi você, é só entrar normalmente:</p>
+				    <a href="%s"
+				       style="display: inline-block; padding: 12px 24px; background-color: #1a1a1a;
+				              color: #ffffff; text-decoration: none; border-radius: 4px; margin: 16px 0;">
+				      Entrar na minha conta
+				    </a>
+				    <p style="color: #666; font-size: 14px;">Se não foi você, pode ignorar este e-mail — nenhuma conta nova foi criada e nada mudou na sua.</p>
+				  </body>
+				</html>
+				"""
+				.formatted(firstName, loginLink);
+	}
+
+	@Override
+	@Async("emailTaskExecutor")
 	public void sendOrderConfirmationEmail(String to, String firstName, Long orderId,
 			java.math.BigDecimal totalAmount) {
 		String html = buildOrderConfirmationEmailHtml(firstName, orderId, totalAmount);

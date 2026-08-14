@@ -9,7 +9,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyExistsException;
 import com.tm.tsm_atelier.common.exception.custom.EmailNotVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.InvalidTokenException;
 import com.tm.tsm_atelier.common.exception.custom.UserNotFoundException;
@@ -92,7 +91,7 @@ class AuthServiceTest {
 
 			RegisterRequestDTO request = aRegisterRequest().build();
 
-			when(userRepository.existsByEmail(anyString())).thenReturn(false);
+			when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 			when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 			when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -125,21 +124,41 @@ class AuthServiceTest {
 			verify(jwtService, never()).generateToken(any());
 		}
 
+		/**
+		 * O e-mail já cadastrado não vira erro: a resposta é a mesma do cadastro novo,
+		 * senão a rota — pública e sem credencial — responde "esta pessoa é cliente"
+		 * para quem iterar uma lista de endereços.
+		 */
 		@Test
-		@DisplayName("Should throw when the email is already in use")
-		void shouldThrowWhenEmailAlreadyExists() {
-			// Arrange
-			RegisterRequestDTO request = aRegisterRequest().build();
+		@DisplayName("Should answer an existing email exactly like a new one")
+		void shouldNotRevealThatTheEmailAlreadyExists() {
+			ReflectionTestUtils.setField(authService, "emailVerificationExpiration", 86400000L);
+			ReflectionTestUtils.setField(authService, "appBaseUrl", "http://localhost:3000");
 
-			// Act
-			when(userRepository.existsByEmail(request.email())).thenReturn(true);
+			RegisterRequestDTO novo = aRegisterRequest().withEmail("novo@email.com").build();
+			RegisterRequestDTO existente = aRegisterRequest().withEmail("ja-cadastrado@email.com").build();
+			User jaCadastrado = User.builder().firstName("Maria").email(existente.email()).build();
 
-			// Assert
-			assertThatThrownBy(() -> authService.register(request)).isInstanceOf(EmailAlreadyExistsException.class)
-					.hasMessage("Email is already in use.");
+			when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+			when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+			when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+			when(userRepository.findByEmail(novo.email())).thenReturn(Optional.empty());
+			when(userRepository.findByEmail(existente.email())).thenReturn(Optional.of(jaCadastrado));
 
-			verify(userRepository, never()).save(any());
-			verify(emailService, never()).sendVerificationEmail(anyString(), anyString(), anyString());
+			// As duas respostas são comparadas entre si, e não contra uma literal
+			// escrita aqui: é a igualdade que fecha a enumeração, e uma literal
+			// copiada continuaria passando se as duas mensagens divergissem.
+			String respostaParaNovo = authService.register(novo).message();
+			String respostaParaExistente = authService.register(existente).message();
+
+			assertThat(respostaParaExistente).isEqualTo(respostaParaNovo);
+
+			// O e-mail já cadastrado não cria nada e não entra no fluxo de
+			// verificação. O aviso sai por fora, para quem controla a caixa.
+			verify(userRepository, times(1)).save(any());
+			verify(emailService, times(1)).sendVerificationEmail(eq(novo.email()), anyString(), anyString());
+			verify(emailService, never()).sendVerificationEmail(eq(existente.email()), anyString(), anyString());
+			verify(emailService).sendAccountAlreadyExistsEmail(eq(existente.email()), eq("Maria"), anyString());
 		}
 	}
 

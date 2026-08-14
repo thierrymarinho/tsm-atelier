@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+import com.tm.tsm_atelier.common.exception.custom.InvalidStatusTransitionException;
+import com.tm.tsm_atelier.domain.admin.service.AuditService;
 import com.tm.tsm_atelier.domain.cart.service.CartService;
 import com.tm.tsm_atelier.domain.order.entity.Order;
 import com.tm.tsm_atelier.domain.order.entity.OrderItem;
@@ -45,6 +47,9 @@ class OrderServiceStatusTest {
 	@Mock
 	private CartService cartService;
 
+	@Mock
+	private AuditService auditService;
+
 	@InjectMocks
 	private OrderService orderService;
 
@@ -55,7 +60,7 @@ class OrderServiceStatusTest {
 		when(orderRepository.findByIdWithItems(1L)).thenReturn(Optional.of(order));
 
 		assertThatThrownBy(() -> orderService.updateOrderStatus(1L, OrderStatus.PENDING_PAYMENT))
-				.isInstanceOf(IllegalArgumentException.class)
+				.isInstanceOf(InvalidStatusTransitionException.class)
 				.hasMessage("Cannot move an order from DELIVERED to PENDING_PAYMENT.");
 
 		assertThat(order.getStatus()).isEqualTo(OrderStatus.DELIVERED);

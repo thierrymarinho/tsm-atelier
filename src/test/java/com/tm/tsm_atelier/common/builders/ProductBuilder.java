@@ -4,7 +4,9 @@ import com.tm.tsm_atelier.domain.collection.entity.Collection;
 import com.tm.tsm_atelier.domain.product.entity.FabricComposition;
 import com.tm.tsm_atelier.domain.product.entity.Product;
 import com.tm.tsm_atelier.domain.product.entity.ProductColor;
+import com.tm.tsm_atelier.domain.product.enums.CareInstruction;
 import com.tm.tsm_atelier.domain.product.enums.Category;
+import com.tm.tsm_atelier.domain.product.enums.Material;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,8 +17,9 @@ public class ProductBuilder {
 	private Long id = 1L;
 	private String name = "Camiseta Básica Premium";
 	private String description = "Camiseta 100% algodão egípcio";
-	private List<FabricComposition> fabricCompositions = List.of(new FabricComposition("Algodão", 100));
-	private List<String> careInstructions = new ArrayList<>(List.of("Lavar a mão", "Não usar alvejante"));
+	private List<FabricComposition> fabricCompositions = List.of(new FabricComposition(Material.COTTON, 100));
+	private List<CareInstruction> careInstructions = new ArrayList<>(
+			List.of(CareInstruction.HAND_WASH, CareInstruction.DO_NOT_BLEACH));
 	private BigDecimal price = new BigDecimal("150.00");
 	private BigDecimal promotionalPrice = null;
 	private Collection collection = null;

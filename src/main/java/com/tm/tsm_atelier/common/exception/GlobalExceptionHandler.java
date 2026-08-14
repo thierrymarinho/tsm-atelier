@@ -2,14 +2,17 @@ package com.tm.tsm_atelier.common.exception;
 
 import com.tm.tsm_atelier.common.exception.custom.*;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -20,6 +23,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import tools.jackson.core.JacksonException.Reference;
+import tools.jackson.databind.exc.InvalidFormatException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -41,6 +46,59 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		problem.setProperty("fields", fields);
 
 		return ResponseEntity.status(422).body(problem);
+	}
+
+	/**
+	 * Um valor fora do enum nem chega na validacao: o Jackson falha ao
+	 * desserializar e a resposta herdada diz apenas que o corpo nao pode ser lido.
+	 * Para um formulario de cadastro isso e um beco — o admin escreve "Algodao" sem
+	 * til, recebe 400, e nada na resposta indica que existe uma lista fechada nem
+	 * quais sao os valores dela.
+	 *
+	 * <p>
+	 * O caminho nomeia o campo inteiro, incluindo o indice
+	 * ({@code fabricCompositions[0].material}), porque numa composicao de tres
+	 * materiais saber apenas que "algum material e invalido" nao ajuda.
+	 */
+	@Override
+	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+
+		if (ex.getCause() instanceof InvalidFormatException cause && cause.getTargetType() != null
+				&& cause.getTargetType().isEnum()) {
+
+			String field = fieldPath(cause);
+
+			logger.warn("Rejected value '" + cause.getValue() + "' for enum field " + field);
+
+			ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+			problem.setTitle("Invalid value");
+			problem.setDetail("'" + cause.getValue() + "' is not a valid value for " + field + ".");
+			problem.setProperty("field", field);
+			problem.setProperty("allowedValues",
+					Arrays.stream(cause.getTargetType().getEnumConstants()).map(Object::toString).toList());
+
+			return ResponseEntity.badRequest().body(problem);
+		}
+
+		return super.handleHttpMessageNotReadable(ex, headers, status, request);
+	}
+
+	private String fieldPath(InvalidFormatException cause) {
+		StringBuilder path = new StringBuilder();
+
+		for (Reference reference : cause.getPath()) {
+			if (reference.getPropertyName() == null) {
+				path.append('[').append(reference.getIndex()).append(']');
+			} else {
+				if (!path.isEmpty()) {
+					path.append('.');
+				}
+				path.append(reference.getPropertyName());
+			}
+		}
+
+		return path.isEmpty() ? "the request body" : path.toString();
 	}
 
 	@ExceptionHandler(EmailAlreadyExistsException.class)
@@ -169,15 +227,57 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * Sem este handler, validações de negócio que lançam IllegalArgumentException
-	 * caíam no handler genérico e voltavam como 500 — reportando erro de servidor
-	 * para o que na verdade é erro do cliente, e enchendo o log de ERROR com stack
-	 * traces de situações rotineiras.
+	 * Sem este handler, validações de negócio voltariam como 500 — reportando erro
+	 * de servidor para o que na verdade é erro do cliente, e enchendo o log de
+	 * ERROR com stack traces de situações rotineiras.
+	 *
+	 * <p>
+	 * O tipo capturado era {@link IllegalArgumentException}, o que também engolia
+	 * IAE vindo de dentro do framework: um erro de programação era devolvido ao
+	 * cliente como 400 e nunca aparecia como falha. Agora só as exceções de domínio
+	 * chegam aqui, e o resto volta a cair no handler genérico, que loga.
 	 */
-	@ExceptionHandler(IllegalArgumentException.class)
-	public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+	@ExceptionHandler(BusinessRuleException.class)
+	public ProblemDetail handleBusinessRule(BusinessRuleException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
 		problem.setTitle("Invalid request");
+		return problem;
+	}
+
+	@ExceptionHandler(InvalidStatusTransitionException.class)
+	public ProblemDetail handleInvalidStatusTransition(InvalidStatusTransitionException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		problem.setTitle("Invalid status transition");
+		problem.setProperty("from", ex.getFrom());
+		problem.setProperty("to", ex.getTo());
+		return problem;
+	}
+
+	/**
+	 * 409, e não 400: o dado enviado pode estar perfeitamente válido — apenas
+	 * partiu de uma leitura que envelheceu. A ação do cliente é recarregar e
+	 * reenviar, que é justamente o que 409 comunica.
+	 */
+	@ExceptionHandler(StaleResourceException.class)
+	public ProblemDetail handleStaleResource(StaleResourceException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+		problem.setTitle("Stale data");
+		return problem;
+	}
+
+	/**
+	 * Conflito de versão detectado pelo próprio Hibernate, e não pela checagem
+	 * explícita do serviço — duas transações gravando a mesma linha ao mesmo tempo.
+	 * Sem este handler viraria 500, quando a resposta certa é a mesma do caso
+	 * acima: recarregue e tente de novo.
+	 */
+	@ExceptionHandler(OptimisticLockingFailureException.class)
+	public ProblemDetail handleOptimisticLocking(OptimisticLockingFailureException ex) {
+		logger.warn("Optimistic locking conflict: " + ex.getMessage());
+
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+				"This record was changed by someone else while you were editing. Reload and try again.");
+		problem.setTitle("Stale data");
 		return problem;
 	}
 

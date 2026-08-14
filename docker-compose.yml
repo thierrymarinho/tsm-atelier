@@ -19,6 +19,22 @@ services:
   redis:
     image: redis:7-alpine
     container_name: tsm-atelier-redis
+    # Sem teto, o cache do catalogo cresce ate o limite do host: a chave de
+    # catalog_products inclui filtro, sort, page e size, e a rota que a alimenta e
+    # publica. O TTL de 10 min limita o acumulo, nao o impede sob carga.
+    #
+    # allkeys-lru, e nao volatile-lru, porque aqui todas as chaves tem TTL -- os
+    # dois se comportariam igual. E preciso ser honesto sobre o custo: esta
+    # instancia guarda cache de catalogo E estado de seguranca (rt:*, at:revoked:*,
+    # rl:*), entao sob pressao de memoria o Redis pode despejar um refresh token ou
+    # uma entrada de denylist, nao so cache. A alternativa noeviction seria pior --
+    # falharia o SET de um login em vez de descartar uma pagina de catalogo -- e um
+    # OOM do processo perderia tudo de uma vez. Com 256mb o despejo so acontece sob
+    # abuso real, e nesse cenario perder sessao e o menor dos danos.
+    #
+    # Separar cache de estado de seguranca exige uma segunda instancia: maxmemory e
+    # por processo, nao por database. Fica para quando houver motivo.
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
     ports:
       - "6379:6379"
 

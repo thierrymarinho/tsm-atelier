@@ -1,13 +1,11 @@
 package com.tm.tsm_atelier.domain.collection.controller.v1;
 
-import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
 import com.tm.tsm_atelier.domain.collection.dto.CollectionResponseDTO;
 import com.tm.tsm_atelier.domain.collection.enums.DisplayPosition;
 import com.tm.tsm_atelier.domain.collection.service.CollectionService;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,26 +28,9 @@ public class CollectionCatalogController {
 		return ResponseEntity.ok(collectionService.findById(id));
 	}
 
+	/** Pelo mesmo motivo do produto — ver {@code ProductCatalogController}. */
 	@GetMapping("/slug/{slug}")
 	public ResponseEntity<CollectionResponseDTO> findBySlug(@PathVariable String slug) {
-		Long id = extractIdFromSlug(slug);
-
-		CollectionResponseDTO collection = collectionService.findById(id);
-
-		if (!collection.slug().equals(slug)) {
-			return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY)
-					.header("Location", "/api/v1/catalog/collections/slug/" + collection.slug()).build();
-		}
-
-		return ResponseEntity.ok(collection);
-	}
-
-	private Long extractIdFromSlug(String slug) {
-		try {
-			String[] parts = slug.split("-");
-			return Long.parseLong(parts[parts.length - 1]);
-		} catch (NumberFormatException e) {
-			throw new ResourceNotFoundException("Collection", slug);
-		}
+		return ResponseEntity.ok(collectionService.findBySlug(slug));
 	}
 }

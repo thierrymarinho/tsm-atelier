@@ -1,11 +1,13 @@
 package com.tm.tsm_atelier.domain.product.controller.v1;
 
+import com.tm.tsm_atelier.common.web.SortWhitelist;
+import com.tm.tsm_atelier.domain.product.dto.AdminProductResponseDTO;
+import com.tm.tsm_atelier.domain.product.dto.AdminProductSummaryDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductRequestDTO;
-import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductSearchFilter;
-import com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO;
 import com.tm.tsm_atelier.domain.product.service.ProductService;
 import jakarta.validation.Valid;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,26 +21,29 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProductAdminController {
 
+	private static final Set<String> SORTABLE_FIELDS = Set.of("id", "name", "price", "promotionalPrice", "category",
+			"targetAudience", "active", "featured", "createdAt", "updatedAt");
+
 	private final ProductService productService;
 
 	@PostMapping
-	public ResponseEntity<ProductResponseDTO> create(@RequestBody @Valid ProductRequestDTO request) {
+	public ResponseEntity<AdminProductResponseDTO> create(@RequestBody @Valid ProductRequestDTO request) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(request));
 	}
 
 	@GetMapping
-	public ResponseEntity<Page<ProductSummaryDTO>> search(@ModelAttribute ProductSearchFilter filter,
+	public ResponseEntity<Page<AdminProductSummaryDTO>> search(@ModelAttribute ProductSearchFilter filter,
 			@PageableDefault(size = 20) Pageable pageable) {
-		return ResponseEntity.ok(productService.searchAdmin(filter, pageable));
+		return ResponseEntity.ok(productService.searchAdmin(filter, SortWhitelist.validate(pageable, SORTABLE_FIELDS)));
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<ProductResponseDTO> findById(@PathVariable Long id) {
+	public ResponseEntity<AdminProductResponseDTO> findById(@PathVariable Long id) {
 		return ResponseEntity.ok(productService.findAdminById(id));
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ProductResponseDTO> update(@PathVariable Long id,
+	public ResponseEntity<AdminProductResponseDTO> update(@PathVariable Long id,
 			@RequestBody @Valid ProductRequestDTO request) {
 		return ResponseEntity.ok(productService.update(id, request));
 	}
@@ -47,5 +52,10 @@ public class ProductAdminController {
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		productService.delete(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/restore")
+	public ResponseEntity<AdminProductResponseDTO> restore(@PathVariable Long id) {
+		return ResponseEntity.ok(productService.restore(id));
 	}
 }

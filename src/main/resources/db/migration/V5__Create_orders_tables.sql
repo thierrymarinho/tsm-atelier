@@ -34,9 +34,6 @@ CREATE TABLE order_items (
     sku_code VARCHAR(100) NOT NULL,
     size VARCHAR(50) NOT NULL,
     color VARCHAR(255),
-    -- Acompanha product_colors.cover_image_url, que e a origem do valor. Enquanto
-    -- esta coluna era menor que a de origem, uma URL de imagem longa passava no
-    -- cadastro do produto e derrubava o checkout desse produto no insert.
     image_url VARCHAR(500),
     price_at_purchase DECIMAL(10,2) NOT NULL,
     list_price_at_purchase DECIMAL(10,2) NOT NULL,
@@ -46,3 +43,11 @@ CREATE TABLE order_items (
     CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     CONSTRAINT fk_order_items_sku FOREIGN KEY (sku_id) REFERENCES product_skus(id) ON DELETE SET NULL
 );
+
+-- O Postgres nao indexa chave estrangeira sozinho -- a constraint garante
+-- integridade, nao desempenho de leitura. Sem este indice, montar o DTO de um
+-- pedido varre order_items inteira: os itens sao LAZY, e a listagem resolve a
+-- colecao com um IN (...) por pagina (default_batch_fetch_size), que e
+-- exatamente a consulta que este indice atende. O ON DELETE CASCADE percorre o
+-- mesmo caminho.
+CREATE INDEX idx_order_items_order_id ON order_items (order_id);

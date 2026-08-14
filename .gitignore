@@ -38,3 +38,8 @@ out/
 
 ### Secrets ###
 .env
+
+### Notas pessoais ###
+# Preparação para entrevista, não conteúdo do repositório: publicá-la conta ao
+# leitor que as respostas são ensaiadas, o que trabalha contra ela.
+DEFESA_TECNICA.md

@@ -326,7 +326,7 @@
                                 },
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"name\": \"Classic T-Shirt\",\n    \"description\": \"A classic cotton t-shirt\",\n    \"fabricCompositions\": [\n        {\n            \"material\": \"Cotton\",\n            \"percentage\": 100\n        }\n    ],\n    \"careInstructions\": [\n        \"Machine wash cold\"\n    ],\n    \"price\": 29.9,\n    \"promotionalPrice\": 19.9,\n    \"collectionId\": 1,\n    \"category\": \"SHIRTS\",\n    \"targetAudience\": \"MEN\",\n    \"active\": true,\n    \"featured\": false,\n    \"colors\": [\n        {\n            \"name\": \"White\",\n            \"hexCode\": \"#FFFFFF\",\n            \"images\": [\n                {\n                    \"url\": \"https://example.com/shirt.jpg\",\n                    \"displayOrder\": 1\n                }\n            ],\n            \"skus\": [\n                {\n                    \"size\": \"M\",\n                    \"stockQuantity\": 50,\n                    \"sku\": \"TSHIRT-WHT-M\",\n                    \"price\": 29.9\n                }\n            ]\n        }\n    ]\n}"
+                                    "raw": "{\n    \"name\": \"Classic T-Shirt\",\n    \"description\": \"A classic cotton t-shirt\",\n    \"fabricCompositions\": [\n        {\n            \"material\": \"COTTON\",\n            \"percentage\": 100\n        }\n    ],\n    \"careInstructions\": [\n        \"MACHINE_WASH_COLD\",\n        \"DO_NOT_BLEACH\",\n        \"IRON_LOW\"\n    ],\n    \"price\": 29.9,\n    \"promotionalPrice\": 19.9,\n    \"collectionId\": 1,\n    \"category\": \"SHIRTS\",\n    \"targetAudience\": \"MEN\",\n    \"active\": true,\n    \"featured\": false,\n    \"colors\": [\n        {\n            \"colorName\": \"White\",\n            \"colorHex\": \"#FFFFFF\",\n            \"coverImageUrl\": \"https://example.com/shirt-cover.jpg\",\n            \"hoverImageUrl\": \"https://example.com/shirt-hover.jpg\",\n            \"galleryImages\": [\n                \"https://example.com/shirt-1.jpg\"\n            ],\n            \"skus\": [\n                {\n                    \"size\": \"M\",\n                    \"stockQuantity\": 50\n                },\n                {\n                    \"size\": \"G\",\n                    \"stockQuantity\": 30\n                }\n            ]\n        }\n    ]\n}"
                                 }
                             }
                         },
@@ -412,7 +412,7 @@
                                 },
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"name\": \"Updated Classic T-Shirt\",\n    \"description\": \"An updated classic cotton t-shirt\",\n    \"fabricCompositions\": [\n        {\n            \"material\": \"Cotton\",\n            \"percentage\": 100\n        }\n    ],\n    \"careInstructions\": [\n        \"Machine wash cold\"\n    ],\n    \"price\": 35.0,\n    \"collectionId\": 1,\n    \"category\": \"SHIRTS\",\n    \"targetAudience\": \"MEN\",\n    \"active\": true,\n    \"featured\": true,\n    \"colors\": [\n        {\n            \"name\": \"White\",\n            \"hexCode\": \"#FFFFFF\",\n            \"images\": [\n                {\n                    \"url\": \"https://example.com/shirt.jpg\",\n                    \"displayOrder\": 1\n                }\n            ],\n            \"skus\": [\n                {\n                    \"size\": \"M\",\n                    \"stockQuantity\": 50,\n                    \"sku\": \"TSHIRT-WHT-M\",\n                    \"price\": 35.0\n                }\n            ]\n        }\n    ]\n}"
+                                    "raw": "{\n    \"name\": \"Updated Classic T-Shirt\",\n    \"description\": \"An updated classic cotton t-shirt\",\n    \"fabricCompositions\": [\n        {\n            \"material\": \"COTTON\",\n            \"percentage\": 100\n        }\n    ],\n    \"careInstructions\": [\n        \"MACHINE_WASH_COLD\",\n        \"DO_NOT_BLEACH\",\n        \"IRON_LOW\"\n    ],\n    \"price\": 35.0,\n    \"collectionId\": 1,\n    \"category\": \"SHIRTS\",\n    \"targetAudience\": \"MEN\",\n    \"active\": true,\n    \"featured\": true,\n    \"colors\": [\n        {\n            \"colorName\": \"White\",\n            \"colorHex\": \"#FFFFFF\",\n            \"coverImageUrl\": \"https://example.com/shirt-cover.jpg\",\n            \"hoverImageUrl\": \"https://example.com/shirt-hover.jpg\",\n            \"galleryImages\": [\n                \"https://example.com/shirt-1.jpg\"\n            ],\n            \"skus\": [\n                {\n                    \"size\": \"M\",\n                    \"stockQuantity\": 50\n                },\n                {\n                    \"size\": \"G\",\n                    \"stockQuantity\": 30\n                }\n            ]\n        }\n    ]\n}"
                                 },
                                 "description": "PUT de substituicao total: o corpo abaixo nao traz promotionalPrice, e e assim que o admin retira o produto da promocao."
                             }
@@ -593,7 +593,7 @@
                             "request": {
                                 "method": "GET",
                                 "url": {
-                                    "raw": "{{baseUrl}}/api/v1/catalog/collections/slug/summer-collection",
+                                    "raw": "{{baseUrl}}/api/v1/catalog/collections/slug/flora",
                                     "host": [
                                         "{{baseUrl}}"
                                     ],
@@ -603,7 +603,7 @@
                                         "catalog",
                                         "collections",
                                         "slug",
-                                        "summer-collection"
+                                        "flora"
                                     ]
                                 }
                             }
@@ -685,7 +685,7 @@
                             "request": {
                                 "method": "GET",
                                 "url": {
-                                    "raw": "{{baseUrl}}/api/v1/catalog/products/slug/classic-t-shirt",
+                                    "raw": "{{baseUrl}}/api/v1/catalog/products/slug/camisa-vestido",
                                     "host": [
                                         "{{baseUrl}}"
                                     ],
@@ -695,7 +695,7 @@
                                         "catalog",
                                         "products",
                                         "slug",
-                                        "classic-t-shirt"
+                                        "camisa-vestido"
                                     ]
                                 }
                             }
@@ -734,6 +734,46 @@
                                         "catalog",
                                         "products",
                                         "categories"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "6. Materials",
+                            "request": {
+                                "method": "GET",
+                                "description": "Vocabulario fechado de composicao. Cada item traz name (a constante, que e o valor aceito em fabricCompositions[].material) e label (o texto em portugues, para exibir no formulario).",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/catalog/products/materials",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "catalog",
+                                        "products",
+                                        "materials"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "7. Care Instructions",
+                            "request": {
+                                "method": "GET",
+                                "description": "Vocabulario fechado de conservacao, agrupado por eixo. Cada eixo aceita uma unica instrucao: enviar duas do mesmo eixo (por exemplo DO_NOT_WASH junto de HAND_WASH) e recusado com 400. Os valores aceitos em careInstructions[] sao os options[].name.",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/catalog/products/care-instructions",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "catalog",
+                                        "products",
+                                        "care-instructions"
                                     ]
                                 }
                             }

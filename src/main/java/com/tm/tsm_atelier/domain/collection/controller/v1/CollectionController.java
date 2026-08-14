@@ -39,8 +39,14 @@ public class CollectionController {
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
-		collectionService.delete(id);
+	public ResponseEntity<Void> delete(@PathVariable Long id,
+			@RequestParam(defaultValue = "false") boolean cascadeProducts) {
+		collectionService.delete(id, cascadeProducts);
 		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/restore")
+	public ResponseEntity<CollectionResponseDTO> restore(@PathVariable Long id) {
+		return ResponseEntity.ok(collectionService.restore(id));
 	}
 }

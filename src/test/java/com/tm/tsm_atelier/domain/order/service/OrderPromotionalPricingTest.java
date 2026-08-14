@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.tm.tsm_atelier.domain.admin.service.AuditService;
 import com.tm.tsm_atelier.domain.cart.service.CartService;
 import com.tm.tsm_atelier.domain.order.dto.CheckoutItemDTO;
 import com.tm.tsm_atelier.domain.order.dto.CheckoutRequestDTO;
@@ -55,6 +56,9 @@ class OrderPromotionalPricingTest {
 
 	@Mock
 	private CartService cartService;
+
+	@Mock
+	private AuditService auditService;
 
 	@InjectMocks
 	private OrderService orderService;

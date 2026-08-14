@@ -5,6 +5,7 @@ import static com.tm.tsm_atelier.common.builders.CollectionRequestDTOBuilder.aCo
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.tm.tsm_atelier.domain.admin.service.AuditService;
 import com.tm.tsm_atelier.domain.collection.dto.CollectionRequestDTO;
 import com.tm.tsm_atelier.domain.collection.dto.CollectionResponseDTO;
 import com.tm.tsm_atelier.domain.collection.entity.Collection;
@@ -25,6 +26,9 @@ class CollectionServiceTest {
 
 	@Mock
 	private CollectionMapper collectionMapper;
+
+	@Mock
+	private AuditService auditService;
 
 	@InjectMocks
 	private CollectionService collectionService;

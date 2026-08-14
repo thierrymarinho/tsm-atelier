@@ -1,14 +1,21 @@
 package com.tm.tsm_atelier.domain.order.service;
 
 import com.tm.tsm_atelier.common.exception.custom.AddressNotFoundException;
+import com.tm.tsm_atelier.common.exception.custom.BusinessRuleException;
+import com.tm.tsm_atelier.common.exception.custom.InvalidStatusTransitionException;
 import com.tm.tsm_atelier.common.exception.custom.OutOfStockException;
 import com.tm.tsm_atelier.common.exception.custom.ResourceNotFoundException;
 import com.tm.tsm_atelier.config.CacheNames;
+import com.tm.tsm_atelier.domain.admin.entity.AuditAction;
+import com.tm.tsm_atelier.domain.admin.entity.AuditedEntity;
+import com.tm.tsm_atelier.domain.admin.service.AuditService;
 import com.tm.tsm_atelier.domain.cart.service.CartService;
+import com.tm.tsm_atelier.domain.order.dto.AdminOrderResponseDTO;
 import com.tm.tsm_atelier.domain.order.dto.CheckoutItemDTO;
 import com.tm.tsm_atelier.domain.order.dto.CheckoutRequestDTO;
 import com.tm.tsm_atelier.domain.order.dto.OrderItemResponseDTO;
 import com.tm.tsm_atelier.domain.order.dto.OrderResponseDTO;
+import com.tm.tsm_atelier.domain.order.dto.OrderSearchFilter;
 import com.tm.tsm_atelier.domain.order.entity.Order;
 import com.tm.tsm_atelier.domain.order.entity.OrderItem;
 import com.tm.tsm_atelier.domain.order.entity.OrderStatus;
@@ -16,10 +23,10 @@ import com.tm.tsm_atelier.domain.order.entity.ShippingAddress;
 import com.tm.tsm_atelier.domain.order.event.OrderPaidEvent;
 import com.tm.tsm_atelier.domain.order.port.PaymentIntentResult;
 import com.tm.tsm_atelier.domain.order.repository.OrderRepository;
+import com.tm.tsm_atelier.domain.order.repository.OrderSpecification;
 import com.tm.tsm_atelier.domain.product.entity.ProductSKU;
 import com.tm.tsm_atelier.domain.product.repository.ProductSKURepository;
 import com.tm.tsm_atelier.domain.user.entity.Address;
-import com.tm.tsm_atelier.domain.user.entity.Role;
 import com.tm.tsm_atelier.domain.user.entity.User;
 import com.tm.tsm_atelier.domain.user.repository.AddressRepository;
 import java.math.BigDecimal;
@@ -35,9 +42,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +57,7 @@ public class OrderService {
 	private final AddressRepository addressRepository;
 	private final ApplicationEventPublisher eventPublisher;
 	private final CartService cartService;
+	private final AuditService auditService;
 
 	private static final BigDecimal FIXED_SHIPPING_FEE = new BigDecimal("0.00");
 	private static final int PAYMENT_WINDOW_MINUTES = 30;
@@ -70,12 +77,14 @@ public class OrderService {
 			OrderStatus.DELIVERED, Set.of(), OrderStatus.CANCELLED, Set.of());
 
 	public OrderService(OrderRepository orderRepository, ProductSKURepository skuRepository,
-			AddressRepository addressRepository, ApplicationEventPublisher eventPublisher, CartService cartService) {
+			AddressRepository addressRepository, ApplicationEventPublisher eventPublisher, CartService cartService,
+			AuditService auditService) {
 		this.orderRepository = orderRepository;
 		this.skuRepository = skuRepository;
 		this.addressRepository = addressRepository;
 		this.eventPublisher = eventPublisher;
 		this.cartService = cartService;
+		this.auditService = auditService;
 	}
 
 	@Transactional
@@ -175,18 +184,6 @@ public class OrderService {
 	}
 
 	/**
-	 * Quem disparou a ação, para o rastro de auditoria. Lido do contexto de
-	 * segurança em vez de virar parâmetro do método porque é informação de log, e
-	 * não de negócio — a assinatura pública do serviço não deveria mudar por causa
-	 * disso. Cai em "system" quando não há requisição autenticada por trás, como no
-	 * scheduler de expiração.
-	 */
-	private String currentActor() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return authentication == null ? "system" : authentication.getName();
-	}
-
-	/**
 	 * Devolve ao estoque as unidades que o pedido mantinha reservadas. Pega o lock
 	 * pessimista no SKU pelo mesmo motivo do checkout: duas devoluções simultâneas
 	 * sobre o mesmo SKU perderiam uma das somas.
@@ -196,8 +193,14 @@ public class OrderService {
 			if (item.getSku() == null) {
 				continue;
 			}
-			skuRepository.findByIdWithPessimisticLock(item.getSku().getId())
-					.ifPresent(sku -> sku.setStockQuantity(sku.getStockQuantity() + item.getQuantity()));
+			// O @SQLRestriction do ProductSKU esconde SKUs removidos do catálogo, e
+			// a versão anterior usava ifPresent: cancelar um pedido antigo de um
+			// produto já retirado perdia as unidades sem nenhum rastro, e o método
+			// seguia como se tivesse devolvido tudo.
+			skuRepository.findByIdWithPessimisticLock(item.getSku().getId()).ifPresentOrElse(
+					sku -> sku.setStockQuantity(sku.getStockQuantity() + item.getQuantity()),
+					() -> log.warn("SKU {} ({}) is no longer in the catalog; {} units from order {} were not restored",
+							item.getSku().getId(), item.getSkuCode(), item.getQuantity(), order.getId()));
 		}
 	}
 
@@ -243,6 +246,25 @@ public class OrderService {
 		return orderRepository.findByUserId(user.getId(), pageable).map(order -> toResponseDTO(order, null));
 	}
 
+	/**
+	 * A rota do cliente, e só dela. Um ADMIN chegando aqui recebe 403 — o que
+	 * parece uma perda de acesso e não é: ele tem
+	 * {@link #getAdminOrderDetails(Long)}, que devolve mais informação, e não
+	 * menos.
+	 *
+	 * <p>
+	 * Antes o ADMIN passava por esta checagem e recebia {@code OrderResponseDTO}
+	 * com o {@code clientSecret} anulado em tempo de execução por um parâmetro
+	 * booleano. Funcionava, e era uma garantia que dependia de alguém lembrar de
+	 * passar {@code false} — enquanto o campo existisse no record, todo mapeamento
+	 * novo nascia com o vazamento por padrão. Agora a separação é estrutural: o
+	 * caminho do admin usa um tipo que não tem o componente.
+	 *
+	 * <p>
+	 * De quebra, esta era a única autorização por regra de negócio do projeto. O
+	 * resto é posicional, decidido no SecurityConfig pelo prefixo da rota, e agora
+	 * isto também é.
+	 */
 	@Transactional(readOnly = true)
 	public OrderResponseDTO getOrderDetails(Long id, User user) {
 		// Um único pedido pode usar fetch join com segurança — não há paginação
@@ -250,7 +272,7 @@ public class OrderService {
 		Order order = orderRepository.findByIdWithItems(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
-		if (!order.getUser().getId().equals(user.getId()) && user.getRole() != Role.ADMIN) {
+		if (!order.getUser().getId().equals(user.getId())) {
 			throw new AccessDeniedException("Access denied");
 		}
 
@@ -258,27 +280,42 @@ public class OrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<OrderResponseDTO> getAllOrders(OrderStatus status, Pageable pageable) {
-		if (status != null) {
-			return orderRepository.findByStatus(status, pageable).map(order -> toResponseDTO(order, null));
+	public AdminOrderResponseDTO getAdminOrderDetails(Long id) {
+		return toAdminResponseDTO(
+				orderRepository.findByIdWithItems(id).orElseThrow(() -> new ResourceNotFoundException("Order", id)));
+	}
+
+	@Transactional(readOnly = true)
+	public Page<AdminOrderResponseDTO> getAllOrders(OrderSearchFilter filter, Pageable pageable) {
+		// Intervalo invertido devolveria uma lista vazia sem erro, e o operador
+		// concluiria que não há pedidos no período.
+		if (filter.createdFrom() != null && filter.createdTo() != null
+				&& filter.createdFrom().isAfter(filter.createdTo())) {
+			throw new BusinessRuleException(
+					"createdFrom (" + filter.createdFrom() + ") is after createdTo (" + filter.createdTo() + ").");
 		}
-		return orderRepository.findAll(pageable).map(order -> toResponseDTO(order, null));
+
+		Specification<Order> spec = Specification.where(OrderSpecification.hasStatus(filter.status()))
+				.and(OrderSpecification.search(filter.searchTerm()))
+				.and(OrderSpecification.createdFrom(filter.createdFrom()))
+				.and(OrderSpecification.createdTo(filter.createdTo()));
+
+		return orderRepository.findAll(spec, pageable).map(this::toAdminResponseDTO);
 	}
 
 	@Transactional
-	public OrderResponseDTO updateOrderStatus(Long id, OrderStatus newStatus) {
+	public AdminOrderResponseDTO updateOrderStatus(Long id, OrderStatus newStatus) {
 		Order order = orderRepository.findByIdWithItems(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
 		OrderStatus previousStatus = order.getStatus();
 
 		if (previousStatus == newStatus) {
-			return toResponseDTO(order, null);
+			return toAdminResponseDTO(order);
 		}
 
 		if (!ALLOWED_TRANSITIONS.getOrDefault(previousStatus, Set.of()).contains(newStatus)) {
-			throw new IllegalArgumentException(
-					"Cannot move an order from " + previousStatus + " to " + newStatus + ".");
+			throw new InvalidStatusTransitionException(previousStatus, newStatus);
 		}
 
 		// Cancelar precisa devolver o estoque reservado. A versão anterior apenas
@@ -290,27 +327,43 @@ public class OrderService {
 
 		order.setStatus(newStatus);
 
-		// Não existe tabela de auditoria: sem esta linha, quem moveu o pedido — e
-		// devolveu estoque ao cancelá-lo — não fica registrado em lugar nenhum. O
-		// banco guarda só o estado final, nunca quem o produziu.
-		log.info("Order {} moved from {} to {} by {}", id, previousStatus, newStatus, currentActor());
+		// A tabela orders guarda só o estado final: sem este registro, quem moveu o
+		// pedido — e devolveu estoque ao cancelá-lo — não aparece em lugar nenhum.
+		auditService.recordChange(AuditedEntity.ORDER, id, AuditAction.STATUS_CHANGED, previousStatus, newStatus);
 
-		return toResponseDTO(order, null);
+		return toAdminResponseDTO(order);
 	}
 
+	/**
+	 * Este mapeamento serve exclusivamente o dono do pedido, e por isso pode
+	 * carregar o {@code clientSecret} sem condicional nenhuma: quem chega aqui já
+	 * passou pela checagem de posse.
+	 */
 	private OrderResponseDTO toResponseDTO(Order order, String clientSecret) {
 		String resolvedClientSecret = clientSecret != null
 				? clientSecret
 				: (order.getStatus() == OrderStatus.PENDING_PAYMENT ? order.getPaymentClientSecret() : null);
 
-		List<OrderItemResponseDTO> itemDTOs = order.getItems().stream()
+		return new OrderResponseDTO(order.getId(), order.getStatus(), order.getTotalAmount(), order.getShippingFee(),
+				resolvedClientSecret, order.getShippingAddress(), order.getExpiresAt(), order.getCreatedAt(),
+				toItemDTOs(order));
+	}
+
+	private AdminOrderResponseDTO toAdminResponseDTO(Order order) {
+		User customer = order.getUser();
+
+		return new AdminOrderResponseDTO(order.getId(), order.getStatus(), order.getTotalAmount(),
+				order.getShippingFee(), customer.getId(), customer.getFirstName() + " " + customer.getLastName(),
+				customer.getEmail(), order.getShippingAddress(), order.getExpiresAt(), order.getCreatedAt(),
+				toItemDTOs(order));
+	}
+
+	private List<OrderItemResponseDTO> toItemDTOs(Order order) {
+		return order.getItems().stream()
 				.map(item -> new OrderItemResponseDTO(item.getId(),
 						item.getSku() != null ? item.getSku().getId() : null, item.getProductName(), item.getSkuCode(),
 						item.getSize(), item.getColor(), item.getImageUrl(), item.getPriceAtPurchase(),
 						item.getListPriceAtPurchase(), item.getQuantity()))
 				.toList();
-
-		return new OrderResponseDTO(order.getId(), order.getStatus(), order.getTotalAmount(), order.getShippingFee(),
-				resolvedClientSecret, order.getShippingAddress(), order.getExpiresAt(), order.getCreatedAt(), itemDTOs);
 	}
 }

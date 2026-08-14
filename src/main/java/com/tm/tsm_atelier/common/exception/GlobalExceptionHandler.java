@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
@@ -35,6 +36,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(@NonNull MethodArgumentNotValidException ex,
 			@NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
 
+		for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+			ResponseEntity<Object> enumProblem = invalidEnumValue(error);
+			if (enumProblem != null) {
+				return enumProblem;
+			}
+		}
+
 		logger.warn("Validation failed for request: " + ex.getMessage());
 
 		ProblemDetail problem = ProblemDetail.forStatus(422);
@@ -50,18 +58,28 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return ResponseEntity.status(422).body(problem);
 	}
 
-	/**
-	 * Um valor fora do enum nem chega na validacao: o Jackson falha ao
-	 * desserializar e a resposta herdada diz apenas que o corpo nao pode ser lido.
-	 * Para um formulario de cadastro isso e um beco — o admin escreve "Algodao" sem
-	 * til, recebe 400, e nada na resposta indica que existe uma lista fechada nem
-	 * quais sao os valores dela.
-	 *
-	 *
-	 * O caminho nomeia o campo inteiro, incluindo o indice
-	 * (fabricCompositions[0].material), porque numa composicao de tres materiais
-	 * saber apenas que "algum material e invalido" nao ajuda.
-	 */
+	private ResponseEntity<Object> invalidEnumValue(FieldError error) {
+		if (!error.contains(TypeMismatchException.class)) {
+			return null;
+		}
+
+		Class<?> required = error.unwrap(TypeMismatchException.class).getRequiredType();
+
+		if (required == null || !required.isEnum()) {
+			return null;
+		}
+
+		logger.warn("Rejected value '" + error.getRejectedValue() + "' for enum field " + error.getField());
+
+		ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+		problem.setTitle("Invalid value");
+		problem.setDetail("'" + error.getRejectedValue() + "' is not a valid value for " + error.getField() + ".");
+		problem.setProperty("field", error.getField());
+		problem.setProperty("allowedValues", Arrays.stream(required.getEnumConstants()).map(Object::toString).toList());
+
+		return ResponseEntity.badRequest().body(problem);
+	}
+
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(@NonNull HttpMessageNotReadableException ex,
 			@NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {

@@ -42,12 +42,19 @@ public class RedisConfig implements CachingConfigurer {
 		JavaType productPageType = typeFactory.constructParametricType(CustomPageImpl.class, ProductSummaryDTO.class);
 		JavaType collectionListType = typeFactory.constructCollectionType(List.class, CollectionResponseDTO.class);
 
+		// Um serializer por cache, e por isso um cache por tipo de valor. Produto e
+		// colecao dividiam catalog_slug com o serializer fixado em
+		// ProductResponseDTO: a leitura da colecao quebrava sempre, em silencio,
+		// porque o CacheErrorHandler abaixo trata falha de leitura como cache frio.
 		return RedisCacheManager.builder(redisConnectionFactory).cacheDefaults(baseConfig())
 				.withCacheConfiguration(CacheNames.CATALOG_PRODUCTS,
 						baseConfig().serializeValuesWith(serializerFor(objectMapper, productPageType)))
 				.withCacheConfiguration(CacheNames.CATALOG_SLUG,
 						baseConfig().serializeValuesWith(
 								serializerFor(objectMapper, typeFactory.constructType(ProductResponseDTO.class))))
+				.withCacheConfiguration(CacheNames.CATALOG_SLUG_COLLECTION,
+						baseConfig().serializeValuesWith(
+								serializerFor(objectMapper, typeFactory.constructType(CollectionResponseDTO.class))))
 				.withCacheConfiguration(CacheNames.CATALOG_COLLECTIONS,
 						baseConfig().serializeValuesWith(serializerFor(objectMapper, collectionListType)))
 				.disableCreateOnMissingCache().build();

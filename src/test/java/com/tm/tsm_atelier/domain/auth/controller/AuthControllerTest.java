@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyExistsException;
 import com.tm.tsm_atelier.domain.auth.controller.v1.AuthController;
 import com.tm.tsm_atelier.domain.auth.dto.AuthResponseDTO;
 import com.tm.tsm_atelier.domain.auth.dto.LoginRequestDTO;
@@ -136,17 +135,14 @@ class AuthControllerTest {
 		}
 
 		@Test
-		@DisplayName("Should return 409 when the email is already in use")
-		void shouldReturn409WhenEmailAlreadyExists() throws Exception {
-			// Arrange
+		@DisplayName("Should answer 201 for an email that already has an account")
+		void shouldNotAnswerConflictForAnExistingEmail() throws Exception {
 			RegisterRequestDTO request = aRegisterRequest().build();
 
 			when(authService.register(any(RegisterRequestDTO.class)))
-					.thenThrow(new EmailAlreadyExistsException("Email is already in use."));
+					.thenReturn(new RegisterResponseDTO("Registration successful. Please check your email."));
 
-			// Act & Assert
-			performRegister(request).andExpect(status().isConflict()) // 409
-					.andExpect(jsonPath("$.detail").value("Email is already in use."));
+			performRegister(request).andExpect(status().isCreated());
 
 			verify(authService).register(any(RegisterRequestDTO.class));
 		}
@@ -240,11 +236,6 @@ class AuthControllerTest {
 		}
 
 		/**
-		 * Os nomes ficam literais aqui de propósito. Trocá-los é decisão deliberada —
-		 * derruba a sessão de todo mundo e obriga o front a acompanhar — e um teste
-		 * escrito sobre a mesma constante que a produção usa não acusaria nada.
-		 *
-		 * <p>
 		 * O prefixo __Host- é regra imposta pelo browser, não convenção: ele exige
 		 * Secure e Path=/ e recusa o cookie inteiro se faltar qualquer um. O refresh
 		 * fica com __Secure- porque seu caminho é restrito, o que __Host- proibiria.
@@ -367,14 +358,6 @@ class AuthControllerTest {
 		@Test
 		@DisplayName("Should return 401 when the token arrives only in the Authorization Bearer header")
 		void shouldReturn401WhenTokenArrivesOnlyInTheAuthorizationHeader() throws Exception {
-			// O header era aceito como fallback do cookie. Deixou de ser: a sessão tem
-			// uma porta só. Este teste existe para a porta não reabrir sem ninguém
-			// perceber — era exatamente assim que o caminho seguia vivo, sem uso real
-			// e sem nada acusando.
-			//
-			// Os stubs são o que dá força ao teste: com eles, um token lido do header
-			// autenticaria. Sem eles o mock devolveria null e o 401 viria de qualquer
-			// jeito, inclusive com o fallback de volta no lugar.
 			UserResponseDTO profile = new UserResponseDTO(UUID.randomUUID(), "Maria", "Silva", "Maria Silva",
 					"user@example.com", Role.CUSTOMER);
 			when(jwtService.extractUsername(anyString())).thenReturn("user@example.com");

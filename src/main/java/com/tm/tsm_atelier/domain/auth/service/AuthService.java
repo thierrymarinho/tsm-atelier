@@ -1,6 +1,5 @@
 package com.tm.tsm_atelier.domain.auth.service;
 
-import com.tm.tsm_atelier.common.exception.custom.EmailAlreadyExistsException;
 import com.tm.tsm_atelier.common.exception.custom.EmailNotVerifiedException;
 import com.tm.tsm_atelier.common.exception.custom.InvalidTokenException;
 import com.tm.tsm_atelier.common.exception.custom.UserNotFoundException;
@@ -20,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -54,14 +54,6 @@ public class AuthService {
 	@Value("${app.email-verification-expiration}")
 	private long emailVerificationExpiration;
 
-	/**
-	 * Por quanto tempo um refresh token recem-rotacionado ainda e aceito. Existe
-	 * porque o cliente legitimo reaparece com o token antigo o tempo todo: resposta
-	 * perdida no caminho, timeout, duas abas renovando juntas. Sem a janela, cada
-	 * um desses casos caia na deteccao de reuso e derrubava todas as sessoes do
-	 * usuario. O preco e que um replay dentro da janela passa despercebido, entao
-	 * ela e curta de proposito.
-	 */
 	@Value("${app.refresh-token-grace-ms:30000}")
 	private long refreshTokenGraceMs;
 
@@ -83,8 +75,14 @@ public class AuthService {
 
 	@Transactional
 	public RegisterResponseDTO register(RegisterRequestDTO request) {
-		if (userRepository.existsByEmail(request.email())) {
-			throw new EmailAlreadyExistsException("Email is already in use.");
+		Optional<User> existingUser = userRepository.findByEmail(request.email());
+
+		if (existingUser.isPresent()) {
+			User existing = existingUser.get();
+			emailPort.sendAccountAlreadyExistsEmail(existing.getEmail(), existing.getFirstName(),
+					appBaseUrl + "/login");
+
+			return registrationAccepted();
 		}
 
 		User user = User.builder().firstName(request.firstName()).lastName(request.lastName()).email(request.email())
@@ -103,6 +101,10 @@ public class AuthService {
 		// Disparo assíncrono — não bloqueia o retorno do register
 		emailPort.sendVerificationEmail(request.email(), request.firstName(), verificationLink);
 
+		return registrationAccepted();
+	}
+
+	private RegisterResponseDTO registrationAccepted() {
 		return new RegisterResponseDTO("Registration successful. Please check your email to verify your account.");
 	}
 
@@ -148,14 +150,6 @@ public class AuthService {
 		return generateAndSaveTokens(user);
 	}
 
-	/**
-	 * Não sinaliza se a conta existe nem se já foi verificada. Antes, um e-mail
-	 * desconhecido voltava 400 "User not found" e um já verificado voltava outro
-	 * erro — bastava iterar uma lista para descobrir quem tem conta na loja, que é
-	 * insumo direto para phishing dirigido. O rate limit por IP limitava a
-	 * velocidade, não o vazamento. A rota agora responde igual nos três casos e só
-	 * envia o e-mail quando faz sentido enviar.
-	 */
 	public void resendVerificationEmail(String email) {
 		User user = userRepository.findByEmail(email).orElse(null);
 
@@ -173,12 +167,6 @@ public class AuthService {
 
 	public AuthResponseDTO refresh(String refreshToken) {
 		String hashedToken = hashToken(refreshToken);
-
-		// GETDEL em vez de GET seguido de DELETE: com as duas operacoes separadas,
-		// duas requisicoes simultaneas com o mesmo token liam a chave antes de
-		// qualquer uma apagar e as duas eram atendidas — sem disparar a deteccao de
-		// reuso, que e exatamente o cenario que ela existe para pegar. Agora so uma
-		// consegue consumir o token.
 		String email = redisTemplate.opsForValue().getAndDelete("rt:valid:" + hashedToken);
 
 		if (email != null) {
@@ -204,11 +192,6 @@ public class AuthService {
 
 		String reusedEmail = redisTemplate.opsForValue().get("rt:used:" + hashedToken);
 		if (reusedEmail != null) {
-			// Único sinal de que um refresh token vazou, e ele não deixa rastro no
-			// banco. O usuário também não reclama: ele só é deslogado. Sem esta
-			// linha, a revogação em massa acontece sem nenhuma evidência de por quê.
-			// O e-mail entra aqui de propósito — é um evento de segurança, e sem ele
-			// não há como saber qual conta investigar.
 			log.warn("Refresh token reuse detected for {}; revoking all sessions", reusedEmail);
 			revokeAllUserTokens(reusedEmail);
 			throw new InvalidTokenException("Security Alert: Token reuse detected. All sessions have been revoked.");
@@ -217,11 +200,6 @@ public class AuthService {
 		throw new InvalidTokenException("Invalid or expired refresh token.");
 	}
 
-	/**
-	 * O refresh repete as validacoes de acesso do login. Antes so o login barrava
-	 * conta nao verificada, entao quem ja tivesse uma sessao aberta seguia
-	 * renovando indefinidamente mesmo depois de perder a verificacao.
-	 */
 	private AuthResponseDTO issueTokensFor(String email) {
 		User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found."));
 
@@ -242,15 +220,10 @@ public class AuthService {
 	}
 
 	public void logout(String accessToken, String refreshToken) {
-		// O access token sobrevive ao logout até expirar: assinatura válida, dentro
-		// do prazo. Com 15 minutos de vida, uma cópia tirada antes do logout seguia
-		// abrindo a conta por todo esse tempo. O denylist encerra isso agora.
 		if (accessToken != null) {
 			try {
 				accessTokenDenylist.revoke(accessToken, jwtService.remainingValidity(accessToken));
 			} catch (Exception e) {
-				// Token ilegível ou já expirado — não há o que revogar, e um logout
-				// nunca deve falhar por causa da credencial que está descartando.
 				log.debug("Could not revoke the access token during logout: {}", e.getMessage());
 			}
 		}
@@ -258,26 +231,16 @@ public class AuthService {
 		if (refreshToken == null) {
 			return;
 		}
-
-		// Nada aqui pode derrubar o logout. Estas linhas estavam desprotegidas, e o
-		// controller so limpa os cookies depois que este metodo retorna: uma falha do
-		// Redis fazia o logout devolver 500 sem apagar cookie nenhum, ou seja, o
-		// usuario clicava em sair e continuava dentro.
 		try {
 			String hashedToken = hashToken(refreshToken);
 			String email = redisTemplate.opsForValue().getAndDelete("rt:valid:" + hashedToken);
 
-			// Um logout dentro da janela de graca precisa mata-la tambem, senao o token
-			// que acabou de ser invalidado ainda renderia uma sessao nova.
 			redisTemplate.delete("rt:grace:" + hashedToken);
 
 			if (email != null) {
 				redisTemplate.opsForSet().remove("rt:user:" + email, hashedToken);
 			}
 		} catch (DataAccessException e) {
-			// Em warn, e nao em debug: o refresh token continua valido por ate sete
-			// dias, e o usuario acredita ter saido. E a falha mais grave que este
-			// metodo pode esconder.
 			log.warn("Could not invalidate the refresh token during logout; it stays valid until it expires", e);
 		}
 	}
@@ -292,10 +255,6 @@ public class AuthService {
 
 		redisTemplate.opsForSet().add("rt:user:" + user.getEmail(), hashedToken);
 
-		// O set nunca expirava: hashes de tokens que morreram por TTL ficavam nele
-		// para sempre, porque so a rotacao e o logout removem membros. Renovar o
-		// prazo a cada emissao faz o indice morrer junto com o ultimo token que ele
-		// guarda.
 		redisTemplate.expire("rt:user:" + user.getEmail(), Duration.ofMillis(refreshTokenExpiration));
 
 		String fullName = formatFullName(user.getFirstName(), user.getLastName());

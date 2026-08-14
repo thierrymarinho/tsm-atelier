@@ -7,12 +7,15 @@ import static org.awaitility.Awaitility.await;
 import com.tm.tsm_atelier.common.dto.CustomPageImpl;
 import com.tm.tsm_atelier.domain.collection.dto.CollectionResponseDTO;
 import com.tm.tsm_atelier.domain.collection.enums.DisplayPosition;
+import com.tm.tsm_atelier.domain.product.dto.CareInstructionResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.FabricCompositionResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductColorResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductSKUResponseDTO;
 import com.tm.tsm_atelier.domain.product.dto.ProductSummaryDTO;
+import com.tm.tsm_atelier.domain.product.enums.CareInstruction;
 import com.tm.tsm_atelier.domain.product.enums.Category;
+import com.tm.tsm_atelier.domain.product.enums.Material;
 import com.tm.tsm_atelier.domain.product.enums.ProductSize;
 import com.tm.tsm_atelier.domain.product.enums.TargetAudience;
 import java.math.BigDecimal;
@@ -29,12 +32,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-// O scheduler de expiracao roda de minuto em minuto dentro do contexto, e o
-// @CacheEvict(allEntries) de cancelAndRestoreStock limparia o catalogo no meio
-// do teste. Ele so evicta quando existem pedidos vencidos, entao dificilmente
-// era a causa da intermitencia — essa era a corrida entre as conexoes de
-// escrita e leitura, tratada em roundTrip. Desligar aqui e barato e remove a
-// variavel.
 @TestPropertySource(properties = "app.scheduler.order-expiration.enabled=false")
 @DisplayName("Catalog cache serialization")
 class CatalogCacheSerializationTest {
@@ -46,15 +43,16 @@ class CatalogCacheSerializationTest {
 	@DisplayName("Product detail comes back from Redis with the color and SKU tree intact")
 	void productDetailRoundTrips() {
 		ProductResponseDTO stored = new ProductResponseDTO(1L, "Camisa Vestido", "camisa-vestido-1", "Descrição",
-				List.of(new FabricCompositionResponseDTO("Algodão", 100)), List.of("Lavar à mão", "Não usar alvejante"),
+				List.of(new FabricCompositionResponseDTO(Material.COTTON, "Algodão", 100)),
+				List.of(CareInstructionResponseDTO.from(CareInstruction.HAND_WASH),
+						CareInstructionResponseDTO.from(CareInstruction.DO_NOT_BLEACH)),
 				new BigDecimal("199.90"), new BigDecimal("149.90"),
 				new CollectionResponseDTO(2L, "Verão", "verao", "Descrição", true, "hero.jpg", "portrait.jpg",
 						"square.jpg", DisplayPosition.HEADER, 1, TargetAudience.WOMEN),
 				Category.DRESSES, TargetAudience.WOMEN, true, true,
 				List.of(new ProductColorResponseDTO(3L, "Preto", "#000000", "cover.jpg", "hover.jpg",
 						List.of("g1.jpg", "g2.jpg"),
-						List.of(new ProductSKUResponseDTO(4L, ProductSize.M, "SKU-1", 7, null)), null)),
-				null);
+						List.of(new ProductSKUResponseDTO(4L, ProductSize.M, "SKU-1", 7)))));
 
 		ProductResponseDTO loaded = roundTrip(CacheNames.CATALOG_SLUG, "camisa-vestido-1", stored,
 				ProductResponseDTO.class);
@@ -64,12 +62,38 @@ class CatalogCacheSerializationTest {
 		assertThat(loaded.collection().displayPosition()).isEqualTo(DisplayPosition.HEADER);
 	}
 
+	/**
+	 * A coleção tem cache próprio, e não uma chave prefixada dentro de
+	 * {@code catalog_slug}, porque um cache do Redis tem <strong>um</strong>
+	 * serializer de valor por nome. Enquanto os dois dividiram o mesmo cache, o
+	 * serializer era o do produto: a coleção era gravada sem reclamar e toda
+	 * leitura quebrava ao forçar aquele JSON para dentro de
+	 * {@code ProductResponseDTO}.
+	 *
+	 * <p>
+	 * Este caso cobre a metade de serialização, como os três vizinhos. Que o
+	 * serviço escreva <em>neste</em> cache e não no outro é a outra metade, e vive
+	 * em {@code CatalogSlugRoutingTest} — nenhuma das duas pega o defeito sozinha.
+	 */
+	@Test
+	@DisplayName("Collection detail comes back from Redis as a collection, not as a product")
+	void collectionDetailRoundTrips() {
+		CollectionResponseDTO stored = new CollectionResponseDTO(2L, "Flora", "flora", "Descrição", true, "hero.jpg",
+				"portrait.jpg", "square.jpg", DisplayPosition.HOME_MAIN, 3, TargetAudience.WOMEN);
+
+		CollectionResponseDTO loaded = roundTrip(CacheNames.CATALOG_SLUG_COLLECTION, "flora", stored,
+				CollectionResponseDTO.class);
+
+		assertThat(loaded).isEqualTo(stored);
+		assertThat(loaded.displayPosition()).isEqualTo(DisplayPosition.HOME_MAIN);
+	}
+
 	@Test
 	@DisplayName("Catalog page comes back from Redis with pagination preserved")
 	void catalogPageRoundTrips() {
 		var stored = new CustomPageImpl<>(
 				List.of(new ProductSummaryDTO(1L, "Camisa Vestido", "camisa-vestido-1", new BigDecimal("199.90"),
-						new BigDecimal("149.90"), true, "cover.jpg", "hover.jpg", List.of("#000000"), null, true)),
+						new BigDecimal("149.90"), true, "cover.jpg", "hover.jpg", List.of("#000000"), true)),
 				PageRequest.of(0, 12), 37);
 
 		Object key = List.of("termo", "DRESSES", 0, 12);

@@ -13,30 +13,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/**
- * Roda num servidor de verdade, e nao em MockMvc, de proposito. O bug que este
- * teste protege so existe no despacho de erro do container: o
- * AccessDeniedHandler chama response.sendError(403), o Tomcat despacha para
- * /error, e esse segundo despacho passa pela cadeia de seguranca outra vez — ja
- * sem SecurityContext. Enquanto /error nao era rota publica, ele caia em
- * anyRequest().authenticated() e o entry point sobrescrevia o 403 com 401.
- *
- * <p>
- * O MockMvc nao executa esse segundo despacho. A primeira versao deste teste
- * foi escrita com ele e passava com e sem a correcao — ou seja, nao provava
- * nada. Por isso aqui e servidor real.
- *
- * <p>
- * A diferenca importa para o front: 401 significa "sua sessao acabou", e um SPA
- * que renova o token ao ver 401 acaba deslogando um usuario cuja sessao estava
- * perfeita, so porque ele clicou onde nao tinha permissao.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("401 vs 403 through a real servlet container")
 class AuthorizationStatusCodeTest {
@@ -65,8 +49,6 @@ class AuthorizationStatusCodeTest {
 	@BeforeEach
 	void setUp() {
 		cleanUp();
-		// Sem id: a entidade usa GenerationType.UUID, e um id preenchido faz o
-		// Spring Data tratar o save como update de uma linha que nao existe.
 		customer = userRepository.save(User.builder().firstName("Status").lastName("Probe").email(CUSTOMER_EMAIL)
 				.password(passwordEncoder.encode("irrelevant-password")).role(Role.CUSTOMER).emailVerified(true)
 				.build());
@@ -77,16 +59,26 @@ class AuthorizationStatusCodeTest {
 		cleanUp();
 	}
 
-	@Test
-	@DisplayName("Should answer 403 when an authenticated CUSTOMER hits an admin route")
-	void shouldAnswer403ForAuthenticatedCustomer() throws Exception {
-		assertThat(get("/api/v1/admin/products", jwtService.generateToken(customer)).statusCode()).isEqualTo(403);
+	@ParameterizedTest(name = "403 em {0}")
+	@ValueSource(strings = {"/api/v1/admin/products", "/api/v1/admin/collections", "/api/v1/admin/orders",
+			"/api/v1/admin/dashboard", "/api/v1/admin/skus/1/stock", "/api/v1/admin/uploads"})
+	@DisplayName("Should answer 403 when an authenticated CUSTOMER hits any admin route group")
+	void shouldAnswer403ForAuthenticatedCustomer(String path) throws Exception {
+		assertThat(get(path, jwtService.generateToken(customer)).statusCode()).isEqualTo(403);
+	}
+
+	@ParameterizedTest(name = "401 em {0}")
+	@ValueSource(strings = {"/api/v1/admin/products", "/api/v1/admin/collections", "/api/v1/admin/orders",
+			"/api/v1/admin/dashboard", "/api/v1/admin/skus/1/stock", "/api/v1/admin/uploads"})
+	@DisplayName("Should answer 401 when there is no session at all")
+	void shouldAnswer401WithoutSession(String path) throws Exception {
+		assertThat(get(path, null).statusCode()).isEqualTo(401);
 	}
 
 	@Test
-	@DisplayName("Should answer 401 when there is no session at all")
-	void shouldAnswer401WithoutSession() throws Exception {
-		assertThat(get("/api/v1/admin/products", null).statusCode()).isEqualTo(401);
+	@DisplayName("Should not leak a 405 in place of the authorization answer")
+	void authorizationDecidesBeforeMethodMatching() throws Exception {
+		assertThat(get("/api/v1/admin/uploads", jwtService.generateToken(customer)).statusCode()).isNotEqualTo(405);
 	}
 
 	@Test
@@ -108,13 +100,6 @@ class AuthorizationStatusCodeTest {
 		return client.send(request.build(), HttpResponse.BodyHandlers.ofString());
 	}
 
-	/**
-	 * DELETE direto, e nao userRepository.delete(): User tem @SQLDelete que
-	 * anonimiza em vez de apagar (deleted_at preenchido, e-mail trocado por
-	 * id@deleted.local). Pelo repositorio, cada execucao deixava uma linha
-	 * permanente no banco — e como o e-mail muda na anonimizacao, a execucao
-	 * seguinte nao a encontrava e criava outra.
-	 */
 	private void cleanUp() {
 		jdbcTemplate.update("DELETE FROM users WHERE email = ?", CUSTOMER_EMAIL);
 	}

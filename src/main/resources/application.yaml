@@ -11,7 +11,7 @@ spring:
   flyway:
     enabled: true
     placeholders:
-      admin_password_hash: ${ADMIN_PASSWORD_HASH:$2a$10$U7EJsOg3No2BaPaXFnKWpOEFWXgOHhPQ5UBdS7SWgW8xWBWNhTB1C}
+      admin_password_hash: ${ADMIN_PASSWORD_HASH}
 
   jackson:
     deserialization:

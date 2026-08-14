@@ -89,7 +89,8 @@ public class SecurityConfig {
 				.ignoringRequestMatchers(SecurityConstants.CSRF_EXEMPT_ROUTES))
 				.authorizeHttpRequests(req -> req.requestMatchers(SecurityConstants.PUBLIC_ROUTES).permitAll()
 						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated())
-				.exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+				.exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+						.accessDeniedHandler(new ProblemDetailAccessDeniedHandler()))
 				.sessionManagement(AbstractHttpConfigurer::disable).authenticationProvider(authenticationProvider())
 				.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 				.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);

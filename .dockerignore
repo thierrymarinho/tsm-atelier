@@ -1,0 +1,18 @@
+# O contexto de build é enviado inteiro ao daemon do Docker antes de qualquer
+# camada rodar. Sem esta lista, `build/` e `.git/` sozinhos somam centenas de
+# megabytes que não entram na imagem — só atrasam todo deploy.
+
+.git
+.gitignore
+.idea
+.gradle
+build
+out
+bin
+
+*.md
+docker-compose.yml
+tsm-atelier-postman_collection.json
+
+.env
+.env.*

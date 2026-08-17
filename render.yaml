@@ -1,0 +1,79 @@
+services:
+  - type: web
+    name: tsm-atelier-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: oregon
+    # `free` derruba o serviço após 15 min sem tráfego, e a volta leva cerca de
+    # um minuto — ver a seção de armadilhas do DEPLOY.md do front.
+    plan: starter
+    healthCheckPath: /api/v1/catalog/collections
+    # Explícito de propósito: omitir `branch` faz o Render seguir a branch default
+    # do repositório, então trocá-la no GitHub mudaria de onde sai o deploy sem
+    # ninguém tocar neste arquivo.
+    branch: main
+    autoDeployTrigger: commit
+
+    envVars:
+      # --- Banco (Neon) ------------------------------------------------------
+      # Conexão DIRETA, sem o sufixo `-pooler`: o Hikari já é o pool, e o
+      # PgBouncer do Neon roda em modo transaction, que quebra recursos de
+      # sessão. Ver https://neon.com/docs/connect/connection-pooling
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+      # --- Redis (Upstash) ---------------------------------------------------
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: 6379
+      - key: REDIS_PASSWORD
+        sync: false
+      # TLS é obrigatório no Upstash — sem isto a conexão é recusada.
+      - key: REDIS_SSL_ENABLED
+        value: true
+      - key: REDIS_TIMEOUT
+        value: 5s
+      - key: REDIS_CONNECT_TIMEOUT
+        value: 10s
+
+      # --- Sessão ------------------------------------------------------------
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD_HASH
+        sync: false
+
+      # --- Stripe ------------------------------------------------------------
+      - key: STRIPE_API_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+      # --- Cloudinary --------------------------------------------------------
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      # --- E-mail ------------------------------------------------------------
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+
+      # --- Aplicação ---------------------------------------------------------
+      # URL pública do FRONT, não deste serviço: é ela que monta o link de
+      # verificação de e-mail enviado ao cliente.
+      - key: APP_BASE_URL
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: JPA_SHOW_SQL
+        value: false

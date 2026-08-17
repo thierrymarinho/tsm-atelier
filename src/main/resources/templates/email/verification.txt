@@ -1,0 +1,13 @@
+TSM ATELIER
+
+Olá, {{FIRST_NAME}}
+
+Confirme seu endereço de e-mail para concluir seu cadastro e acessar sua conta:
+
+{{ACTION_URL}}
+
+Este link expira em 24 horas.
+Se você não criou uma conta, pode ignorar este e-mail com segurança.
+
+--
+TSM Atelier · Bahia

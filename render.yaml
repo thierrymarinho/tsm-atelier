@@ -1,3 +1,16 @@
+# Descrição da infraestrutura desta API no Render.
+#
+# ATENÇÃO: este arquivo NÃO está sendo aplicado. O serviço foi criado pelo painel
+# (New > Web Service), e não como Blueprint (New > Blueprint), então o Render nunca
+# lê este YAML — as variáveis foram preenchidas à mão e o plano foi escolhido lá.
+# Ele vale como documentação de como o serviço está configurado, e como ponto de
+# partida caso o serviço venha a ser recriado sob Blueprint.
+#
+# A diferença já custou um deploy: `generateValue: true` no JWT_SECRET abaixo
+# descreve o que o Render FARIA sob Blueprint. Sem Blueprint ele não gera nada, e
+# a aplicação não sobe sem a variável — que é exatamente o comportamento desejado
+# (ver a seção de variáveis de ambiente no README).
+
 services:
   - type: web
     name: tsm-atelier-api
@@ -5,9 +18,10 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     region: oregon
-    # `free` derruba o serviço após 15 min sem tráfego, e a volta leva cerca de
-    # um minuto — ver a seção de armadilhas do DEPLOY.md do front.
-    plan: starter
+    # Plano gratuito, por ser projeto de portfólio. O custo é a hibernação: o
+    # serviço cai após 15 min sem tráfego e a volta leva cerca de um minuto, então
+    # a primeira visita depois de um período parado espera pelo cold start.
+    plan: free
     healthCheckPath: /api/v1/catalog/collections
     # Explícito de propósito: omitir `branch` faz o Render seguir a branch default
     # do repositório, então trocá-la no GitHub mudaria de onde sai o deploy sem

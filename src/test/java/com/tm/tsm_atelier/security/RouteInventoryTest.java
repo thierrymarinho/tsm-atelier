@@ -29,7 +29,12 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @DisplayName("Route inventory")
 class RouteInventoryTest {
 
-	/** Tudo aqui exige ROLE_ADMIN, pela regra de prefixo. */
+	/**
+	 * Tudo aqui exige ROLE_ADMIN pela regra de prefixo, com uma excecao por metodo:
+	 * o GET de dashboard, produtos, colecoes e auditoria tambem aceita
+	 * ROLE_ADMIN_VIEWER. Este inventario continua olhando so o caminho — quem fixa
+	 * o alcance do viewer por metodo e o AdminViewerAuthorizationTest.
+	 */
 	private static final Set<String> ADMIN_ROUTES = new TreeSet<>(List.of("/api/v1/admin/audit",
 			"/api/v1/admin/collections", "/api/v1/admin/collections/{id}", "/api/v1/admin/collections/{id}/restore",
 			"/api/v1/admin/dashboard", "/api/v1/admin/orders", "/api/v1/admin/orders/{id}",

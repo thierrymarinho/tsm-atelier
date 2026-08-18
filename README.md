@@ -8,12 +8,23 @@ Stripe e um painel administrativo com trilha de auditoria.
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-6DB33F)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D)
-![Testes](https://img.shields.io/badge/testes-318-success)
+
+![Testes](https://img.shields.io/badge/testes-347-success)
+
 ![CI](https://github.com/thierrymarinho/tsm-atelier/actions/workflows/ci.yml/badge.svg)
 
 **▶ [Ver rodando](https://tsm-atelier-front.vercel.app/)** — front na Vercel, esta API no Render,
 Postgres no Neon, Redis no Upstash. **Tudo em plano gratuito**, o que significa que o backend
 hiberna após 15 minutos sem tráfego: se a primeira tela demorar, é a API acordando (~1 min).
+
+O **painel administrativo** pode ser aberto com uma conta somente-leitura:
+
+```
+demo@tsm-atelier.com  ·  demo1234
+```
+
+Ela enxerga dashboard, produtos, coleções e a trilha de auditoria, e não consegue escrever nada nem
+abrir a tela de pedidos — ver a [decisão 8](#8-um-papel-de-leitura-para-o-painel-ser-visitável).
 
 > **Projeto de portfólio, não um produto.** Ele roda de ponta a ponta e tem cobertura de teste real,
 > mas existe para eu estudar decisões de backend — não para atender clientes. A seção
@@ -100,7 +111,7 @@ quantidade".
 |---|---|---|
 | Linguagem | Java 25 | DTOs como `record` (50 arquivos), toolchain fixado no Gradle |
 | Framework | Spring Boot 4.1 · Spring Security 7.1 | Versões novas o bastante para não haver tutorial pronto — parte do exercício |
-| Persistência | PostgreSQL 17 · Spring Data JPA · Flyway | Schema versionado em 10 migrations, `ddl-auto: validate` — o Hibernate nunca altera a tabela |
+| Persistência | PostgreSQL 17 · Spring Data JPA · Flyway | Schema versionado em 11 migrations, `ddl-auto: validate` — o Hibernate nunca altera a tabela |
 | Cache e estado | Redis 7 | Cache do catálogo, refresh tokens, denylist e rate limit |
 | Build | Gradle (Kotlin DSL) · Spotless · JaCoCo | Formatação verificada na CI, relatório de cobertura no `build` |
 | Integrações | Stripe (pagamento) · Cloudinary (imagens) · Resend (e-mail) | Cada uma atrás de uma porta do domínio, trocável sem tocar em regra de negócio |
@@ -141,7 +152,9 @@ python3 -c "import bcrypt; print(bcrypt.hashpw(b'SUA_SENHA', bcrypt.gensalt(10, 
 Rodar a suíte:
 
 ```bash
-./gradlew test          # 318 testes; o relatório do JaCoCo sai em build/jacocoHtml
+
+./gradlew test          # 347 testes; o relatório do JaCoCo sai em build/jacocoHtml
+=======
 ./gradlew spotlessCheck # formatação
 ```
 
@@ -299,11 +312,42 @@ token revogado sobrevive alguns minutos, o que é preferível a derrubar o site 
 uma dependência que existe apenas para revogar. O log sai em `warn`, porque o sistema está rodando
 com uma garantia a menos e isso precisa aparecer em algum lugar.
 
+### 8. Um papel de leitura, para o painel ser visitável
+
+O painel é metade do trabalho e ficava invisível para quem só tem o link. A saída óbvia — publicar a
+senha de um admin — entrega a exclusão do catálogo para qualquer visitante, então criei
+`ROLE_ADMIN_VIEWER`: aceito **apenas em GET**, e apenas em dashboard, produtos, coleções e auditoria.
+
+O que decidiu o recorte não foi o que cada tela mostra, foi o que cada rota **aceita como pergunta**.
+Pedidos ficaram de fora, e não por causa do `customerEmail` na resposta — mascarar isso é fácil. É
+que `GET /admin/orders` aceita `searchTerm`, e o filtro casa por substring no e-mail e no nome:
+
+```java
+// OrderSpecification:27-29
+matches.add(cb.like(cb.lower(root.get("user").get("email")), pattern));
+matches.add(cb.like(cb.lower(root.get("user").get("firstName")), pattern));
+```
+
+Com isso, mascarar a saída não fecha nada — quem consulta alonga o termo um caractere por vez e
+observa quais consultas devolvem resultado, reconstruindo o endereço sem nunca vê-lo. **É a mesma
+enumeração da decisão 4, por outra porta**: lá o cadastro respondia "esta pessoa é cliente", aqui a
+busca responde o mesmo e ainda soletra. A defesa tem que estar na consulta, não na renderização.
+
+Estoque e auditoria entraram porque foram verificados, não presumidos: `stockQuantity` já sai no
+catálogo público, e `AuditedEntity` não tem `USER` — o histórico registra preço, status e estoque,
+nunca dado de cliente.
+
+O papel depende do verbo HTTP, e "GET é leitura" é convenção, não garantia. Por isso o
+`AdminViewerAuthorizationTest` fixa os dois lados — o que o viewer alcança e o que não alcança — com
+CSRF válido nas escritas, senão o `CsrfFilter` responderia `403` e o teste ficaria verde mesmo se a
+exigência de papel sumisse.
+
 ---
 
 ## Testes
 
-**318 testes.** O projeto tem mais linhas de teste (~7.800) do que de produção (~7.500), e isso não é
+**347 testes.** O projeto tem mais linhas de teste (~8.000) do que de produção (~7.550), e isso não é
+
 acidente: quase todo bug corrigido virou um teste que falha sem a correção.
 
 | Tipo | O que cobre |

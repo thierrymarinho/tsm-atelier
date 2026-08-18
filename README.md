@@ -8,7 +8,9 @@ Stripe e um painel administrativo com trilha de auditoria.
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-6DB33F)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D)
+
 ![Testes](https://img.shields.io/badge/testes-347-success)
+
 ![CI](https://github.com/thierrymarinho/tsm-atelier/actions/workflows/ci.yml/badge.svg)
 
 **▶ [Ver rodando](https://tsm-atelier-front.vercel.app/)** — front na Vercel, esta API no Render,
@@ -150,7 +152,9 @@ python3 -c "import bcrypt; print(bcrypt.hashpw(b'SUA_SENHA', bcrypt.gensalt(10, 
 Rodar a suíte:
 
 ```bash
+
 ./gradlew test          # 347 testes; o relatório do JaCoCo sai em build/jacocoHtml
+=======
 ./gradlew spotlessCheck # formatação
 ```
 
@@ -343,6 +347,7 @@ exigência de papel sumisse.
 ## Testes
 
 **347 testes.** O projeto tem mais linhas de teste (~8.000) do que de produção (~7.550), e isso não é
+
 acidente: quase todo bug corrigido virou um teste que falha sem a correção.
 
 | Tipo | O que cobre |

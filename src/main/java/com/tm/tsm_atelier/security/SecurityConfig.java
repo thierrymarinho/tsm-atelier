@@ -3,6 +3,7 @@ package com.tm.tsm_atelier.security;
 import com.tm.tsm_atelier.domain.user.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -88,7 +89,9 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository()).csrfTokenRequestHandler(requestHandler)
 				.ignoringRequestMatchers(SecurityConstants.CSRF_EXEMPT_ROUTES))
 				.authorizeHttpRequests(req -> req.requestMatchers(SecurityConstants.PUBLIC_ROUTES).permitAll()
-						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated())
+						.requestMatchers(HttpMethod.GET, SecurityConstants.ADMIN_VIEWER_ROUTES)
+						.hasAnyRole("ADMIN", "ADMIN_VIEWER").requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+						.anyRequest().authenticated())
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
 						.accessDeniedHandler(new ProblemDetailAccessDeniedHandler()))
 				.sessionManagement(AbstractHttpConfigurer::disable).authenticationProvider(authenticationProvider())

@@ -25,6 +25,9 @@ public final class SecurityConstants {
 
 	public static final String ERROR_DISPATCH_ROUTE = "/error";
 
+	public static final String[] ADMIN_VIEWER_ROUTES = {"/api/v1/admin/dashboard/**", "/api/v1/admin/products/**",
+			"/api/v1/admin/collections/**", "/api/v1/admin/audit/**"};
+
 	public static final String[] PUBLIC_ROUTES = Stream
 			.concat(Stream.of(PRE_SESSION_AUTH_ROUTES),
 					Stream.of("/api/v1/auth/logout", "/api/v1/catalog/**", "/api/v1/webhooks/**", ERROR_DISPATCH_ROUTE))

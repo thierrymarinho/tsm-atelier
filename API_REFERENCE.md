@@ -184,6 +184,25 @@ O endpoint `GET /catalog/products/categories?targetAudience=WOMEN` devolve a lis
 | `/api/v1/admin/**` | **`ROLE_ADMIN`** |
 | `/api/v1/webhooks/**` | público (assinatura HMAC do Stripe) |
 
+Existe um segundo papel com alcance no painel, `ROLE_ADMIN_VIEWER`, usado pela conta de
+demonstração pública. Ele só é aceito em **GET**, e só nestes quatro prefixos:
+
+| Rota | `ROLE_ADMIN` | `ROLE_ADMIN_VIEWER` |
+|---|:---:|:---:|
+| `GET /api/v1/admin/dashboard` | ✅ | ✅ |
+| `GET /api/v1/admin/products/**` | ✅ | ✅ |
+| `GET /api/v1/admin/collections/**` | ✅ | ✅ |
+| `GET /api/v1/admin/audit` | ✅ | ✅ |
+| `GET /api/v1/admin/orders/**` | ✅ | ❌ `403` |
+| qualquer escrita (`POST`/`PUT`/`PATCH`/`DELETE`) | ✅ | ❌ `403` |
+
+Pedidos ficaram de fora porque `GET /api/v1/admin/orders` aceita `searchTerm`, que casa por
+substring no e-mail e no nome do cliente — um canal de consulta que mascarar a resposta não fecha.
+
+Para o front, a diferença prática é que uma sessão de viewer deve esconder as ações de escrita e o
+menu de pedidos: a API recusa de qualquer forma, mas oferecer um botão que sempre devolve `403` é
+uma tela quebrada.
+
 ---
 
 ## 4. Autenticação — `/api/v1/auth`

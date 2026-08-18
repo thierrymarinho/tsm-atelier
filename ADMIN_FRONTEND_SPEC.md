@@ -73,11 +73,18 @@ Os cookies de sessão são `HttpOnly` e vão sozinhos porque a origem é a mesma
 ```ts
 type UserResponse = {
   id: string, firstName: string, lastName: string,
-  name: string, email: string, role: 'CUSTOMER' | 'ADMIN'
+  name: string, email: string, role: 'CUSTOMER' | 'ADMIN' | 'ADMIN_VIEWER'
 }
 ```
 
-`GET /api/v1/auth/me` → `200` com o objeto acima. Renderize o painel apenas com `role === 'ADMIN'`.
+`GET /api/v1/auth/me` → `200` com o objeto acima. Renderize o painel para `ADMIN` e `ADMIN_VIEWER`.
+
+> **`ADMIN_VIEWER` abre o painel em somente leitura** — alcança apenas os `GET` de dashboard,
+> produtos, coleções e auditoria, e recebe `403` em toda escrita e em pedidos. A matriz completa
+> está em [`API_REFERENCE.md` §3](API_REFERENCE.md#3-mapa-de-rotas-e-permissões). Para este papel,
+> esconda o menu de pedidos e as ações de escrita — inclusive os contadores do dashboard, que linkam
+> para `/admin/orders`. Um portão escrito como `role === 'ADMIN'` expulsa o papel do painel logo
+> após o login, que é o único desfecho em que ele não serve para nada.
 
 > **Isto é UX, não segurança.** A autorização real é do servidor, por prefixo de path. Esconder o
 > menu não protege nada; deixar de esconder também não expõe nada.

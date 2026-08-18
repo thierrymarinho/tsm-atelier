@@ -1,0 +1,14 @@
+TSM ATELIER
+
+Olá, {{FIRST_NAME}}
+
+Recebemos um cadastro na TSM Atelier com este endereço de e-mail, mas você já
+tem uma conta conosco. Se foi você, é só entrar normalmente:
+
+{{ACTION_URL}}
+
+Se não foi você, pode ignorar este e-mail: nenhuma conta nova foi criada e nada
+mudou na sua.
+
+--
+TSM Atelier · Bahia

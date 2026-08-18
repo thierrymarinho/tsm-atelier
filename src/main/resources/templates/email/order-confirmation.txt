@@ -1,0 +1,13 @@
+TSM ATELIER
+
+Olá, {{FIRST_NAME}}
+
+Seu pedido foi confirmado. Recebemos o pagamento e já estamos preparando tudo.
+
+  Pedido: #{{ORDER_ID}}
+  Total:  {{TOTAL}}
+
+Você será avisado assim que o seu pacote for enviado.
+
+--
+TSM Atelier · Bahia

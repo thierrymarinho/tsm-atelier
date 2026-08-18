@@ -74,6 +74,8 @@ resend:
 app:
   base-url: ${APP_BASE_URL:http://localhost:3000}
   email-verification-expiration: 86400000 # 24h em ms
+  email:
+    banner-url: ${EMAIL_BANNER_URL:https://res.cloudinary.com/apgaq55g/image/upload/w_1200,q_auto,f_auto/v1787000415/capa-email_ldtmgi.jpg}
 
 stripe:
   api-key: ${STRIPE_API_KEY}

@@ -58,12 +58,13 @@ public class CartService {
 		}
 
 		if (newQuantity > MAX_QUANTITY_PER_ITEM) {
-			throw new OutOfStockException("Maximum " + MAX_QUANTITY_PER_ITEM + " units per item",
-					MAX_QUANTITY_PER_ITEM);
+			throw new OutOfStockException("Maximum " + MAX_QUANTITY_PER_ITEM + " units per item", MAX_QUANTITY_PER_ITEM,
+					sku.getId(), OutOfStockException.Reason.MAX_UNITS_PER_ITEM, MAX_QUANTITY_PER_ITEM);
 		}
 
 		if (sku.getStockQuantity() < newQuantity) {
-			throw new OutOfStockException("Not enough stock for SKU: " + sku.getSkuCode(), sku.getStockQuantity());
+			throw new OutOfStockException("Not enough stock for SKU: " + sku.getSkuCode(), sku.getStockQuantity(),
+					sku.getId(), OutOfStockException.Reason.INSUFFICIENT_STOCK);
 		}
 
 		if (existingItemOpt.isPresent()) {
@@ -89,7 +90,8 @@ public class CartService {
 
 		if (item.getSku().getStockQuantity() < quantity) {
 			throw new OutOfStockException("Not enough stock for SKU: " + item.getSku().getSkuCode(),
-					item.getSku().getStockQuantity());
+					item.getSku().getStockQuantity(), item.getSku().getId(),
+					OutOfStockException.Reason.INSUFFICIENT_STOCK);
 		}
 
 		item.setQuantity(quantity);
@@ -169,7 +171,8 @@ public class CartService {
 
 	private void requirePurchasable(ProductSKU sku) {
 		if (!sku.getProductColor().getProduct().isActive()) {
-			throw new OutOfStockException("This product is no longer available.", 0);
+			throw new OutOfStockException("This product is no longer available.", 0, sku.getId(),
+					OutOfStockException.Reason.PRODUCT_UNAVAILABLE);
 		}
 	}
 

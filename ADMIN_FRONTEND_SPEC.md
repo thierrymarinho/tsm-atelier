@@ -113,6 +113,8 @@ type ProblemDetail = {
   fields?: Record<string, string>   // só em 422
   from?: OrderStatus, to?: OrderStatus  // só em transição de status inválida
   availableQuantity?: number        // só em conflito de estoque
+  skuId?: number, reason?: 'INSUFFICIENT_STOCK' | 'PRODUCT_UNAVAILABLE' | 'MAX_UNITS_PER_ITEM'
+  maxUnitsPerItem?: number          // só quando reason === 'MAX_UNITS_PER_ITEM'
 }
 ```
 

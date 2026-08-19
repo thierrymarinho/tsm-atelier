@@ -73,17 +73,36 @@ Duas variações acrescentam um campo:
 
 Em coleções, a chave usa índice: `"fields": { "items[0].quantity": "Quantity is required" }`.
 
-**409 de estoque** traz `availableQuantity`:
+**409 de estoque** diz qual item falhou e por quê:
 
 ```json
 {
   "status": 409,
   "title": "Out of stock",
-  "detail": "Maximum 10 units per item",
-  "instance": "/api/v1/cart/items",
-  "availableQuantity": 10
+  "detail": "Out of stock for SKU: TSM-000014. Available: 0",
+  "instance": "/api/v1/orders/checkout",
+  "availableQuantity": 0,
+  "skuId": 14,
+  "reason": "INSUFFICIENT_STOCK"
 }
 ```
+
+| `reason` | Quando acontece | `availableQuantity` | Extra |
+|---|---|---|---|
+| `INSUFFICIENT_STOCK` | o estoque acabou ou não cobre a quantidade pedida | o que ainda resta | — |
+| `PRODUCT_UNAVAILABLE` | o produto foi desativado | sempre `0` | — |
+| `MAX_UNITS_PER_ITEM` | passou do teto por pedido | o próprio teto | `maxUnitsPerItem` |
+
+> **Case o item pelo `skuId`, nunca pelo `detail`.** O `detail` é texto de log: sai em inglês e
+> nomeia o item pelo código interno do SKU (`TSM-000014`). Quem escreve a frase para o cliente é o
+> front, que tem nome, cor e tamanho do item no carrinho e sabe em qual tela ele está — no checkout
+> a saída é "volte ao carrinho para remover"; no carrinho, o botão de remover está a dois
+> centímetros do erro.
+>
+> **`PRODUCT_UNAVAILABLE` não é estoque zerado.** Os dois mandam `availableQuantity: 0`, mas um item
+> volta ao estoque amanhã e o outro saiu de linha. Antes do `reason` eram indistinguíveis, e o teto
+> por pedido só se separava dos outros dois por aritmética — inferência que quebrava em silêncio ao
+> mudar o limite.
 
 > ### ⚠️ O `401` tem duas formas — e a diferença importa
 >
@@ -107,7 +126,7 @@ Em coleções, a chave usa índice: `"fields": { "items[0].quantity": "Quantity 
 | `401` | Sem sessão válida | Tentar `POST /auth/refresh`; se falhar, mandar para o login |
 | `403` | Autenticado, mas sem permissão — **ou header CSRF ausente** | Mostrar "sem acesso". **Não** renovar sessão |
 | `404` | Recurso não existe | Página de não encontrado |
-| `409` | Conflito: duplicidade ou estoque | Mostrar `detail`; se houver `availableQuantity`, usar |
+| `409` | Conflito: duplicidade ou estoque | Mostrar `detail`; em estoque, usar `reason`, `skuId` e `availableQuantity` ([§1.3](#13-formato-de-erro-problemdetail-rfc-7807)) |
 | `422` | Campos inválidos | Marcar os campos usando `fields` |
 | `429` | Rate limit ou conta travada | Mostrar `detail`, desabilitar o botão |
 | `500` | Erro do servidor | Mensagem genérica |
@@ -593,7 +612,7 @@ type CartResponse = {
 
 O `/sync` também **ignora em silêncio** SKUs inexistentes ou fora de estoque, em vez de falhar. Compare a resposta com o que você enviou para avisar o usuário do que não entrou.
 
-Erros: `401` · `404` SKU ou item inexistente · `409` estoque (com `availableQuantity`) · `422` campos.
+Erros: `401` · `404` SKU ou item inexistente · `409` estoque (com `reason`, `skuId` e `availableQuantity`) · `422` campos.
 
 ---
 
@@ -640,7 +659,7 @@ Nunca compare com o preço **atual** do produto — ele pode ter mudado depois d
 
 > **O estoque é reservado no checkout e o pedido expira em 30 minutos** (`expiresAt`). Se o pagamento não for confirmado, um scheduler cancela e devolve o estoque. Mostre esse prazo ao usuário.
 
-Erros: `401` · `404` endereço ou SKU · `409` estoque · `422` campos.
+Erros: `401` · `404` endereço ou SKU · `409` estoque (com `reason`, `skuId` e `availableQuantity`) · `422` campos.
 
 ### `GET /api/v1/orders/my-orders`
 

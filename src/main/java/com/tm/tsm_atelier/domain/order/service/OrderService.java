@@ -115,13 +115,14 @@ public class OrderService {
 					.orElseThrow(() -> new ResourceNotFoundException("SKU", skuId));
 
 			if (!sku.getProductColor().getProduct().isActive()) {
-				throw new OutOfStockException("This product is no longer available.", 0);
+				throw new OutOfStockException("This product is no longer available.", 0, sku.getId(),
+						OutOfStockException.Reason.PRODUCT_UNAVAILABLE);
 			}
 
 			if (sku.getStockQuantity() < quantity) {
 				throw new OutOfStockException(
 						"Out of stock for SKU: " + sku.getSkuCode() + ". Available: " + sku.getStockQuantity(),
-						sku.getStockQuantity());
+						sku.getStockQuantity(), sku.getId(), OutOfStockException.Reason.INSUFFICIENT_STOCK);
 			}
 
 			sku.setStockQuantity(sku.getStockQuantity() - quantity);
